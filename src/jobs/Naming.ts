@@ -77,6 +77,8 @@ export default class Naming {
     if (this.config.TRIM_CONTAINER && container) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
     const info = ptt.parse(other);
 
+    if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) delete info.year;
+
     let name = this.config.SCHEME;
 
     const stringKeys = ['title', 'resolution', 'codec', 'source', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
@@ -84,7 +86,6 @@ export default class Naming {
 
     for (const key of stringKeys) {
       if (!(key in info)) continue;
-      if (this.config.NO_YEAR_IN_SEASONS && key === 'year' && 'season' in info) continue;
 
       const matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
 
