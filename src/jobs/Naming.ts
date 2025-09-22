@@ -131,7 +131,7 @@ export default class Naming {
 
     for (const key of booleanKeys) {
       if (info[key] === true) {
-        name = name.replace(`[${key}]`, key);
+        name = name.replace(`[${key}]`, key.toUpperCase());
         if (key === 'extended') other = other.replace(/extended(?:[\s.](?:cut|edition))?/gi, '');
         else if (key === 'openmatte') other = other.replace(/open(?:[\s.]matte)?/gi, '');
         else if (key === 'repack') other = other.replace(/rerip/i, '');
