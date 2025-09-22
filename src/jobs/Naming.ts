@@ -22,8 +22,10 @@ export default class Naming {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
+    console.log('Renaming torrents');
     const naming = new Naming(api, torrents, originalNames);
     await naming.renameAll();
+    console.log('Renamed torrents');
     return naming;
   }
 

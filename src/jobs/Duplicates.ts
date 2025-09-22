@@ -25,12 +25,14 @@ export default class Duplicates {
   }
 
   static async run(api: Qbittorrent, torrents: Torrent[]) {
+    console.log('Removing duplicate torrents');
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
     for (const torrent of deduplicate.torrents) {
       if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
       else await api.delete([torrent.hash]);
     }
+    console.log('Done removing duplicate torrents');
     return deduplicate;
   }
 }
