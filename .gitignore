@@ -3,4 +3,4 @@ node_modules/
 cookies.txt
 *.log
 *.log.bak
-./store/config/
+store/config/*.jsonc
