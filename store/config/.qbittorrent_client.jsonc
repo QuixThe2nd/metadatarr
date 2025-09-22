@@ -1,0 +1,13 @@
+/*
+# Instructions
+1. In qBittorrent, go to Tools > Options > Web UI and enable the Web UI.
+2. Set a username and password for the Web UI.
+3. Ensure the Web UI is accessible at the specified endpoint (e.g., http://localhost:8080).
+4. Update the `ENDPOINT`, `USERNAME`, and `PASSWORD` in this file to match your qBittorrent Web UI settings.
+*/
+
+{
+	"ENDPOINT": "http://localhost:8080",
+	"USERNAME": "admin",
+	"PASSWORD": "password"
+}

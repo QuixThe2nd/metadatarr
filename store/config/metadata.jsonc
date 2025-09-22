@@ -1,0 +1,34 @@
+{
+	/* Local cache of torrents
+  This is primarily for users who use a separate program to download torrents, and want Metadatarr to pick up the torrent files from there.
+  A use case for this is adding back a torrent that was previously deleted from qBittorrent, but the torrent file still exists on disk.
+  */
+	"TORRENT_PATH": "./store/torrents",
+	/*
+	External sources for torrent metadata.
+
+	URLs can be specified with a base URL and an optional suffix
+	Examples:
+	- ["https://example.com/torrent/", ".torrent"] will match https://example.com/torrent/xxxxxxxxxx.torrent
+	- ["https://example.com/torrent/"] will match https://example.com/torrent/xxxxxxxxxx
+
+	WebTorrent DHT does not need to be specified here, as it is used by default and has custom handling in the code.
+	*/
+	"sources": [
+		{
+			"url": ["https://itorrents.org/torrent/", ".torrent"]
+		},
+		{
+			"url": ["https://btcache.me/torrent/"]
+		},
+		{
+			"url": ["https://hash2torrent.com/torrents/"]
+		},
+		{
+			"url": ["https://yts.mx/torrent/download/"]
+		},
+		{
+			"url": ["https://bitsearch.to/download/torrent/"]
+		}
+	]
+}

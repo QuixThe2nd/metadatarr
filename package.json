@@ -1,0 +1,20 @@
+{
+  "name": "metadatarr",
+  "version": "1.0.0",
+  "description": "Like Sonarr for your torrent queue - intelligent automation for power users managing large collections.",
+  "license": "Unlicense",
+  "author": "Parsa Yazdani (Quix)",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "express": "^5.1.0",
+    "jsonc-parser": "^3.3.1",
+    "parse-torrent-title": "file:../parse-torrent-title",
+    "webtorrent": "^2.8.4",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/webtorrent": "^0.110.1"
+  }
+}

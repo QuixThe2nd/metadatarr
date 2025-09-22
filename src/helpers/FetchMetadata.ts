@@ -1,0 +1,47 @@
+import type { Instance } from 'webtorrent';
+import type { Source } from "../config";
+import type { Torrent } from "../services/qBittorrent";
+import { CONFIG } from '../config';
+
+export default class FetchMetadata {
+  private webtorrent: Instance;
+  private hash: string;
+  private magnet_uri: string;
+  private saveMetadata: (hash: string, metadata: Buffer, source: string) => Promise<void>;
+  private sources = CONFIG.METADATA().sources;
+  public readonly state: Promise<void>;
+
+  constructor(webtorrent: Instance, torrent: Torrent, saveMetadata: (hash: string, metadata: Buffer, source: string) => Promise<void>) {
+    this.webtorrent = webtorrent;
+    this.hash = torrent.hash;
+    this.magnet_uri = torrent.magnet_uri;
+    this.saveMetadata = saveMetadata;
+    this.state = this.fetchMetadata();
+  }
+
+  private async fetchMetadata() {
+    console.log(this.hash, "Fetching metadata");
+    await this.fetchWebtorrent();
+    await Promise.all(this.sources.sort(() => Math.random() - 0.5).map(source => this.fetchFromHTTP(source)));
+  }
+
+  private async fetchWebtorrent() {
+    if (await this.webtorrent.get(this.hash)) return;
+    console.log(this.hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
+    this.webtorrent.add(this.magnet_uri, { destroyStoreOnDestroy: false }, torrent => this.saveMetadata(this.hash, torrent.torrentFile, "WebTorrent"));
+  }
+
+  private async fetchFromHTTP(source: Source[number]): Promise<void> {
+    const url = new URL(`${source.url[0]}${this.hash}${source.url[1] ?? ''}`);
+    try {
+      console.log(this.hash, `\x1b[34m[${url.hostname}]\x1b[0m Fetching metadata`);
+      const response = await fetch(url);
+      if (response.status === 404) console.warn(this.hash, `[${url.hostname}] No metadata found`);
+      else if (!response.ok) console.warn(this.hash, `[${url.hostname}] Failed to fetch metadata - ${response.status} ${response.statusText}`);
+      else if (response.headers.get("content-type")?.startsWith("text/html")) console.warn(this.hash, `[${url.hostname}] Invalid response type - ${response.headers.get("content-type")}`);
+      else this.saveMetadata(this.hash, Buffer.from(await response.arrayBuffer()), url.hostname).catch(console.error);
+    } catch (e) {
+      console.warn(this.hash, `[${url.hostname}] An error occurred`, (e as Error).cause);
+    }
+  }
+}

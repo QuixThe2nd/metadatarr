@@ -1,0 +1,18 @@
+{
+	/*
+  Automatically resume completed torrents that are stopped without rechecking.
+  */
+	"RESUME_COMPLETED": true,
+	/*
+  Automatically recheck torrents with missing files.
+  */
+	"RECHECK_MISSING": true,
+	/*
+	Resume torrents that are over 95% complete (set to 100 to disable)
+	*/
+	"RESUME_ALMOST_FINISHED_THRESHOLD": 0.95,
+	/*
+	Force all torrents to download in sequential order
+	*/
+	"FORCE_SEQUENTIAL_DOWNLOAD": true
+}

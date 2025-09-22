@@ -1,0 +1,17 @@
+import fs from 'fs';
+import path from 'path';
+import type { Instance } from "webtorrent";
+import { CONFIG } from "../config";
+import type Qbittorrent from "../services/qBittorrent";
+
+export default class SaveMetadata {
+  constructor(private readonly api: Qbittorrent, private readonly webtorrent: Instance, private readonly torrentPath = CONFIG.METADATA().TORRENT_PATH) {}
+
+  async save(hash: string, metadata: Buffer, source: string) {
+    if (!await this.api.add(metadata)) fs.writeFileSync(path.join(this.torrentPath, `/${hash}_${source}.torrent`), metadata);
+    if (await this.webtorrent.get(hash)) {
+      await this.webtorrent.remove(hash);
+      console.log(hash, '\x1b[34m[WebTorrent]\x1b[0m Killed');
+    }
+  }
+}

@@ -1,0 +1,102 @@
+import fs from 'fs';
+import JSONC from 'jsonc-parser';
+import { z } from 'zod';
+
+const QbittorrentClientSchema = z.object({
+  ENDPOINT: z.url(),
+  USERNAME: z.string().min(1),
+  PASSWORD: z.string().min(1)
+});
+
+const MetadataSchema = z.object({
+  TORRENT_PATH: z.string().min(1),
+  sources: z.array(z.object({
+    url: z.tuple([z.string().url(), z.union([z.string(), z.void()])])
+  }))
+});
+
+const BaseSortMethodSchema = z.object({ direction: z.enum(["ASC", "DESC"]) });
+
+const SortMethodsSchema = z.union([
+  BaseSortMethodSchema.extend({ key: z.enum(["SIZE", "COMPLETED", "PRIVATE", "PROGRESS", "NO_METADATA", "REMAINING"]) }),
+  BaseSortMethodSchema.extend({ key: z.literal("NAME_CONTAINS"), searchString: z.string().min(1) }),
+  BaseSortMethodSchema.extend({ key: z.literal("TAGS"), tags: z.array(z.string().min(1)).min(1) }),
+  BaseSortMethodSchema.extend({ key: z.literal("CATEGORIES"), categories: z.array(z.string().min(1)).min(1) }),
+  BaseSortMethodSchema.extend({ key: z.literal("PRIORITY_TAG"), prefix: z.string().min(1) }),
+  BaseSortMethodSchema.extend({ key: z.literal("PROGRESS_THRESHOLD"), threshold: z.number().min(0).max(1) })
+]);
+
+const SortConfigSchema = z.object({
+  SORT: z.literal(true),
+  MOVE_DELAY: z.number().int().nonnegative(),
+  RESORT_STEP: z.number().int().nonnegative(),
+  RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
+  RESORT_STEP_CALLS: z.number().int().nonnegative(),
+  METHODS: z.array(SortMethodsSchema),
+  CHECKING_METHODS: z.array(SortMethodsSchema),
+  MOVING_METHODS: z.array(SortMethodsSchema),
+  MOVE_STOPPED: z.number(),
+  PERSISTENT_MOVES: z.boolean()
+});
+
+const DuplicatesSchema = z.object({
+  DOWNLOADS_ONLY: z.boolean(),
+  TIE_BREAKERS: z.array(SortMethodsSchema),
+  IGNORE_TAG: z.string(),
+  PREFER_UPLOADING: z.boolean()
+});
+
+const NamingConfigSchema = z.object({
+  SCHEME: z.string(),
+  REPLACE: z.array(z.tuple([z.string(), z.string()])),
+  FIX_BAD_GROUPS: z.array(z.string()),
+  TAG_FAILED_PARSING: z.boolean(),
+  RENAME_FILES: z.boolean(),
+  TRIM_CONTAINER: z.boolean(),
+  SKIP_IF_UNKNOWN: z.boolean(),
+  REMOVE_DOMAINS: z.boolean(),
+  NO_YEAR_IN_SEASONS: z.boolean(),
+  REMOVE_TLDS: z.array(z.string()),
+  RECHECK_ON_RENAME: z.boolean(),
+  FORCE_SAME_DIRECTORY_NAME: z.boolean(),
+  SPACING: z.string().length(1),
+  TORRENTS_DIR: z.string()
+});
+
+export type NamingConfig = z.infer<typeof NamingConfigSchema>
+
+const TorrentsSchema = z.object({
+  RESUME_COMPLETED: z.boolean(),
+  RECHECK_MISSING: z.boolean(),
+  RESUME_ALMOST_FINISHED_THRESHOLD: z.number(),
+  FORCE_SEQUENTIAL_DOWNLOAD: z.boolean()
+});
+
+const QueueSchema = z.object({
+  QUEUE_SIZE_LIMIT: z.number(),
+  HARD_QUEUE_SIZE_LIMIT: z.boolean(),
+  INCLUDE_MOVING_TORRENTS: z.boolean()
+});
+
+export type Source = z.infer<typeof MetadataSchema>['sources'];
+export type SortMethods = z.infer<typeof SortMethodsSchema>;
+
+function parseConfigFile<T>(filePath: string, schema: z.ZodSchema<T>): T {
+  try {
+    return schema.parse(JSONC.parse(fs.readFileSync(filePath, 'utf8')));
+  } catch (e) {
+    if (e instanceof z.ZodError) console.error(`Invalid configuration in ${filePath}: ${e.message}`);
+    else console.error(`Invalid config, failed to parse ${filePath}`, e);
+    process.exit(1);
+  }
+}
+
+export const CONFIG = {
+  CLIENT: () => parseConfigFile('./store/config/.qbittorrent_client.jsonc', QbittorrentClientSchema.strict()),
+  METADATA: () => parseConfigFile('./store/config/metadata.jsonc', MetadataSchema.strict()),
+  TORRENTS: () => parseConfigFile('./store/config/torrents.jsonc', TorrentsSchema.strict()),
+  SORT: () => parseConfigFile('./store/config/sort.jsonc', SortConfigSchema.strict()),
+  NAMING: () => parseConfigFile('./store/config/naming.jsonc', NamingConfigSchema.strict()),
+  DUPLICATES: () => parseConfigFile('./store/config/duplicates.jsonc', DuplicatesSchema.strict()),
+  QUEUE: () => parseConfigFile('./store/config/queue.jsonc', QueueSchema.strict()),
+};

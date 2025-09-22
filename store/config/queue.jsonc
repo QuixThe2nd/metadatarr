@@ -1,0 +1,17 @@
+{
+	/*
+  Size limit of queue in GB (set to 0 to disable)
+	Auto adjusts queue size to ensure that the total size of downloading torrents does not exceed 128 GB.
+	*/
+	"QUEUE_SIZE_LIMIT": 128,
+	/*
+	Assuming QUEUE_SIZE_LIMIT is set to 128, and you are downloading 127GB of torrent with a 2GB torrent in queue:
+	If true, the 2GB torrent will not start downloading until there is less than 126GB of active downloads.
+	If false, the 2GB torrent will start downloading as 128GB is not exceeded, resulting in a total of 129GB downloading.
+	*/
+	"HARD_QUEUE_SIZE_LIMIT": false,
+  /*
+  Whether or not to include torrents that are being moved in the queue size calculation.
+  */
+  "INCLUDE_MOVING_TORRENTS": true
+}

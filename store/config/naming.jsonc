@@ -1,0 +1,61 @@
+{
+	/*
+	Naming scheme for renaming torrents.
+	Only applicable tags are applied. This means the same config can apply to all media types (e.g. movies without episodes work fine with `[episode]` defined).
+	Names will be automatically cleaned. For example if you specify ([year]), but [year] is undefined for a torrent, the brackets around it won't be included.
+
+	Most available tags are included in the default naming scheme with the following exceptions:
+	- Use [other] if you want to capture any unmatched data in the filename
+	- Use [container] if you want to capture the container (mkv, mp4, etc.)
+
+	[!WARNING] Using minimal naming schemes increases the risk of torrent name conflicts if you download similar torrents. Consider including `[resolution]`, `[source]`, or `[group]` tags to differentiate between multiple releases of the same content.
+
+	Examples
+	Basic:
+	- Schema: [title] ([year]) [resolution]
+	- Output: Shrek 2 (2004) 1080p
+	Balances:
+	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
+	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
+	*/
+	"SCHEME": "[title] ([year]) [extended] [remastered] [unrated] [season][episode] [[resolution] [service] [source] [remux]] [proper] [repack] - [codec] [samplerate] [bitdepth] [audio] [channels] [language] - [group][[tracker]]",
+	// Separator between different fields
+	"SPACING": " ",
+	/* Find and replace strings in the name
+  Optionally supports regex
+  Example:
+    ["x265|h265", "HEVC"]
+  */
+	"REPLACE": [
+		["\\b5 1\\b", "5.1"],
+		["\\b7 1\\b", "7.1"]
+	],
+	// Fix common mistakes in group names
+	"FIX_BAD_GROUPS": ["GPRS", "ESiR", "STRiFE", "NiSHKRiY0", "FanTAHD", "KOGi", "FLUX", "ARCADE", "PiRaTeS", "EDITH", "playWEB", "SADPANA", "iVy", "ViSUM", "Yassmiso", "Kitsune", "MZABI", "PHOENiX", "ION10", "BS", "EDGE2020", "NTb", "BAE", "TiMELORDS", "ETRG", "KiNGS", "CMRG", "EVO", "RegEdits", "LAMA", "LEGi0N", "POIASD", "BiOMA", "SiGMA", "OFT", "WADU", "SADPANDA", "CRFW", "ShinZoku", "SHORTBREHD", "Tigole", "RAWR", "edge2020", "NTG", "TURG", "Yuki", "SiNNERS", "Vyndros", "PiGNUS", "THEVOiD", "NOSiViD", "hallowed", "Rajput42", "ETHEL", "successfulcrab", "iSlaNd", "cakes", "SiMPLE", "BHDStudio", "PFa", "YAWNTiC", "rttr", "DiMEPiECE", "PMEDIA", "BlessUp", "FHC", "BTN", "BLOOM", "SPARKS", "XEBEC", "AndreMor", "aAF", "FLAME", "THR", "SWAXXON", "CUPCAKES", "NiXON", "TheWretched", "eSc", "YAWNiX", "TAoE", "VEXED", "AccomplishedYak", "VietHD", "d3g", "TOMMY", "FilmHD", "ENRiCH", "playHD", "orbitron", "TEPES", "Dooky", "CasStudio", "JAMTARTS", "LiNKLE", "TASTETV", "WRE", "NRS", "G66", "MAHOU", "iNSiDiOUS", "FLX", "J91", "FreetheFish", "SPirate", "EzzRips", "HETeam", "HONE", "SLiMSHADY", "PERFECT", "AUDiOFiLE", "seedpool", "UTR"],
+	// If true, will rename files based on the naming scheme
+	"RENAME_FILES": true,
+	// If true, will remove domain names from titles
+	"REMOVE_DOMAINS": true,
+	// If true, will add a tag to any torrents that had unknown metadata
+	"TAG_FAILED_PARSING": true,
+	// Do not rename if there are any unknown tags in the name
+	"SKIP_IF_UNKNOWN": true,
+	// Trim container (.mkv, .mp4, etc) from end of title
+	"TRIM_CONTAINER": true,
+	// List of known TLDs to remove from titles if REMOVE_DOMAINS is true
+	"REMOVE_TLDS": ["com", "net", "org", "io", "co", "us", "uk", "me", "tv", "gg", "in", "info", "biz", "online", "site", "tech", "to", "cc"],
+	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"
+	"NO_YEAR_IN_SEASONS": true,
+	// If true, will recheck the torrent after renaming
+	"RECHECK_ON_RENAME": true,
+	// Renames the directory to match the torrent name
+	"FORCE_SAME_DIRECTORY_NAME": true,
+	/*
+	It is recommended that in qBittorrent, you configure "Copy .torrent files to:" and set the same path here.
+	Torrents in this folder will be used to keep track of original filenames.
+	Metadatarr will only ever read from this directory, never write to it.
+	This is completely optional, but it improves rename accuracy in-case of errors caused by re-runs.
+	To disable this, leave it as an empty string "".
+	*/
+	"TORRENTS_DIR": "/Users/parsa/Downloads/Torrents"
+}
