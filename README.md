@@ -39,7 +39,6 @@ When qBittorrent only has magnet links, it can't see filenames, sizes, etc until
 - **Multi-Source Fetching**: WebTorrent DHT, HTTP Endpoints, & Web Scraping
 - **Automatic Retry**: Periodically checks old torrents to find newly available metadata
 - **Local Torrent Import**: Scans configured directories for new .torrent files
-- **Puppeteer Integration**: Supports custom web-scraping logic
 
 ### Cross-Seed Integration
 Integrates with [Cross-Seed](https://cross-seed.org) so when it finds the same release on a private tracker, Metadatarr auto-removes the public tracker instance.
@@ -53,6 +52,17 @@ git clone https://github.com/QuixThe2nd/metadatarr
 cd metadatarr
 npm install
 ```
+
+### Note
+Metadatarr uses [PTT](https://github.com/clement-escolano/parse-torrent-title) as a core dependency for automated renaming.
+
+However since Metadatarr is currently under heavy development, I maintain a [fork](https://github.com/QuixThe2nd/parse-torrent-title). The fork fixes many unsolved edge cases in the original library as well as includes new flags and handlers, however this fork has many un-reviewed changes and may result in false positives. These false positives are only ever temporary, meaning once they're patched, any false renames caused by them will be undone (assuming you setup `TORRENTS_DIR` in `naming.jsonc`).
+
+For now, while both PTT and Metadatarr face several major changes, you must choose which fork you'd like to use. Either my fork with more handlers but more false positives, or the original with less handlers but less false positives.
+
+After you've chosen the fork you'd like to use, you must `git clone` the fork to the same directory Metadatarr has been cloned to, so you must have a `metadatarr` and a `parse-torrent-title` next to each other.
+
+This is temporary. Metadatarr will eventually migrate to using the primary repo once majority of edge cases are solved.
 
 ### Configure
 1. Once installed, copy `./store/config_template` to `./store/config`. **Do not** change `config_template/`, all configuration changes should be applied to `config/`.
