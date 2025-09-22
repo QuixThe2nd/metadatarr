@@ -43,6 +43,7 @@ export default class Queue {
             i--;
           }
         }
+        if (maxActiveDownloads < 1) maxActiveDownloads = 1;
         if (maxActiveDownloads !== preferences.max_active_downloads) {
           console.log(`\x1b[32m[qBittorrent]\x1b[0m Setting maximum active downloads to ${maxActiveDownloads}`);
           await this.api.setPreferences({ max_active_downloads: maxActiveDownloads });
