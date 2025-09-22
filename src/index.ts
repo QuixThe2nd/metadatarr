@@ -1,5 +1,5 @@
 import './log.ts';
-import { CONFIG } from './config.ts';
+import { CONFIG, testConfig } from './config.ts';
 import WebTorrent from 'webtorrent';
 import { startServer } from './services/server.ts';
 import Qbittorrent from "./services/qBittorrent.ts";
@@ -11,6 +11,8 @@ import Sort from "./jobs/Sort.ts";
 import Duplicates from "./jobs/Duplicates.ts";
 import Metadata from "./jobs/Metadata.ts";
 import Queue from './jobs/Queue.ts';
+
+testConfig()
 
 console.log('Starting WebTorrent');
 const webtorrent = new WebTorrent({ downloadLimit: 1024 });

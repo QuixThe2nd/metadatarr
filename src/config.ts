@@ -100,3 +100,9 @@ export const CONFIG = {
   DUPLICATES: () => parseConfigFile('./store/config/duplicates.jsonc', DuplicatesSchema.strict()),
   QUEUE: () => parseConfigFile('./store/config/queue.jsonc', QueueSchema.strict()),
 };
+
+export const testConfig = () => {
+  for (const config of Object.values(CONFIG)) {
+    config()
+  }
+}
