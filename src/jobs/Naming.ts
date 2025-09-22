@@ -77,9 +77,12 @@ export default class Naming {
     if (this.config.TRIM_CONTAINER && container) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
     const info = ptt.parse(other);
 
-    if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) delete info.year;
-
     let name = this.config.SCHEME;
+
+    if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) {
+      name = name.replace(String(info.year), '')
+      delete info.year;
+    }
 
     const stringKeys = ['title', 'resolution', 'codec', 'source', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
     const booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated'] as const;
