@@ -90,6 +90,8 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 
 ## TODO:
 Add feature:
+- Download shows in order (s01e01 before s01e02 before s02)
+- Delete torrents with completed=0 matching certain strings (so i can delete individual episodes before they download so no HnR and keep only season pack)
 - Make job-run delay configurable
 - Incremental backoff on metadata fetches
 - Web Dashboard
