@@ -26,7 +26,11 @@ export default class ImportMetadataFiles {
   async importFile(dir: string, file: string) {
     if (!file.endsWith('.torrent')) return;
     const torrentFile = fs.readFileSync(dir + "/" + file);
-    const metadata = await parseTorrent(torrentFile);
-    await this.saveMetadata(metadata.infoHash!, torrentFile, 'Local');
+    try {
+      const metadata = await parseTorrent(torrentFile);
+      await this.saveMetadata(metadata.infoHash!, torrentFile, 'Local');
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
