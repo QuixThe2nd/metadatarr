@@ -2,6 +2,50 @@ import { type SortMethods, CONFIG } from "../config";
 import type Qbittorrent from "../services/qBittorrent";
 import type { Torrent } from "../services/qBittorrent";
 
+type Direction = "ASC" | "DESC";
+
+export class SortEngine {
+  private static strategies = {
+    SIZE: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.size),
+    COMPLETED: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.completed ?? 0),
+    PROGRESS: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.progress),
+    REMAINING: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.amount_left ?? 0),
+    PRIVATE: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.private),
+    NAME_CONTAINS: (torrents: Torrent[], direction: Direction, search: String) => this.booleanSort(torrents, direction, t => t.name.toLowerCase().includes(search.toLowerCase())),
+    TAGS: (torrents: Torrent[], direction: Direction, tags: string[]) => this.booleanSort(torrents, direction, t => t.tags.split(", ").filter(item => tags.includes(item)).length !== 0),
+    NO_METADATA: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.size <= 0),
+    PRIORITY_TAG: (torrents: Torrent[], direction: Direction, prefix: string) => this.numericSort(torrents, direction, t => {
+      const priority = Number(t.tags.split(", ").find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
+      return Number.isNaN(priority) ? 50 : priority;
+    }),
+    CATEGORIES: (torrents: Torrent[], direction: Direction, categories: string[]) => this.booleanSort(torrents, direction, t => categories.includes(t.category ?? "")),
+    PROGRESS_THRESHOLD: (torrents: Torrent[], direction: Direction, threshold: number) => this.booleanSort(torrents, direction, t => t.progress > threshold),
+  }
+
+  static sort(torrents: Torrent[], sortMethod: SortMethods): Torrent[] {
+    if (sortMethod.key === 'NAME_CONTAINS') return this.strategies.NAME_CONTAINS(torrents, sortMethod.direction, sortMethod.searchString);
+    else if (sortMethod.key === 'TAGS') return this.strategies.TAGS(torrents, sortMethod.direction, sortMethod.tags);
+    else if (sortMethod.key === 'PRIORITY_TAG') return this.strategies.PRIORITY_TAG(torrents, sortMethod.direction, sortMethod.prefix);
+    else if (sortMethod.key === 'CATEGORIES') return this.strategies.CATEGORIES(torrents, sortMethod.direction, sortMethod.categories);
+    else if (sortMethod.key === 'PROGRESS_THRESHOLD') return this.strategies.PROGRESS_THRESHOLD(torrents, sortMethod.direction, sortMethod.threshold);
+    else return this.strategies[sortMethod.key](torrents, sortMethod.direction);
+  }
+
+  private static numericSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => number) {
+    const multiplier = direction === "DESC" ? -1 : 1;
+    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
+  }
+
+  private static booleanSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => boolean | null) {
+    const multiplier = direction === "DESC" ? -1 : 1;
+    return [...torrents].sort((a, b) => {
+      return (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier;
+    });
+  }
+
+  private static getNumericValue = (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2;
+}
+
 export default class Sort {
   private readonly config = CONFIG.SORT();
 
@@ -13,46 +57,6 @@ export default class Sort {
     return sort;
   }
 
-  static sortMethod(torrents: Torrent[], sort: SortMethods) {
-    const multiplier = sort.direction === "DESC" ? -1 : 1;
-    if (sort.key === "SIZE") return torrents.sort((a, b) => (a.size - b.size)*multiplier);
-    else if (sort.key === "COMPLETED") return torrents.sort((a, b) => ((a.completed ?? 0) - (b.completed ?? 0))*multiplier);
-    else if (sort.key === "PROGRESS") return torrents.sort((a, b) => ((a.progress ?? 0) - (b.progress ?? 0))*multiplier);
-    else if (sort.key === "REMAINING") return torrents.sort((a, b) => ((a.amount_left ?? 0) - (b.amount_left ?? 0))*multiplier);
-    else if (sort.key === "PRIVATE") return torrents.sort((a, b) => {
-      const getValue = (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2;
-      return (getValue(a.private) - getValue(b.private))*multiplier;
-    }); else if (sort.key === "PRIORITY_TAG") return torrents.sort((a, b) => {
-      const tagA = Number(a.tags.split(", ").find(tag => tag.startsWith(sort.prefix))?.replace(sort.prefix, ''))
-      const tagB = Number(b.tags.split(", ").find(tag => tag.startsWith(sort.prefix))?.replace(sort.prefix, ''))
-      return ((Number.isNaN(tagA) ? 50 : tagA) - (Number.isNaN(tagB) ? 50 : tagB))*multiplier;
-    }); else if (sort.key === "NAME_CONTAINS") return torrents.sort((a, b) => {
-      const getValue = (val: boolean): number => val === false ? 0 : val === null ? 1 : 2;
-      return (getValue(a.name.toLowerCase().includes(sort.searchString.toLowerCase())) - getValue(b.name.toLowerCase().includes(sort.searchString.toLowerCase())))*multiplier;
-    }); else if (sort.key === "CATEGORIES") return torrents.sort((a, b) => {
-      const aHasCategory = sort.categories.includes(a.category ?? "");
-      const bHasCategory = sort.categories.includes(b.category ?? "");
-      if (aHasCategory && !bHasCategory) return -1*multiplier;
-      if (!aHasCategory && bHasCategory) return 1*multiplier;
-      return 0;
-    }); else if (sort.key === "TAGS") return torrents.sort((a, b) => {
-      const aHasTag = a.tags.split(", ").filter(item => sort.tags.includes(item)).length !== 0;
-      const bHasTag = b.tags.split(", ").filter(item => sort.tags.includes(item)).length !== 0;
-      if (aHasTag && !bHasTag) return -1*multiplier;
-      if (!aHasTag && bHasTag) return 1*multiplier;
-      return 0;
-    }); else if (sort.key === "NO_METADATA") return torrents.sort((a, b) => {
-      if (a.size <= 0 && b.size > 0) return -1*multiplier;
-      if (a.size > 0 && b.size <= 0) return 1*multiplier;
-      return 0;
-    }); else if (sort.key === "PROGRESS_THRESHOLD") return torrents.sort((a, b) => {
-      const getValue = (val: number): number => val > sort.threshold ? 1 : 0;
-      return (getValue(a.progress) - getValue(b.progress))*multiplier;
-    });
-    console.error('Unknown sort key');
-    return torrents;
-  }
-
   private async sortTorrents() {
     if (!this.config.SORT) return;
     let moves = 0;
@@ -62,13 +66,13 @@ export default class Sort {
         // This is needed to ensure sorts are consistent. Otherwise order could be different every run if 2 torrents have the same priority as defined by sort this.config.
         .sort((a, b) => a.hash.localeCompare(b.hash));
 
-      for (const sort of this.config.METHODS) torrents = Sort.sortMethod(torrents, sort);
+      for (const sort of this.config.METHODS) torrents = SortEngine.sort(torrents, sort);
       let checkingTorrents = torrents.filter(torrent => torrent.state === "checkingUP" || torrent.state === "checkingDL");
-      for (const sort of this.config.CHECKING_METHODS) checkingTorrents = Sort.sortMethod(checkingTorrents, sort);
+      for (const sort of this.config.CHECKING_METHODS) checkingTorrents = SortEngine.sort(checkingTorrents, sort);
       let movingTorrents = torrents.filter(torrent => torrent.state === "moving");
-      for (const sort of this.config.MOVING_METHODS) movingTorrents = Sort.sortMethod(movingTorrents, sort);
+      for (const sort of this.config.MOVING_METHODS) movingTorrents = SortEngine.sort(movingTorrents, sort);
       const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving");
-      torrents = [...movingTorrents, ...activeTorrents, ...checkingTorrents].sort((a, b) => {
+      torrents = [...activeTorrents, ...checkingTorrents, ...movingTorrents].sort((a, b) => {
         const aStopped = a.state.startsWith('stopped') ? 1 : 0;
         const bStopped = b.state.startsWith('stopped') ? 1 : 0;
         return (aStopped - bStopped)*this.config.MOVE_STOPPED;

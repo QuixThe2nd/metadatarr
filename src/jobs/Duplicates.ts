@@ -1,7 +1,7 @@
 import { CONFIG } from "../config";
 import type Qbittorrent from "../services/qBittorrent";
 import type { Torrent } from "../services/qBittorrent";
-import Sort from "./Sort";
+import { SortEngine } from "./Sort";
 
 export default class Duplicates {
   private readonly config = CONFIG.DUPLICATES();
@@ -19,7 +19,7 @@ export default class Duplicates {
       if (!AUploading && BUploading) return 1;
       return 0;
     });
-    for (const sort of this.config.TIE_BREAKERS) torrents = Sort.sortMethod(torrents, sort);
+    for (const sort of this.config.TIE_BREAKERS) torrents = SortEngine.sort(torrents, sort);
 
     this.torrents = torrents;
   }
