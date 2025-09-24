@@ -4,3 +4,4 @@ cookies.txt
 *.log
 *.log.bak
 store/config/*.jsonc
+store/torrents/*.torrent
