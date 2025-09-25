@@ -72,7 +72,7 @@ export default class Sort {
       let movingTorrents = torrents.filter(torrent => torrent.state === "moving");
       for (const sort of this.config.MOVING_METHODS) movingTorrents = SortEngine.sort(movingTorrents, sort);
       const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving");
-      torrents = [...activeTorrents, ...checkingTorrents, ...movingTorrents].sort((a, b) => {
+      torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents].sort((a, b) => {
         const aStopped = a.state.startsWith('stopped') ? 1 : 0;
         const bStopped = b.state.startsWith('stopped') ? 1 : 0;
         return (aStopped - bStopped)*this.config.MOVE_STOPPED;
