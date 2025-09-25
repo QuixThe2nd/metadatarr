@@ -90,7 +90,13 @@ export default class Naming {
     for (const key of stringKeys) {
       if (!(key in info)) continue;
 
-      const matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
+      let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
+
+      // Filter redundant values
+      if (key === 'audio') {
+        if (matches.includes('h264') && matches.includes('x264')) matches = matches.filter(match => match !== 'h264');
+        else if (matches.includes('h265') && matches.includes('x265')) matches = matches.filter(match => match !== 'h265');
+      }
 
       // Places matches in new name
       name = name.replaceAll(`[${key}]`, matches.map(value => 
