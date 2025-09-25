@@ -75,7 +75,8 @@ const TorrentsSchema = z.object({
 const QueueSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number(),
   HARD_QUEUE_SIZE_LIMIT: z.boolean(),
-  INCLUDE_MOVING_TORRENTS: z.boolean()
+  INCLUDE_MOVING_TORRENTS: z.boolean(),
+  EXCLUDE_CATEGORIES: z.array(z.string())
 });
 
 export type Source = z.infer<typeof MetadataSchema>['sources'];

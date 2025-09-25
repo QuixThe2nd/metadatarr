@@ -16,7 +16,7 @@ export default class Queue {
   async update() {
     if (this.config.QUEUE_SIZE_LIMIT) {
       const queuedTorrents = this.torrents.filter(torrent => torrent.state === 'queuedDL');
-      const downloadingTorrents = this.torrents.filter(torrent => torrent.state === 'downloading' || torrent.state === 'forcedDL');
+      const downloadingTorrents = this.torrents.filter(torrent => (torrent.state === 'downloading' || torrent.state === 'forcedDL') && !this.config.EXCLUDE_CATEGORIES.includes(torrent.category ?? ''));
       const relatedTorrents = [...queuedTorrents, ...downloadingTorrents];
       let downloadingSize = downloadingTorrents.map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);
       if (this.config.INCLUDE_MOVING_TORRENTS) downloadingSize += this.torrents.filter(torrent => torrent.state === 'moving').map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);

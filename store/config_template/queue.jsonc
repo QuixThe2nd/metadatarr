@@ -10,8 +10,12 @@
 	If false, the 2GB torrent will start downloading as 128GB is not exceeded, resulting in a total of 129GB downloading.
 	*/
 	"HARD_QUEUE_SIZE_LIMIT": true,
-  /*
+	/*
   Whether or not to include torrents that are being moved in the queue size calculation.
   */
-  "INCLUDE_MOVING_TORRENTS": true
+	"INCLUDE_MOVING_TORRENTS": true,
+	/*
+	Exclude categories from queue size calculation
+	*/
+	"EXCLUDE_CATEGORIES": ["cross-seed-links"]
 }
