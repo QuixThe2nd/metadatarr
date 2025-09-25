@@ -83,6 +83,8 @@ export type Source = z.infer<typeof MetadataSchema>['sources'];
 export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
 function parseConfigFile<T>(filePath: string, schema: z.ZodSchema<T>): T {
+  if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, fs.readFileSync(filePath.replace('/config/', '/config_template/')));
+
   try {
     return schema.parse(JSONC.parse(fs.readFileSync(filePath, 'utf8')));
   } catch (e) {
