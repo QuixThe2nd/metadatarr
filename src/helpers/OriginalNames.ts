@@ -30,6 +30,7 @@ export default class OriginalNames {
   }
 
   private async saveName(dir: string, file: string) {
+    if (!file.endsWith('.torrent')) return;
     const filePath = path.join(dir, file);
     const metadata = await parseTorrent(fs.readFileSync(filePath));
     this.names[metadata.infoHash!] = metadata.name as string;
