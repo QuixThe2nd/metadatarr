@@ -97,7 +97,7 @@ export default class Qbittorrent {
   public rename = (hash: string, name: string) => this.torrentMethod('rename', hash, { name });
   public renameFile = async (hash: string, oldPath: string, newPath: string) => {
     const result = await this.torrentMethod('renameFile', hash, { oldPath, newPath });
-    if (CONFIG.NAMING().RECHECK_ON_RENAME) await this.recheck([hash]);
+    if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck([hash]);
     return result;
   }
   public toggleSequentialDownload = (hashes: string[]) => this.torrentMethod('toggleSequentialDownload', hashes);
