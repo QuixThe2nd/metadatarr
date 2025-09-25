@@ -1,7 +1,7 @@
 // Remove duplicate torrents based on name
 {
   // Remove only duplicates that are not completed - Recommended if cross-seeding
-  "DOWNLOADS_ONLY": false,
+  "DOWNLOADS_ONLY": true,
 
   // Ignore torrents with this tag
   "IGNORE_TAG": "cross-seed",
@@ -13,14 +13,14 @@
   See options in sort.jsonc for a list of tie breakers
   */
   "TIE_BREAKERS": [
-		{
-			"key": "PROGRESS",
-			"direction": "DESC"
-		},
-		{
-			"key": "PRIVATE",
-			"direction": "DESC"
-		}
+  {
+    "key": "PROGRESS",
+    "direction": "DESC"
+  },
+  {
+    "key": "PRIVATE",
+    "direction": "DESC"
+  }
   ],
 
   // HIGHLY RECOMMENDED IF DOWNLOAD_ONLY IS OFF: If enabled, will prefer torrents that are seeding over those that are not

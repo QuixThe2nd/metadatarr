@@ -57,5 +57,5 @@
 	This is completely optional, but it improves rename accuracy in-case of errors caused by re-runs.
 	To disable this, leave it as an empty string "".
 	*/
-	"TORRENTS_DIR": "/Users/parsa/Downloads/Torrents"
+	"TORRENTS_DIR": "/torrents"
 }
