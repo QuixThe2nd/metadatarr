@@ -64,6 +64,9 @@ After you've chosen the fork you'd like to use, you must `git clone` the fork to
 
 This is temporary. Metadatarr will eventually migrate to using the primary repo once majority of edge cases are solved.
 
+## Docker
+To run via Docker, copy `./Dockerfile` and `./docker-compose.yml` to a folder called `metadatarr` and run `docker compose up -d`.
+
 ### Configure
 1. Once installed, copy `./store/config_template` to `./store/config`. **Do not** change `config_template/`, all configuration changes should be applied to `config/`.
 2. Go to `./store/config/.qbittorrent_client.jsonc` and set your qBittorrent Web UI credentials.

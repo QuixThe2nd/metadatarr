@@ -1,0 +1,11 @@
+services:
+  metadatarr:
+    build: .
+    container_name: metadatarr
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/store/config
+      - /mnt/external/qBittorrent/Torrents:/torrents
+    ports:
+      - 9191:9090
+networks: {}
