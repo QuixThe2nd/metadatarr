@@ -1,7 +1,7 @@
 // Remove duplicate torrents based on name
 {
-  // Remove only duplicates that are not completed - Recommended if cross-seeding
-  "DOWNLOADS_ONLY": true,
+  // Remove only duplicates that are not completed
+  "DOWNLOADS_ONLY": false,
 
   // Ignore torrents with this tag
   "IGNORE_TAG": "cross-seed",
