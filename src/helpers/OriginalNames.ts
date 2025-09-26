@@ -13,7 +13,7 @@ export default class OriginalNames {
     if (!originalNames.dir.length) return { names: {} };
     await originalNames.scanDirectory();
     fs.watch(originalNames.dir, (_, filename) => {
-      if (filename) originalNames.saveName(originalNames.dir, filename).catch(console.error);
+      if (filename) originalNames.saveName(originalNames.dir, filename);
     });
     return originalNames;
   }
@@ -27,7 +27,7 @@ export default class OriginalNames {
     console.log(`Scan: 0% complete (0 of ${totalFiles})`)
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
-      await this.saveName(this.dir, file)
+      this.saveName(this.dir, file)
       const currentPercent = Math.floor((i + 1) / totalFiles * 1000)/10;
       if (currentPercent > lastLoggedPercent) {
         process.stdout.write(`\rScan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
@@ -37,10 +37,11 @@ export default class OriginalNames {
     console.log('Scanned torrent name directory');
   }
 
-  private async saveName(dir: string, file: string) {
+  private saveName(dir: string, file: string) {
     if (!file.endsWith('.torrent')) return;
     const filePath = path.join(dir, file);
-    const metadata = await parseTorrent(fs.readFileSync(filePath));
-    this.names[metadata.infoHash!] = metadata.name as string;
+    parseTorrent(fs.readFileSync(filePath)).then(metadata => {
+      this.names[metadata.infoHash!] = metadata.name as string;
+    }).catch(console.error);
   }
 }
