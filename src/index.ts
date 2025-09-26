@@ -46,5 +46,5 @@ while (true) {
   console.log('Running jobs')
   await fetchTorrents();
   console.log('Done running jobs')
-  await new Promise(res => setTimeout(res, 60_000));
+  await new Promise(res => setTimeout(res, 10_000));
 }
