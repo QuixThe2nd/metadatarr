@@ -21,10 +21,17 @@ export default class OriginalNames {
   private async scanDirectory() {
     console.log('Scanning torrent name directory');
     const files = fs.readdirSync(this.dir)
+    const totalFiles = files.length;
+    let lastLoggedPercent = 0;
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       await this.saveName(this.dir, file)
-      if (i % 500 === 0) console.log(`Scan: ${i} of ${files.length} complete`);
+      const currentPercent = Math.floor((i + 1) / totalFiles * 100);
+      if (currentPercent > lastLoggedPercent) {
+        process.stdout.write(`${lastLoggedPercent !== 0 ? '\r' : ''}Scan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
+        lastLoggedPercent = currentPercent;
+      }
     }
     console.log('Scanned torrent name directory');
   }
