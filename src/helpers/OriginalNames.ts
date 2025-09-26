@@ -27,7 +27,7 @@ export default class OriginalNames {
     console.log(`Scan: 0% complete (0 of ${totalFiles})`)
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
-      this.saveName(this.dir, file)
+      await this.saveName(this.dir, file)
       const currentPercent = Math.floor((i + 1) / totalFiles * 1000)/10;
       if (currentPercent > lastLoggedPercent) {
         process.stdout.write(`\r\x1b[KScan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
@@ -37,11 +37,10 @@ export default class OriginalNames {
     console.log('Scanned torrent name directory');
   }
 
-  private saveName(dir: string, file: string) {
+  private async saveName(dir: string, file: string) {
     if (!file.endsWith('.torrent')) return;
     const filePath = path.join(dir, file);
-    parseTorrent(fs.readFileSync(filePath)).then(metadata => {
-      this.names[metadata.infoHash!] = metadata.name as string;
-    }).catch(console.error);
+    const metadata = await parseTorrent(fs.readFileSync(filePath));
+    this.names[metadata.infoHash!] = metadata.name as string;
   }
 }
