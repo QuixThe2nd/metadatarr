@@ -28,7 +28,7 @@ export default class OriginalNames {
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       await this.saveName(this.dir, file)
-      const currentPercent = Math.floor((i + 1) / totalFiles * 100);
+      const currentPercent = Math.floor((i + 1) / totalFiles * 1000)/10;
       if (currentPercent > lastLoggedPercent) {
         process.stdout.write(`\rScan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
         lastLoggedPercent = currentPercent;
