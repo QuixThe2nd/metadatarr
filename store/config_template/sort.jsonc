@@ -150,7 +150,7 @@
 		{
 			"key": "CATEGORIES",
 			"direction": "ASC",
-			"categories": ["cross-seed-link"]
+			"categories": ["cross-seed-links"]
 		},
 		/* Prefer torrents that are almost finished
 		ASC: Almost finished last
