@@ -28,9 +28,9 @@ export default class OriginalNames {
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       await this.saveName(this.dir, file)
-      const currentPercent = Math.floor((i + 1) / totalFiles * 1000)/10;
-      if (currentPercent > lastLoggedPercent) {
-        process.stdout.write(`\r\x1b[KScan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
+      const currentPercent = Math.floor((i + 1) / totalFiles * 100);
+      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
+        console.log(`Scan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
         lastLoggedPercent = currentPercent;
       }
     }
