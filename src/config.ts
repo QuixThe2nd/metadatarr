@@ -69,7 +69,7 @@ const TorrentsSchema = z.object({
   RESUME_COMPLETED: z.boolean(),
   RECHECK_MISSING: z.boolean(),
   RESUME_ALMOST_FINISHED_THRESHOLD: z.number(),
-  FORCE_SEQUENTIAL_DOWNLOAD: z.boolean()
+  FORCE_SEQUENTIAL_DOWNLOAD: z.number().min(-1).max(1)
 });
 
 const QueueSchema = z.object({

@@ -13,6 +13,9 @@
 	"RESUME_ALMOST_FINISHED_THRESHOLD": 0.95,
 	/*
 	Force all torrents to download in sequential order
+	1: Force sequential downloads
+	0: Do nothing
+	-1: Force non-sequential downloads
 	*/
-	"FORCE_SEQUENTIAL_DOWNLOAD": true
+	"FORCE_SEQUENTIAL_DOWNLOAD": 1
 }

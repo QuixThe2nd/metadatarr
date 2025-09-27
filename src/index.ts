@@ -29,7 +29,8 @@ const fetchTorrents = async () => {
 
   const config = CONFIG.TORRENTS();
   for (const torrent of torrents) {
-    if (config.FORCE_SEQUENTIAL_DOWNLOAD && !torrent.seq_dl) await api.toggleSequentialDownload([torrent.hash]);
+    if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) await api.toggleSequentialDownload([torrent.hash]);
+    if (config.FORCE_SEQUENTIAL_DOWNLOAD === -1 && torrent.seq_dl) await api.toggleSequentialDownload([torrent.hash]);
     if (config.RESUME_COMPLETED && torrent.state === 'stoppedUP') await api.start([torrent.hash]);
     if (config.RECHECK_MISSING && torrent.state === "missingFiles") await api.recheck([torrent.hash]);
     if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) await api.start([torrent.hash]);
