@@ -8,9 +8,9 @@ export default class Queue {
   static async run(api: Qbittorrent, torrents: Torrent[]) {
     console.log('Updating queue size');
     const queue = new Queue(api, torrents);
-    await queue.update();
+    const changed = await queue.update();
     console.log('Updated queue size');
-    return queue;
+    return changed;
   }
 
   async update() {
@@ -49,8 +49,10 @@ export default class Queue {
         if (maxActiveDownloads !== preferences.max_active_downloads) {
           console.log(`\x1b[32m[qBittorrent]\x1b[0m Setting maximum active downloads to ${maxActiveDownloads}`);
           await this.api.setPreferences({ max_active_downloads: maxActiveDownloads });
+          return 1;
         }
       }
     }
+    return 0;
   }
 }

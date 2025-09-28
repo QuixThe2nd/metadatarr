@@ -28,11 +28,15 @@ export default class Duplicates {
     console.log('Removing duplicate torrents');
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
+    let changes = 0;
     for (const torrent of deduplicate.torrents) {
       if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
-      else await api.delete([torrent.hash]);
+      else {
+        await api.delete([torrent.hash]);
+        changes++;
+      }
     }
     console.log('Done removing duplicate torrents');
-    return deduplicate;
+    return changes;
   }
 }

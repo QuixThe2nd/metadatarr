@@ -53,12 +53,11 @@ export default class Sort {
 
   static async run(api: Qbittorrent, torrents: Torrent[]) {
     const sort = new Sort(api, torrents);
-    await sort.sortTorrents();
-    return sort;
+    return await sort.sortTorrents();
   }
 
   private async sortTorrents() {
-    if (!this.config.SORT) return;
+    if (!this.config.SORT) return 0;
     let moves = 0;
     try {
       let torrents = this.torrents
@@ -120,5 +119,6 @@ export default class Sort {
     } catch (e) {
       console.error(e)
     }
+    return moves;
   }
 }

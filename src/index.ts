@@ -27,25 +27,42 @@ await ImportMetadataFiles.start((hash: string, metadata: Buffer, source: string)
 const fetchTorrents = async () => {
   const torrents = await api.torrents();
 
+  let changes = 0;
   const config = CONFIG.TORRENTS();
   for (const torrent of torrents) {
-    if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) await api.toggleSequentialDownload([torrent.hash]);
-    if (config.FORCE_SEQUENTIAL_DOWNLOAD === -1 && torrent.seq_dl) await api.toggleSequentialDownload([torrent.hash]);
-    if (config.RESUME_COMPLETED && torrent.state === 'stoppedUP') await api.start([torrent.hash]);
-    if (config.RECHECK_MISSING && torrent.state === "missingFiles") await api.recheck([torrent.hash]);
-    if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) await api.start([torrent.hash]);
+    if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) {
+      changes++;
+      await api.toggleSequentialDownload([torrent.hash]);
+    }
+    if (config.FORCE_SEQUENTIAL_DOWNLOAD === -1 && torrent.seq_dl) {
+      changes++;
+      await api.toggleSequentialDownload([torrent.hash]);
+    }
+    if (config.RESUME_COMPLETED && torrent.state === 'stoppedUP') {
+      changes++;
+      await api.start([torrent.hash]);
+    }
+    if (config.RECHECK_MISSING && torrent.state === "missingFiles") {
+      changes++;
+      await api.recheck([torrent.hash]);
+    }
+    if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) {
+      changes++;
+      await api.start([torrent.hash]);
+    }
   }
 
-  await Duplicates.run(api, torrents);
-  await Sort.run(api, torrents);
-  await Queue.run(api, torrents);
-  await Naming.run(api, torrents, originalNames.names);
+  changes += await Duplicates.run(api, torrents);
+  changes += await Sort.run(api, torrents);
+  changes += await Queue.run(api, torrents);
+  changes += await Naming.run(api, torrents, originalNames.names);
   await Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
+  return changes;
 }
 
 while (true) {
   console.log('Running jobs')
-  await fetchTorrents();
+  const changes = await fetchTorrents();
   console.log('Done running jobs')
-  await new Promise(res => setTimeout(res, 10_000));
+  if (!changes) await new Promise(res => setTimeout(res, 10_000));
 }

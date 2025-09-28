@@ -24,46 +24,63 @@ export default class Naming {
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
     const naming = new Naming(api, torrents, originalNames);
-    await naming.renameAll();
+    let changes = await naming.renameAll();
     console.log('Renamed torrents');
-    return naming;
+    return changes;
   }
 
   private async renameAll() {
-    for (const torrent of this.torrents) await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, torrent.tags.split(', ').includes("!renameFailed"));
+    let changes = 0;
+    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, torrent.tags.split(', ').includes("!renameFailed"));
+    return changes;
   }
 
-  private async renameTorrent(hash: string, origName: string | undefined, currentName: string, renameFailed: boolean) {
+  private async renameTorrent(hash: string, origName: string | undefined, currentName: string, renameFailed: boolean): Promise<number> {
+    let changes = 0;
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (other.length) {
-      if (this.config.TAG_FAILED_PARSING && !renameFailed) await this.api.addTags([hash], "!renameFailed");
-      if (this.config.SKIP_IF_UNKNOWN) return;
+      if (this.config.TAG_FAILED_PARSING && !renameFailed) {
+        changes++;
+        await this.api.addTags([hash], "!renameFailed");
+      }
+      if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else if (this.config.TAG_FAILED_PARSING && renameFailed) {
+      changes++;
       await this.api.removeTags([hash], "!renameFailed");
-      return;
+      return changes;
     }
 
-    if (currentName !== name) await this.api.rename(hash, name);
+    if (currentName !== name) {
+      changes++;
+      await this.api.rename(hash, name);
+    }
 
     if (this.config.RENAME_FILES) {
       const files = await this.api.files(hash);
-      if (!files) return;
+      if (!files) return changes;
       const old_folder = files[0]?.name.split('/')[0];
-      if (!old_folder) return;
+      if (!old_folder) return changes;
       const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(old_folder);
 
       if (folderOther.length) {
-        if (this.config.TAG_FAILED_PARSING) await this.api.addTags([hash], "!renameFolderFailed");
-        if (this.config.SKIP_IF_UNKNOWN) return;
+        if (this.config.TAG_FAILED_PARSING) {
+          changes++;
+          await this.api.addTags([hash], "!renameFolderFailed");
+        }
+        if (this.config.SKIP_IF_UNKNOWN) return changes;
       }
 
       for (const file of files) {
         const oldFileName = file.name;
         const newFileName = file.name.replaceAll(old_folder, newFolder);
-        if (oldFileName !== newFileName) await this.api.renameFile(hash, oldFileName, newFileName);
+        if (oldFileName !== newFileName) {
+          changes++;
+          await this.api.renameFile(hash, oldFileName, newFileName);
+        }
       }
     }
+    return changes;
   }
 
   cleanName(_oldName: string, firstRun = true): { name: string; other: string } {
