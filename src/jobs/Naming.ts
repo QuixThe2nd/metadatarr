@@ -60,7 +60,15 @@ export default class Naming {
     if (other.length) {
       if (!this.others.has(other)) this.others.set(other, 1)
       else this.others.set(other, this.others.get(other)! + 1)
-      if (CONFIG.CORE().DEV && !this.torrents.find(torrent => torrent.hash === hash)!.tags.includes(`!renameFailed_${other}`)) await this.api.addTags([hash], `!renameFailed_${other}`);
+      if (CONFIG.CORE().DEV) {
+        const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags
+        for (const tag of tags) {
+          if (tag.startsWith('!renameFailed') && tag !== '!renameFailed') this.api.removeTags([hash], tag);
+        }
+      }
+      for (const piece of other.split(' ')) {
+        if (CONFIG.CORE().DEV) await this.api.addTags([hash], `!renameFailed_${piece}`);
+      }
       if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
@@ -78,12 +86,6 @@ export default class Naming {
       if (this.config.TAG_SUCCESSFUL_PARSING && !renamedTag) {
         changes++;
         await this.api.addTags([hash], '!renamed');
-      }
-      if (CONFIG.CORE().DEV) {
-        const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags
-        for (const tag of tags) {
-          if (tag.startsWith('!renameFailed')) this.api.removeTags([hash], tag);
-        }
       }
     }
 
