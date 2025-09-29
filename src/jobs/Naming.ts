@@ -162,8 +162,10 @@ export default class Naming {
       else if (key === 'samplerate') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), '');
       else if (key === 'source' && matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
       else if (['season', 'episode'].includes(key)) other = other.replace(new RegExp(`(?:${key[0]}|${key}).?0?(?:${matches.join('|')})(?:[. ]Complete)?`, 'gi'), '');
-      else if (key === 'color' && matches.includes('HDR')) other = other.replace('HDR10', '');
-      else if (key === 'audio') {
+      else if (key === 'color') {
+        if (matches.includes('HDR')) other = other.replace('HDR10', '');
+        else if (matches.includes('DV')) other = other.replace(/\bDoVi\b/i, '');
+      } else if (key === 'audio') {
         if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
         else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
       } else if (key === 'resolution') {
