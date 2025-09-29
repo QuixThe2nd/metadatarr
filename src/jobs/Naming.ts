@@ -65,9 +65,7 @@ export default class Naming {
         for (const tag of tags) {
           if (tag.startsWith('!renameFailed') && tag !== '!renameFailed') this.api.removeTags([hash], tag);
         }
-      }
-      for (const piece of other.split(' ')) {
-        if (CONFIG.CORE().DEV) await this.api.addTags([hash], `!renameFailed_${piece}`);
+        // for (const piece of other.split(' ')) await this.api.addTags([hash], `!renameFailed_${piece}`);
       }
       if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
