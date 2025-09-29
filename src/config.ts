@@ -51,6 +51,7 @@ const NamingConfigSchema = z.object({
   REPLACE: z.array(z.tuple([z.string(), z.string()])),
   FIX_BAD_GROUPS: z.array(z.string()),
   TAG_FAILED_PARSING: z.boolean(),
+  TAG_SUCCESSFUL_PARSING: z.boolean(),
   RENAME_FILES: z.boolean(),
   TRIM_CONTAINER: z.boolean(),
   SKIP_IF_UNKNOWN: z.boolean(),

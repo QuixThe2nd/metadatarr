@@ -43,11 +43,13 @@ export default class Naming {
       if (this.config.TAG_FAILED_PARSING && !renameFailed) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
+        if (this.config.TAG_SUCCESSFUL_PARSING) await this.api.removeTags([hash], '!renamed');
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else if (this.config.TAG_FAILED_PARSING && renameFailed) {
       changes++;
       await this.api.removeTags([hash], "!renameFailed");
+      if (this.config.TAG_SUCCESSFUL_PARSING) await this.api.addTags([hash], '!renamed');
       return changes;
     }
 

@@ -38,6 +38,8 @@
 	"REMOVE_DOMAINS": true,
 	// If true, will add a tag to any torrents that had unknown metadata
 	"TAG_FAILED_PARSING": true,
+	// If true, will add a tag to any torrents that were successfully parsed - Only used if TAG_FAILED_PARSING is also true
+	"TAG_SUCCESSFUL_PARSING": true,
 	// Do not rename if there are any unknown tags in the name
 	"SKIP_IF_UNKNOWN": true,
 	// Trim container (.mkv, .mp4, etc) from end of title
