@@ -31,26 +31,36 @@ export default class Naming {
 
   private async renameAll() {
     let changes = 0;
-    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, torrent.tags.split(', ').includes("!renameFailed"));
+    for (const torrent of this.torrents) {
+      const tags = torrent.tags.split(', ');
+      changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
+    }
     return changes;
   }
 
-  private async renameTorrent(hash: string, origName: string | undefined, currentName: string, renameFailed: boolean): Promise<number> {
+  private async renameTorrent(hash: string, origName: string | undefined, currentName: string, failedTag: boolean, renamedTag: boolean): Promise<number> {
     let changes = 0;
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (other.length) {
-      if (this.config.TAG_FAILED_PARSING && !renameFailed) {
+      if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
-        if (this.config.TAG_SUCCESSFUL_PARSING) await this.api.removeTags([hash], '!renamed');
+      }
+      if (this.config.TAG_SUCCESSFUL_PARSING && renamedTag) {
+        changes++;
+        await this.api.removeTags([hash], '!renamed');
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
-    } else if (this.config.TAG_FAILED_PARSING && renameFailed) {
-      changes++;
-      await this.api.removeTags([hash], "!renameFailed");
-      if (this.config.TAG_SUCCESSFUL_PARSING) await this.api.addTags([hash], '!renamed');
-      return changes;
+    } else {
+      if (this.config.TAG_FAILED_PARSING && failedTag) {
+        changes++;
+        await this.api.removeTags([hash], "!renameFailed");
+      }
+      if (this.config.TAG_SUCCESSFUL_PARSING && !renamedTag) {
+        changes++;
+        await this.api.addTags([hash], '!renamed');
+      }
     }
 
     if (currentName !== name) {
