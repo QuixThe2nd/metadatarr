@@ -143,7 +143,9 @@ export default class Naming {
       // Places matches in new name
       name = name.replaceAll(`[${key}]`, matches.map(value => 
         key === 'samplerate' ? `${value} kHz` :
-        key === 'source' ? value === 'bluray' ? 'BluRay' : String(value).toUpperCase() :
+        key === 'source' ? 
+          value === 'bluray' ? 'BluRay' : 
+          value === 'web-dl' ? 'WEBDL' : String(value).toUpperCase() :
         key === 'audio' ? value === 'atmos' ? 'Atmos' : String(value).toUpperCase() :
         key === 'codec' ? ['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
         ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
