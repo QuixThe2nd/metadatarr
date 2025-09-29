@@ -49,20 +49,13 @@ export default class Naming {
       const tags = torrent.tags.split(', ');
       changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
     }
-    if (CONFIG.CORE().DEV) console.log(this.others)
+    if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1] - a[1]))
     return changes;
   }
 
   private async renameTorrent(hash: string, origName: string | undefined, currentName: string, failedTag: boolean, renamedTag: boolean): Promise<number> {
     let changes = 0;
     const { name, other } = this.cleanName(origName ?? currentName);
-
-    if (CONFIG.CORE().DEV) {
-      const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags.split(', ')
-      for (const tag of tags) {
-        if (tag.startsWith('!renameFailed') && tag !== '!renameFailed') this.api.removeTags([hash], tag);
-      }
-    }
 
     if (other.length) {
       if (!this.others.has(other)) this.others.set(other, 1)
