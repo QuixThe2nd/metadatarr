@@ -113,7 +113,7 @@ export default class Naming {
   }
 
   cleanName(_oldName: string, firstRun = true): { name: string; other: string } {
-    let other = _oldName;
+    let other = _oldName.replace('[color]', '');
 
     for (const [find, replace] of this.config.REPLACE) other = other.replaceAll(new RegExp(find, "gi"), replace);
     for (const group of this.config.FIX_BAD_GROUPS) other = other.replace(new RegExp(` ${group}$`, "i"), ` - ${group}`);
