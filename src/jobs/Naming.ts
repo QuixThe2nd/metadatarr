@@ -131,7 +131,7 @@ export default class Naming {
       delete info.year;
     }
 
-    const stringKeys = ['title', 'resolution', 'codec', 'source', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
+    const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
     const booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated'] as const;
 
     for (const key of stringKeys) {
