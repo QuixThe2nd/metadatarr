@@ -50,6 +50,8 @@
 	"NO_YEAR_IN_SEASONS": true,
 	// If true, will recheck the torrent after renaming
 	"RECHECK_ON_RENAME": true,
+	// If true, will force the first letter of each word to be capitalized
+	"FORCE_TITLE_CASE": true,
 	// Renames the directory to match the torrent name
 	"FORCE_SAME_DIRECTORY_NAME": true,
 	/*

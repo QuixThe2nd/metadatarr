@@ -61,7 +61,8 @@ const NamingConfigSchema = z.object({
   RECHECK_ON_RENAME: z.boolean(),
   FORCE_SAME_DIRECTORY_NAME: z.boolean(),
   SPACING: z.string().length(1),
-  TORRENTS_DIR: z.string()
+  TORRENTS_DIR: z.string(),
+  FORCE_TITLE_CASE: z.boolean()
 });
 
 export type NamingConfig = z.infer<typeof NamingConfigSchema>
