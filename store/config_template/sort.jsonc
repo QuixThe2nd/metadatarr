@@ -119,8 +119,8 @@
 			"direction": "DESC"
 		},
 		/* Prefer torrents with specific tags
-		ASC: With tags first
-		DESC: Without tags first
+		ASC: Without tags first
+		DESC: With tags first
 		When specifying multiple tags, the order of tags does not matter. If you want to prioritise specific tags over others, use multiple sort entries.
 		*/
 		// {
