@@ -146,7 +146,7 @@ export default class Naming {
 
       // Places matches in new name
       name = name.replaceAll(`[${key}]`, matches.map(value => 
-        key === 'samplerate' ? `${value} kHz` :
+        key === 'samplerate' ? `${value}kHz` :
         key === 'source' ? 
           value === 'bluray' ? 'BluRay' : 
           value === 'web-dl' ? 'WEBDL' : String(value).toUpperCase() :
