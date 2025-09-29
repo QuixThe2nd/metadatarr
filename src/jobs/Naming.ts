@@ -46,6 +46,11 @@ export default class Naming {
   private async renameAll() {
     let changes = 0;
     for (const torrent of this.torrents) {
+      if (torrent.name.includes('[color]')) {
+        await this.api.rename(torrent.hash, torrent.name.replace('[color]', ''))
+        continue;
+      }
+
       const tags = torrent.tags.split(', ');
       changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
     }
@@ -207,7 +212,7 @@ export default class Naming {
     // Remove unused tags
     for (const key of [...stringKeys, ...booleanKeys]) name = name.replace(`[${key}]`, '');
 
-    other = cleanString(other.replace('[color]', ''), true);
+    other = cleanString(other, true);
     name = cleanString(name).replace('[other]', other);
 
     if (firstRun) {
