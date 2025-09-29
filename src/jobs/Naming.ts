@@ -205,6 +205,7 @@ export default class Naming {
         if (key === 'extended') other = other.replace(/extended(?:[\s.](?:cut|edition))?/gi, '');
         else if (key === 'openmatte') other = other.replace(/open(?:[\s.]matte)?/gi, '');
         else if (key === 'repack') other = other.replace(/rerip/i, '');
+        else if (key === 'remastered') other = other.replace(/Remaster(?:ed)?/i, '');
         other = other.replace(new RegExp(key, 'gi'), '');
       }
       delete info[key];
