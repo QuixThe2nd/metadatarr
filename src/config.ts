@@ -81,6 +81,11 @@ const QueueSchema = z.object({
   EXCLUDE_CATEGORIES: z.array(z.string())
 });
 
+const CoreSchema = z.object({
+  DEV: z.boolean(),
+  JOB_WAIT: z.number()
+});
+
 export type Source = z.infer<typeof MetadataSchema>['sources'];
 export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
@@ -107,6 +112,7 @@ export const CONFIG = {
   NAMING: () => parseConfigFile('./store/config/naming.jsonc', NamingConfigSchema.strict()),
   DUPLICATES: () => parseConfigFile('./store/config/duplicates.jsonc', DuplicatesSchema.strict()),
   QUEUE: () => parseConfigFile('./store/config/queue.jsonc', QueueSchema.strict()),
+  CORE: () => parseConfigFile('./store/config/core.jsonc', CoreSchema.strict()),
 };
 
 export const testConfig = () => {
