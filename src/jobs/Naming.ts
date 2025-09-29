@@ -48,7 +48,7 @@ export default class Naming {
     for (const torrent of this.torrents) {
       const tags = torrent.tags.split(', ');
       const name = this.originalNames[torrent.hash]
-      if (name) await this.api.rename(torrent.hash, name)
+      if (name && name !== torrent.name) await this.api.rename(torrent.hash, name)
       continue
       changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
     }
