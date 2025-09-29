@@ -149,7 +149,7 @@ export default class Naming {
         key === 'audio' ? value === 'atmos' ? 'Atmos' : String(value).toUpperCase() :
         key === 'codec' ? ['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
         ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
-        key === 'title' && this.config.FORCE_TITLE_CASE ? String(value).replace(/\s\w/g, char => char.toUpperCase()) :
+        key === 'title' && this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) :
         value
       ).join(this.config.SPACING));
 
