@@ -61,11 +61,11 @@ export default class Naming {
       if (!this.others.has(other)) this.others.set(other, 1)
       else this.others.set(other, this.others.get(other)! + 1)
       if (CONFIG.CORE().DEV) {
-        const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags
+        const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags.split(' ')
         for (const tag of tags) {
           if (tag.startsWith('!renameFailed') && tag !== '!renameFailed') this.api.removeTags([hash], tag);
         }
-        // for (const piece of other.split(' ')) await this.api.addTags([hash], `!renameFailed_${piece}`);
+        for (const piece of other.split(' ')) await this.api.addTags([hash], `!renameFailed_${piece}`);
       }
       if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
