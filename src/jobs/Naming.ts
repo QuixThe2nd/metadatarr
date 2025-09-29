@@ -139,9 +139,12 @@ export default class Naming {
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
 
       // Filter redundant values
-      if (key === 'audio') {
+      if (key === 'codec') {
         if (matches.includes('h264') && matches.includes('x264')) matches = matches.filter(match => match !== 'h264');
         else if (matches.includes('h265') && matches.includes('x265')) matches = matches.filter(match => match !== 'h265');
+      }
+      if (key === 'audio') {
+        if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
       }
 
       // Places matches in new name
