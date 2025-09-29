@@ -25,7 +25,7 @@ export default class OriginalNames {
     let lastLoggedPercent = 0;
 
     console.log('Loading cache');
-    const cache = JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }>;
+    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
 
     console.log(`Scan: 0% complete (0 of ${totalFiles})`)
     for (let i = 0; i < files.length; i++) {
