@@ -79,6 +79,12 @@ export default class Naming {
         changes++;
         await this.api.addTags([hash], '!renamed');
       }
+      if (CONFIG.CORE().DEV) {
+        const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags
+        for (const tag of tags) {
+          if (tag.startsWith('!renameFailed')) this.api.removeTags([hash], tag);
+        }
+      }
     }
 
     if (currentName !== name) {
