@@ -12,7 +12,7 @@ export class SortEngine {
     REMAINING: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.amount_left ?? 0),
     PRIVATE: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.private),
     NAME_CONTAINS: (torrents: Torrent[], direction: Direction, search: String) => this.booleanSort(torrents, direction, t => t.name.toLowerCase().includes(search.toLowerCase())),
-    TAGS: (torrents: Torrent[], direction: Direction, tags: string[]) => this.booleanSort(torrents, direction, t => t.tags.split(", ").filter(item => tags.includes(item)).length !== 0),
+    TAGS: (torrents: Torrent[], direction: Direction, tags: string[]) => this.booleanSort(torrents, direction, t => tags.some(tag => t.tags.split(", ").includes(tag))),
     NO_METADATA: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.size <= 0),
     PRIORITY_TAG: (torrents: Torrent[], direction: Direction, prefix: string) => this.numericSort(torrents, direction, t => {
       const priority = Number(t.tags.split(", ").find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
