@@ -58,7 +58,7 @@ export default class Naming {
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (CONFIG.CORE().DEV) {
-      const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags.split(' ')
+      const tags = this.torrents.find(torrent => torrent.hash === hash)!.tags.split(', ')
       for (const tag of tags) {
         if (tag.startsWith('!renameFailed') && tag !== '!renameFailed') this.api.removeTags([hash], tag);
       }
