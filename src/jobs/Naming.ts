@@ -129,9 +129,11 @@ export default class Naming {
       if (key === 'bitdepth') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?bits?)?`, 'i'), '');
       else if (key === 'samplerate') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), '');
       else if (key === 'source' && matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
-      else if (key === 'audio' && matches.includes('ddp')) other = other.replace(/DD(?:[+P]|PA)/i, '');
       else if (['season', 'episode'].includes(key)) other = other.replace(new RegExp(`(?:${key[0]}|${key}).?0?(?:${matches.join('|')})(?:[. ]Complete)?`, 'gi'), '');
-      else if (key === 'resolution') {
+      else if (key === 'audio') {
+        if (matches.includes('ddp')) other = other.replace(/DD(?:[+P]|PA)|EAC-?3/i, '');
+        else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
+      } else if (key === 'resolution') {
         if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
         else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '');
         else if (matches.includes('720p')) other = other.replace(/\bSDR\b/i, '');
