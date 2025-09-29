@@ -132,7 +132,7 @@ export default class Naming {
         key === 'samplerate' ? `${value} kHz` :
         key === 'source' ? value === 'bluray' ? 'BluRay' : String(value).toUpperCase() :
         key === 'audio' ? value === 'atmos' ? 'Atmos' : String(value).toUpperCase() :
-        key === 'codec' ? ['H264', 'H265', 'X264', 'X265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
+        key === 'codec' ? ['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
         ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
         value
       ).join(this.config.SPACING));
