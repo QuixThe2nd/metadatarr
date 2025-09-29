@@ -11,7 +11,20 @@ function cleanString(str: string, other = false): string {
   while (start <= end && charSet.has(str.charAt(start))) start++;
   while (end >= start && charSet.has(str.charAt(end))) end--;
   
-  let newString = str.slice(start, end + 1).replaceAll(/\[\s*]/g, '').replaceAll(/\(\s*\)/g, '').replaceAll(/-\s*-/g, '').replaceAll(/\(\s+/g, '(').replaceAll(/\[\s+/g, '[').replaceAll(/\s+\)/g, ')').replaceAll(/\s\]+/g, ']').replaceAll(/\s+/g, ' ').replaceAll(/\.+/g, '.').replace('[[', '[').replace(']]', ']');
+  let newString = str.slice(start, end + 1)
+    .replaceAll(/\[\s*]/g, '')
+    .replaceAll(/\(\s*\)/g, '')
+    .replaceAll(/-\s*-/g, '')
+    .replaceAll(/\(\s+/g, '(')
+    .replaceAll(/\[\s+/g, '[')
+    .replaceAll(/\s+\)/g, ')')
+    .replaceAll(/\s\]+/g, ']')
+    .replaceAll(/\s+/g, ' ')
+    .replaceAll(/\.+/g, '.')
+    .replace('[[', '[')
+    .replace(']]', ']')
+    .replaceAll('[-', '[')
+    .replaceAll('[ ', '[');
   if (other) newString = newString.replace(/[^a-zA-Z0-9]/g, ' ');
   if (newString === str) return str;
   return cleanString(newString);
