@@ -16,7 +16,7 @@ export default class FetchMetadata {
     this.hash = torrent.hash;
     this.magnet_uri = torrent.magnet_uri;
     this.saveMetadata = saveMetadata;
-    this.state = this.fetchMetadata();
+    this.state = this.fetchMetadata().catch(console.error);
   }
 
   private async fetchMetadata() {
