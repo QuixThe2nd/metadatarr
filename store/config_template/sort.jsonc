@@ -125,12 +125,12 @@
 		*/
 		// {
 		// 	"key": "TAGS",
-		// 	"direction": "ASC",
+		// 	"direction": "DESC",
 		// 	"tags": ["@DP"]
 		// },
 		// {
 		// 	"key": "TAGS",
-		// 	"direction": "ASC",
+		// 	"direction": "DESC",
 		// 	"tags": ["@MaM"]
 		// },
 		/* Prefer finishing torrents whose name contains a specific string
@@ -143,13 +143,13 @@
 			"searchString": "S01"
 		},
 		/* Prefer torrents in specific categories
-		ASC: With categories first
-		DESC: Without categories first
+		ASC: Without categories first
+		DESC: With categories first
 		When specifying multiple categories, the order of categories does not matter. If you want to prioritise specific categories over others, use multiple sort entries.
 		*/
 		{
 			"key": "CATEGORIES",
-			"direction": "ASC",
+			"direction": "DESC",
 			"categories": ["cross-seed-links"]
 		},
 		/* Prefer torrents that are almost finished
@@ -161,26 +161,6 @@
 			"key": "PROGRESS_THRESHOLD",
 			"direction": "DESC",
 			"threshold": 0.1
-		},
-		{
-			"key": "PROGRESS_THRESHOLD",
-			"direction": "DESC",
-			"threshold": 0.2
-		},
-		{
-			"key": "PROGRESS_THRESHOLD",
-			"direction": "DESC",
-			"threshold": 0.5
-		},
-		{
-			"key": "PROGRESS_THRESHOLD",
-			"direction": "DESC",
-			"threshold": 0.75
-		},
-		{
-			"key": "PROGRESS_THRESHOLD",
-			"direction": "DESC",
-			"threshold": 0.9
 		},
 		{
 			"key": "PROGRESS_THRESHOLD",
@@ -217,6 +197,11 @@
 		{
 			"key": "REMAINING",
 			"direction": "ASC"
+		},
+		{
+			"key": "CATEGORIES",
+			"direction": "ASC",
+			"categories": ["cross-seed-links"]
 		},
 		{
 			"key": "PRIORITY_TAG",
