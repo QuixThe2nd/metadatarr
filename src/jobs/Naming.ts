@@ -81,6 +81,10 @@ export default class Naming {
         changes++;
         await this.api.removeTags([hash], '!renamed');
       }
+      if (this.config.RESET_ON_FAIL && origName) {
+        await this.api.rename(hash, origName);
+        return changes+1;
+      }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else {
       if (this.config.TAG_FAILED_PARSING && failedTag) {

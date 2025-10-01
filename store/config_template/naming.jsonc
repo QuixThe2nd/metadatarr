@@ -62,5 +62,7 @@
 	// Only rename if the torrents original name is known (requires TORRENTS_DIR to be set)
 	"FORCE_ORIGINAL_NAME": true,
 	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
-	"TAG_MISSING_ORIGINAL_NAME": true
+	"TAG_MISSING_ORIGINAL_NAME": true,
+	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
+	"RESET_ON_FAIL": true
 }
