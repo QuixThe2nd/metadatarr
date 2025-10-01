@@ -145,7 +145,7 @@ export default class Naming {
           matches = matches.filter(match => match !== 'h264');
         }
         else if (matches.includes('h265') && matches.includes('x265')) {
-          other = other.replace(/x265/i, '');
+          other = other.replace(/h265/i, '');
           matches = matches.filter(match => match !== 'h265');
         }
       }
