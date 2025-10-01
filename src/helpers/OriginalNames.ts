@@ -31,7 +31,7 @@ export default class OriginalNames {
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       if (file in cache) {
-        this.names[cache[file]!.hash!] = cache[file]!.name
+        this.names[cache[file]!.hash!] = cache[file]!.name;
         continue;
       }
       const res = await this.saveName(this.dir, file);
@@ -56,8 +56,7 @@ export default class OriginalNames {
       this.names[metadata.infoHash!] = metadata.name as string;
       return { name: metadata.name as string, hash: metadata.infoHash! }
     } catch (e) {
-      console.error(e, torrent)
-      process.exit()
+      console.error(e, torrent.toString().slice(0, 100))
     }
   }
 }
