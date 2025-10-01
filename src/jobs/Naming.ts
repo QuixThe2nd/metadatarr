@@ -64,6 +64,8 @@ export default class Naming {
         console.warn(currentName, "Original name not found");
         return 0;
       }
+    } else if (this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes('!missingOriginalName')) {
+      this.api.removeTags([hash], '!missingOriginalName');
     }
     const { name, other } = this.cleanName(origName ?? currentName);
 
