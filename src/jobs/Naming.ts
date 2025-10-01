@@ -35,7 +35,7 @@ function cleanString(str: string, other = false): string {
 export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
-  private others = new Map<string, { count: number, example: string }>();
+  private others = new Map<string, { count: number, example: string; info: unknown }>();
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
@@ -71,8 +71,8 @@ export default class Naming {
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (other.length) {
-      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? currentName })
-      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? currentName })
+      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? currentName, info: ptt.parse(origName ?? currentName) })
+      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? currentName, info: ptt.parse(origName ?? currentName) })
       if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
