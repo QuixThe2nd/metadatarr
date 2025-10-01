@@ -47,8 +47,14 @@ export default class OriginalNames {
   private async saveName(dir: string, file: string): Promise<false | { name: string; hash: string }> {
     if (!file.endsWith('.torrent')) return false;
     const filePath = path.join(dir, file);
-    const metadata = await parseTorrent(fs.readFileSync(filePath));
-    this.names[metadata.infoHash!] = metadata.name as string;
-    return { name: metadata.name as string, hash: metadata.infoHash! }
+    const torrent = fs.readFileSync(filePath);
+    try {
+      const metadata = await parseTorrent(torrent);
+      this.names[metadata.infoHash!] = metadata.name as string;
+      return { name: metadata.name as string, hash: metadata.infoHash! }
+    } catch (e) {
+      console.error(e, torrent)
+      process.exit()
+    }
   }
 }
