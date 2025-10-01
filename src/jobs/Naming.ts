@@ -185,9 +185,9 @@ export default class Naming {
         if (matches.includes('h265')) other = other.replace(/hevc/i, '');
         else if (matches.includes('h264')) other = other.replace(/avc/i, '');
       } else if (key === 'channels') {
-        if (matches.includes(7.1)) other = other.replace(/8(?:CH|ch)/, '');
-        else if (matches.includes(5.1)) other = other.replace(/6(?:CH|ch)/, '');
-        else if (matches.includes(2.0)) other = other.replace(/2(?:CH|ch)/, '');
+        if (matches.includes(7.1)) other = other.replace(/8(?:CH)?/, '');
+        else if (matches.includes(5.1)) other = other.replace(/6(?:CH)?/, '');
+        else if (matches.includes(2.0)) other = other.replace(/2(?:CH)?/, '');
       }
 
       // Remove original text from name based purely on alphanumeric values
