@@ -140,8 +140,14 @@ export default class Naming {
 
       // Filter redundant values
       if (key === 'codec') {
-        if (matches.includes('h264') && matches.includes('x264')) matches = matches.filter(match => match !== 'h264');
-        else if (matches.includes('h265') && matches.includes('x265')) matches = matches.filter(match => match !== 'h265');
+        if (matches.includes('h264') && matches.includes('x264')) {
+          other = other.replace(/h264/i, '');
+          matches = matches.filter(match => match !== 'h264');
+        }
+        else if (matches.includes('h265') && matches.includes('x265')) {
+          other = other.replace(/x265/i, '');
+          matches = matches.filter(match => match !== 'h265');
+        }
       }
       if (key === 'audio') {
         if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
