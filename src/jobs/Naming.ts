@@ -55,6 +55,10 @@ export default class Naming {
 
   private async renameTorrent(hash: string, origName: string | undefined, currentName: string, failedTag: boolean, renamedTag: boolean): Promise<number> {
     let changes = 0;
+    if (!origName && this.config.FORCE_ORIGINAL_NAME) {
+      console.warn(origName, "Original name not found");
+      return 0;
+    }
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (other.length) {
