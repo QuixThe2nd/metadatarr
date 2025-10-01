@@ -201,7 +201,7 @@ export default class Naming {
 
       // Remove original text from name based purely on alphanumeric values
       for (const match of matches) {
-        const pattern = String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*');
+        const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
         other = other.replace(new RegExp(pattern, 'i'), '');
       }
 
