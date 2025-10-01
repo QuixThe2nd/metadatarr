@@ -33,7 +33,7 @@ function cleanString(str: string, other = false): string {
 export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
-  private others = new Map<string, number>();
+  private others = new Map<string, { count: number, example: string }>();
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
@@ -49,7 +49,7 @@ export default class Naming {
       const tags = torrent.tags.split(', ');
       changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
     }
-    if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1] - a[1]))
+    if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1].count - a[1].count))
     return changes;
   }
 
@@ -58,8 +58,8 @@ export default class Naming {
     const { name, other } = this.cleanName(origName ?? currentName);
 
     if (other.length) {
-      if (!this.others.has(other)) this.others.set(other, 1)
-      else this.others.set(other, this.others.get(other)! + 1)
+      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? currentName })
+      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? currentName })
       if (this.config.TAG_FAILED_PARSING && !failedTag) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
