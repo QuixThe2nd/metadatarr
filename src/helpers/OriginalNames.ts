@@ -57,6 +57,7 @@ export default class OriginalNames {
       return { name: metadata.name as string, hash: metadata.infoHash! }
     } catch (e) {
       console.error(e, torrent.toString().slice(0, 100))
+      return false;
     }
   }
 }
