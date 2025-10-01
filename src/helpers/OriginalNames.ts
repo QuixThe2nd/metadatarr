@@ -30,7 +30,10 @@ export default class OriginalNames {
     console.log(`Scan: 0% complete (0 of ${totalFiles})`)
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
-      if (file in cache) continue;
+      if (file in cache) {
+        this.names[cache[file]!.hash!] = cache[file]!.name
+        continue;
+      }
       const res = await this.saveName(this.dir, file);
       if (!res) continue;
       cache[file] = res;
