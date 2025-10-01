@@ -126,7 +126,7 @@ export default class Naming {
     let name = this.config.SCHEME;
 
     if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) {
-      name = name.replace(String(info.year), '')
+      other = other.replace(String(info.year), '')
       delete info.year;
     }
 
