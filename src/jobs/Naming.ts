@@ -26,6 +26,7 @@ function cleanString(str: string, other = false): string {
     .replaceAll('[-', '[')
     .replaceAll('[ ', '[')
     .replaceAll('- -', '-')
+    .trim()
   if (other) newString = newString.replace(/[^a-zA-Z0-9]/g, ' ');
   if (newString === str) return str;
   return cleanString(newString);
