@@ -163,7 +163,7 @@ export default class Naming {
         key === 'codec' ? ['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
         ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
         key === 'title' && this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) :
-        key === 'channels' ? value.toString(1) :
+        key === 'channels' ? Number(value).toFixed(1) :
         value
       ).join(this.config.SPACING));
 
