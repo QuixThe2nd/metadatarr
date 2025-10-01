@@ -212,6 +212,7 @@ export default class Naming {
         else if (matches.includes('h264')) other = other.replace(/avc/i, '');
         else if (matches.includes('dts-hd-ma')) other= other.replace(/DTS-HD[\s-.]?MA/i, '')
       } else if (key === 'channels') {
+        other = other.replace(Number(matches[0]).toFixed(1), '');
         other = other.replace(Number(matches[0]).toFixed(1).replace('.', ' '), '');
         if (matches.includes(7.1)) other = other.replace(/8(?:CH)?/, '');
         else if (matches.includes(5.1)) other = other.replace(/6(?:CH)?/, '');
