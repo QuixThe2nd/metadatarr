@@ -177,7 +177,7 @@ export default class Naming {
       else if (key === 'language' && matches.includes('eng')) other = other.replace(/English/i, '');
       else if (key === 'color') {
         if (matches.includes('HDR')) other = other.replace('HDR10', '');
-        if (matches.includes('DV')) other = other.replace(/\bDoVi\b/i, '');
+        if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
       } else if (key === 'audio') {
         if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
         else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
