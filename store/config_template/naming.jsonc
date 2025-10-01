@@ -63,5 +63,7 @@
 	*/
 	"TORRENTS_DIR": "/torrents",
 	// Only rename if the torrents original name is known (requires TORRENTS_DIR to be set)
-	"FORCE_ORIGINAL_NAME": true
+	"FORCE_ORIGINAL_NAME": true,
+	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
+	"TAG_MISSING_ORIGINAL_NAME": true
 }

@@ -63,7 +63,8 @@ const NamingConfigSchema = z.object({
   SPACING: z.string().length(1),
   TORRENTS_DIR: z.string(),
   FORCE_TITLE_CASE: z.boolean(),
-  FORCE_ORIGINAL_NAME: z.boolean()
+  FORCE_ORIGINAL_NAME: z.boolean(),
+  TAG_MISSING_ORIGINAL_NAME: z.boolean()
 });
 
 export type NamingConfig = z.infer<typeof NamingConfigSchema>
