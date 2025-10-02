@@ -200,11 +200,8 @@ export default class Naming {
         if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
       } else if (key === 'audio') {
         if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
-        else if (matches.includes('dd')) {
-          other = other.replace(/AC-?3/i, '');
-          other = other.replace(/(DD)(\d)/i, '$2');
-        }
-        if (matches.includes('truehd')) other = other.replace(/(TrueHD)(\d)/i, '$2');
+        else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
+        for (const match of matches) other = other.replace(new RegExp(`(${match})(\\d)`, "i"), '$2');
       } else if (key === 'resolution') {
         if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
         else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '');
