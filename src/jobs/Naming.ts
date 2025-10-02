@@ -255,4 +255,10 @@ export default class Naming {
 
     return { name, other };
   }
+
+  static test(name: string) {
+    // @ts-expect-error:
+    const naming = new Naming();
+    return { ...naming.cleanName(name), info: ptt.parse(name) };
+  }
 }
