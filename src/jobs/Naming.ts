@@ -152,6 +152,7 @@ export default class Naming {
 
     for (const key of stringKeys) {
       if (!(key in info)) continue;
+      // console.log(key)
 
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
 
@@ -219,9 +220,9 @@ export default class Naming {
       } else if (key === 'channels') {
         other = other.replace(Number(matches[0]).toFixed(1), '');
         other = other.replace(Number(matches[0]).toFixed(1).replace('.', ' '), '');
-        if (matches.includes(7.1)) other = other.replace(/8(?:CH)?/, '');
-        else if (matches.includes(5.1)) other = other.replace(/6(?:CH)?/, '');
-        else if (matches.includes(2.0)) other = other.replace(/2(?:CH)?/, '');
+        if (matches.includes(7.1)) other = other.replace(/8(?:CH)/, '');
+        else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
+        else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
       }
 
       // Remove original text from name based purely on alphanumeric values
@@ -232,6 +233,7 @@ export default class Naming {
       }
 
       delete info[key];
+      // console.log(other)
     }
 
     for (const key of booleanKeys) {
