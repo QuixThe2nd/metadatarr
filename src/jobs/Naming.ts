@@ -227,7 +227,6 @@ export default class Naming {
       for (const match of matches) {
         if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
         const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
-        if (key === 'audio') console.log(pattern)
         other = other.replace(new RegExp(pattern, 'i'), '');
       }
 
