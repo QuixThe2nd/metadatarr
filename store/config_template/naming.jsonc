@@ -64,10 +64,5 @@
 	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
 	"TAG_MISSING_ORIGINAL_NAME": true,
 	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
-	"RESET_ON_FAIL": true,
-	/*
-	Create a tag for each release group
-	Leave empty to disable
-	*/
-	"TAG_RELEASE_GROUPS_PREFIX": "%"
+	"RESET_ON_FAIL": true
 }
