@@ -65,7 +65,8 @@ const NamingConfigSchema = z.object({
   FORCE_TITLE_CASE: z.boolean(),
   FORCE_ORIGINAL_NAME: z.boolean(),
   TAG_MISSING_ORIGINAL_NAME: z.boolean(),
-  RESET_ON_FAIL: z.boolean()
+  RESET_ON_FAIL: z.boolean(),
+  TAG_RELEASE_GROUPS_PREFIX: z.string()
 });
 
 export type NamingConfig = z.infer<typeof NamingConfigSchema>

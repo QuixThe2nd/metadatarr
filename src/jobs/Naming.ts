@@ -93,6 +93,7 @@ export default class Naming {
         changes++;
         await this.api.addTags([hash], '!renamed');
       }
+      if (this.config.TAG_RELEASE_GROUPS_PREFIX && !this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes(`%${ptt.parse(origName ?? currentName).group}`)) await this.api.addTags([hash], `%${ptt.parse(origName ?? currentName).group}`)
     }
 
     if (currentName !== name) {
@@ -127,7 +128,7 @@ export default class Naming {
     return changes;
   }
 
-  cleanName(_oldName: string, firstRun = true, troubleshoot = false): { name: string; other: string } {
+  cleanName(_oldName: string, firstRun = true, troubleshoot = false): { name: string; other: string; info: ReturnType<ParseTorrentTitle.ParseFunction> } {
     let other = _oldName;
 
     for (const [find, replace] of this.config.REPLACE) other = other.replaceAll(new RegExp(find, "gi"), replace);
@@ -259,7 +260,7 @@ export default class Naming {
       if (reCleanName !== name) name = name.length <= reCleanName.length ? name : reCleanName;
     }
 
-    return { name, other };
+    return { name, other, info };
   }
 
   static test(name: string) {
