@@ -152,9 +152,9 @@ export default class Naming {
 
     for (const key of stringKeys) {
       if (!(key in info)) continue;
-      if (troubleshoot) console.log(key)
 
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
+      if (troubleshoot) console.log(key, matches)
 
       // Filter redundant values
       if (key === 'codec') {
