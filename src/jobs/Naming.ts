@@ -184,6 +184,9 @@ export default class Naming {
         ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
         key === 'title' && this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) :
         key === 'channels' ? Number(value).toFixed(1) :
+        key === 'language' ? 
+          value === 'multi' ? 'MULTi' :
+          value === 'dual' ? 'DUAL' : String(value) :
         value
       ).join(this.config.SPACING));
 
@@ -191,7 +194,7 @@ export default class Naming {
       if (key === 'bitdepth') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?bits?)?`, 'i'), '');
       else if (key === 'samplerate') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), '');
       else if (['season', 'episode'].includes(key)) other = other.replaceAll(new RegExp(`(?:${key[0]}|${key}).?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})(?:[. ]Complete)?`, 'gi'), '');
-      else if (key === 'language' && matches.includes('eng')) other = other.replace(/English/i, '');
+      else if (key === 'language') other = other.replace(/English/i, '');
       else if (key === 'source') {
         if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
         if (matches.includes('bluray')) other = other.replace(/\b(br|blu-ray)\b/i, '');
