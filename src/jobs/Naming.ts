@@ -93,7 +93,7 @@ export default class Naming {
         changes++;
         await this.api.addTags([hash], '!renamed');
       }
-      if (this.config.TAG_RELEASE_GROUPS_PREFIX && !this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes(`%${ptt.parse(origName ?? currentName).group}`)) await this.api.addTags([hash], `%${ptt.parse(origName ?? currentName).group}`)
+      if (this.config.TAG_RELEASE_GROUPS_PREFIX && !this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes(`${this.config.TAG_RELEASE_GROUPS_PREFIX}${ptt.parse(origName ?? currentName).group}`)) await this.api.addTags([hash], `${this.config.TAG_RELEASE_GROUPS_PREFIX}${ptt.parse(origName ?? currentName).group}`)
     }
 
     if (currentName !== name) {
