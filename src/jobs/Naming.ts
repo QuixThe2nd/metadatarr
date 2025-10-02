@@ -152,7 +152,7 @@ export default class Naming {
 
     for (const key of stringKeys) {
       if (!(key in info)) continue;
-      // console.log(key)
+      console.log(key)
 
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
 
@@ -202,7 +202,7 @@ export default class Naming {
         if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
         else if (matches.includes('dd')) {
           other = other.replace(/AC-?3/i, '');
-          other = other.replace(/(DD)\d/i, '');
+          other = other.replace(/(DD)(\d)/i, '$2');
         }
       } else if (key === 'resolution') {
         if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
@@ -233,7 +233,7 @@ export default class Naming {
       }
 
       delete info[key];
-      // console.log(other)
+      console.log(other)
     }
 
     for (const key of booleanKeys) {
