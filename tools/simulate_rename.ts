@@ -1,4 +1,4 @@
 import Naming from '../src/jobs/Naming'
 
-const naming = Naming.test('- Psych (2006) S03 (1080p AMZN WEB-DL H265 SDR DDP 5.1 English - HONE)');
+const naming = Naming.test('Django.Unchained.2012.BluRay.1080p.x264-10bit.DTS-HD.MA5.1-HDTime');
 console.log(naming);
