@@ -226,7 +226,7 @@ export default class Naming {
 
       // Remove original text from name based purely on alphanumeric values
       for (const match of matches) {
-        if (typeof match === 'number') continue; // Otherwise values like `5` for season will be replaced
+        if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
         const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
         other = other.replace(new RegExp(pattern, 'i'), '');
       }
