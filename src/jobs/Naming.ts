@@ -129,7 +129,7 @@ export default class Naming {
     return changes;
   }
 
-  cleanName(_oldName: string, firstRun = true): { name: string; other: string } {
+  cleanName(_oldName: string, firstRun = true, troubleshoot = false): { name: string; other: string } {
     let other = _oldName;
 
     for (const [find, replace] of this.config.REPLACE) other = other.replaceAll(new RegExp(find, "gi"), replace);
@@ -152,7 +152,7 @@ export default class Naming {
 
     for (const key of stringKeys) {
       if (!(key in info)) continue;
-      console.log(key)
+      if (troubleshoot) console.log(key)
 
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
 
@@ -204,6 +204,7 @@ export default class Naming {
           other = other.replace(/AC-?3/i, '');
           other = other.replace(/(DD)(\d)/i, '$2');
         }
+        if (matches.includes('truehd')) other = other.replace(/(TrueHD)(\d)/i, '$2');
       } else if (key === 'resolution') {
         if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
         else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '');
@@ -229,11 +230,12 @@ export default class Naming {
       for (const match of matches) {
         if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
         const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
+        if (key === 'audio') console.log(pattern)
         other = other.replace(new RegExp(pattern, 'i'), '');
       }
 
       delete info[key];
-      console.log(other)
+      if (troubleshoot) console.log(other, "\n")
     }
 
     for (const key of booleanKeys) {
@@ -265,6 +267,6 @@ export default class Naming {
   static test(name: string) {
     // @ts-expect-error:
     const naming = new Naming();
-    return { ...naming.cleanName(name), info: ptt.parse(name) };
+    return { ...naming.cleanName(name, false, true), info: ptt.parse(name) };
   }
 }
