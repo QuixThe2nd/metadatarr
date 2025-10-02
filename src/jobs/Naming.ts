@@ -205,7 +205,7 @@ export default class Naming {
         for (const match of matches) other = other.replace(new RegExp(`(${match})(\\d)`, "i"), '$2');
       } else if (key === 'resolution') {
         if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
-        else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '');
+        else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace('1080', '');
         else if (matches.includes('720p')) other = other.replace(/\bSDR\b/i, '');
       } else if (key === 'service') {
         if (matches.includes('NFLX')) other = other.replace(/[. ](?:NF|Netflix)[. ]/i, '');

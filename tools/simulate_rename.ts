@@ -1,4 +1,4 @@
 import Naming from '../src/jobs/Naming'
 
-const naming = Naming.test('Django.Unchained.2012.BluRay.1080p.x264-10bit.DTS-HD.MA5.1-HDTime');
+const naming = Naming.test('Harry Potter and the Goblet of Fire 2005 1080 br hdr hevc-d3g');
 console.log(naming);
