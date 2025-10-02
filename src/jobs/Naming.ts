@@ -189,7 +189,7 @@ export default class Naming {
       // Remove original text from name based off common patterns
       if (key === 'bitdepth') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?bits?)?`, 'i'), '');
       else if (key === 'samplerate') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), '');
-      else if (['season', 'episode'].includes(key)) other = other.replaceAll(new RegExp(`(?:${key[0]}|${key}).?0?(?:${matches.join('|')})(?:[. ]Complete)?`, 'gi'), '');
+      else if (['season', 'episode'].includes(key)) other = other.replaceAll(new RegExp(`(?:${key[0]}|${key}).?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})(?:[. ]Complete)?`, 'gi'), '');
       else if (key === 'language' && matches.includes('eng')) other = other.replace(/English/i, '');
       else if (key === 'source') {
         if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
