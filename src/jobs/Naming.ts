@@ -99,7 +99,7 @@ export default class Naming {
 
     if (currentName !== name) {
       changes++;
-      await this.api.rename(hash, name);
+      await this.api.rename(hash, name.trim());
     }
 
     if (this.config.RENAME_FILES) {
