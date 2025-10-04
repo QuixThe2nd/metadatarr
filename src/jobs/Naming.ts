@@ -181,7 +181,7 @@ export default class Naming {
     for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
     other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ');
-    name = cleanString(name).replace('[other]', other).trim();
+    name = cleanString(name.replace('[other]', other)).trim();
 
     if (firstRun) {
       const reCleanName = this.cleanName(name, false).name;
