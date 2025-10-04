@@ -3,7 +3,7 @@ import type Qbittorrent from "../services/qBittorrent";
 import type { Torrent } from "../services/qBittorrent";
 import ptt from "parse-torrent-title";
 
-function cleanString(str: string, other = false): string {
+function cleanString(str: string): string {
   const charSet = new Set([' ','.','-','_']);
   let start = 0;
   let end = str.length - 1;
@@ -11,7 +11,7 @@ function cleanString(str: string, other = false): string {
   while (start <= end && charSet.has(str.charAt(start))) start++;
   while (end >= start && charSet.has(str.charAt(end))) end--;
   
-  let newString = str.slice(start, end + 1).trim()
+  let newString = str.slice(start, end + 1)
     // Double Spaces
     .replaceAll(/\s{2,}/g, ' ')
     // Spaces inside brackets
@@ -31,7 +31,6 @@ function cleanString(str: string, other = false): string {
     .replaceAll('[-', '[')
     .replaceAll('-]', ']')
 
-  if (other) newString = newString.replace(/[^a-zA-Z0-9]/g, ' ');
   return newString === str ? str : cleanString(newString);
 }
 
@@ -108,9 +107,9 @@ export default class Naming {
     if (this.config.RENAME_FILES) {
       const files = await this.api.files(hash);
       if (!files) return changes;
-      const old_folder = files[0]?.name.split('/')[0];
-      if (!old_folder) return changes;
-      const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(old_folder);
+      const oldFolder = files[0]?.name.split('/')[0];
+      if (!oldFolder) return changes;
+      const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
 
       if (folderOther.length) {
         if (this.config.TAG_FAILED_PARSING) {
@@ -122,7 +121,7 @@ export default class Naming {
 
       for (const file of files) {
         const oldFileName = file.name;
-        const newFileName = file.name.replaceAll(old_folder, newFolder);
+        const newFileName = file.name.replaceAll(oldFolder, newFolder);
         if (oldFileName !== newFileName) {
           changes++;
           await this.api.renameFile(hash, oldFileName, newFileName);
@@ -181,7 +180,7 @@ export default class Naming {
     // Remove unused tags
     for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
-    other = cleanString(other, true);
+    other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ');
     name = cleanString(name).replace('[other]', other).trim();
 
     if (firstRun) {
