@@ -179,7 +179,7 @@ export default class Naming {
     for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
     other = cleanString(other, true);
-    name = cleanString(name).replace('[other]', other);
+    name = cleanString(name).replace('[other]', other).trim();
 
     if (firstRun) {
       const reCleanName = this.cleanName(name, false).name;
