@@ -11,25 +11,28 @@ function cleanString(str: string, other = false): string {
   while (start <= end && charSet.has(str.charAt(start))) start++;
   while (end >= start && charSet.has(str.charAt(end))) end--;
   
-  let newString = str.slice(start, end + 1)
-    .replaceAll(/\[\s*]/g, '')
-    .replaceAll(/\(\s*\)/g, '')
-    .replaceAll(/-\s*-/g, '')
-    .replaceAll(/\(\s+/g, '(')
-    .replaceAll(/\[\s+/g, '[')
-    .replaceAll(/\s+\)/g, ')')
-    .replaceAll(/\s\]+/g, ']')
-    .replaceAll(/\s+/g, ' ')
-    .replaceAll(/\.+/g, '.')
-    .replace('[[', '[')
-    .replace(']]', ']')
-    .replaceAll('[-', '[')
-    .replaceAll('[ ', '[')
+  let newString = str.slice(start, end + 1).trim()
+    // Double Spaces
+    .replaceAll(/\s{2,}/g, ' ')
+    // Spaces inside brackets
+    .replaceAll(/\(\s/g, '(')
+    .replaceAll(/\[\s/g, '[')
+    .replaceAll(/\s\)/g, ')')
+    .replaceAll(/\s]/g, ']')
+    // Empty Groups
+    .replaceAll('[]', '')
+    .replaceAll('()', '')
     .replaceAll('- -', '-')
+    // Double Chars
+    .replaceAll(/\.{2,}/g, '.')
+    .replaceAll(/\[{2,}/g, '[')
+    .replaceAll(/]{2,}/g, ']')
+    // Separators in groups
+    .replaceAll('[-', '[')
+    .replaceAll('-]', ']')
 
   if (other) newString = newString.replace(/[^a-zA-Z0-9]/g, ' ');
-  if (newString === str) return str.trim();
-  return cleanString(newString);
+  return newString === str ? str : cleanString(newString);
 }
 
 export default class Naming {
