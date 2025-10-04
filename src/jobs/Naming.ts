@@ -80,7 +80,7 @@ export default class Naming {
         await this.api.removeTags([hash], '!renamed');
       }
       if (this.config.RESET_ON_FAIL && origName) {
-        if (origName !== currentName) await this.api.rename(hash, origName.trim());
+        if (origName !== currentName) await this.api.rename(hash, origName);
         return changes+1;
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
@@ -97,7 +97,7 @@ export default class Naming {
 
     if (currentName !== name) {
       changes++;
-      await this.api.rename(hash, name.trim());
+      await this.api.rename(hash, name);
     }
 
     if (this.config.RENAME_FILES) {
