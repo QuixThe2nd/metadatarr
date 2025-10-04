@@ -36,6 +36,8 @@ export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
   private others = new Map<string, { count: number, example: string; info: unknown }>();
+  private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
+  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal'] as const;
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
@@ -81,7 +83,7 @@ export default class Naming {
       }
       if (this.config.RESET_ON_FAIL && origName) {
         if (origName !== currentName) await this.api.rename(hash, origName);
-        return changes+1;
+        changes++;
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else {
@@ -145,111 +147,36 @@ export default class Naming {
       delete info.year;
     }
 
-    const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'tracker', 'season', 'episode', 'year'] as const;
-    const booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal'] as const;
-
-    for (const key of stringKeys) {
+    for (const key of this.stringKeys) {
       if (!(key in info)) continue;
 
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
-      if (troubleshoot) console.log(key, matches)
+      if (troubleshoot) console.log(key, matches);
 
-      // Filter redundant values
-      if (key === 'codec') {
-        if (matches.includes('h264') && matches.includes('x264')) {
-          other = other.replace(/h264/i, '');
-          matches = matches.filter(match => match !== 'h264');
-        }
-        else if (matches.includes('h265') && matches.includes('x265')) {
-          other = other.replace(/h265/i, '');
-          matches = matches.filter(match => match !== 'h265');
-        }
-      }
-      if (key === 'audio') {
-        if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
-      }
+      const filtered = this.redundantFlags[key]?.(matches, other) ?? { matches, other };
+      matches = filtered.matches;
+      other = filtered.other;
 
-      // Places matches in new name
-      name = name.replaceAll(`[${key}]`, matches.map(value => 
-        key === 'samplerate' ? `${value}kHz` :
-        key === 'source' ? 
-          value === 'bluray' ? 'BluRay' : 
-          value === 'web-dl' ? 'WEBDL' : String(value).toUpperCase() :
-        key === 'audio' ?
-          value === 'atmos' ? 'Atmos' :
-          value === 'truehd' ? 'TrueHD' : String(value).toUpperCase() :
-        key === 'codec' ? ['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? String(value).toLowerCase() : String(value).toUpperCase() :
-        ['season', 'episode'].includes(key) ? `${key[0]?.toUpperCase()}${String(value).padStart(2, '0')}` :
-        key === 'title' && this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) :
-        key === 'channels' ? Number(value).toFixed(1) :
-        key === 'language' ? 
-          value === 'multi' ? 'MULTi' :
-          value === 'dual' ? 'DUAL' : String(value) :
-        value
-      ).join(this.config.SPACING));
+      name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
 
-      // Remove original text from name based off common patterns
-      if (key === 'bitdepth') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?bits?)?`, 'i'), '');
-      else if (key === 'samplerate') other = other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), '');
-      else if (['season', 'episode'].includes(key)) other = other.replaceAll(new RegExp(`(?:${key[0]}|${key}).?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})(?:[. ]Complete)?`, 'gi'), '');
-      else if (key === 'language') other = other.replace(/English/i, '');
-      else if (key === 'source') {
-        if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
-        if (matches.includes('bluray')) other = other.replace(/\b(br|blu-ray)\b/i, '');
-      } else if (key === 'color') {
-        if (matches.includes('HDR')) other = other.replace('HDR10', '');
-        if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
-      } else if (key === 'audio') {
-        if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
-        else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
-        if (matches.includes('dts-hd-ma')) other = other.replace(/DTS-HD.MA/i, '');
-        for (const match of matches) other = other.replace(new RegExp(`(${match})(\\d)`, "i"), '$2');
-      } else if (key === 'resolution') {
-        if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
-        else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
-        else if (matches.includes('720p')) other = other.replace(/\bSDR\b/i, '');
-      } else if (key === 'service') {
-        if (matches.includes('NFLX')) other = other.replace(/[. ](?:NF|Netflix)[. ]/i, '');
-        else if (matches.includes('AMZN')) other = other.replace(/[. []Amazon[. \]]/i, '');
-        else if (matches.includes('HMAX')) other = other.replace(/[. []H?MAX[. \]]/i, '');
-        else if (matches.includes('iT')) other = other.replace(/[. []iTunes[. \]]/i, '');
-      } else if (key === 'codec') {
-        if (matches.includes('h265') || matches.includes('x265')) other = other.replace(/hevc/i, '');
-        else if (matches.includes('h264') || matches.includes('x264')) other = other.replace(/avc/i, '');
-        else if (matches.includes('dts-hd-ma')) other= other.replace(/DTS-HD[\s-.]?MA/i, '')
-      } else if (key === 'channels') {
-        other = other.replace(Number(matches[0]).toFixed(1), '');
-        other = other.replace(Number(matches[0]).toFixed(1).replace('.', ' '), '');
-        if (matches.includes(7.1)) other = other.replace(/8(?:CH)/, '');
-        else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
-        else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
-      }
-
-      // Remove original text from name based purely on alphanumeric values
-      for (const match of matches) {
-        if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
-        const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
-        other = other.replace(new RegExp(pattern, 'i'), '');
-      }
+      other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
+      
+      other = this.removeAlphanumericMatches(key, matches, other)
 
       delete info[key];
       if (troubleshoot) console.log(other, "\n")
     }
 
-    for (const key of booleanKeys) {
+    for (const key of this.booleanKeys) {
       if (info[key] === true) {
         name = name.replace(`[${key}]`, key.toUpperCase());
-        if (key === 'extended') other = other.replace(/extended(?:[\s.](?:cut|edition))?/gi, '');
-        else if (key === 'openmatte') other = other.replace(/open(?:[\s.]matte)?/gi, '');
-        else if (key === 'repack') other = other.replace(/rerip/i, '');
-        else if (key === 'remastered') other = other.replace(/Remaster(?:ed)?/i, '');
-        other = other.replace(new RegExp(key, 'gi'), '');
+        other = this.cleanupBooleanFlags(key, other);
       }
       delete info[key];
     }
 
     // Remove unused tags
-    for (const key of [...stringKeys, ...booleanKeys]) name = name.replace(`[${key}]`, '');
+    for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
     other = cleanString(other, true);
     name = cleanString(name).replace('[other]', other);
@@ -260,6 +187,108 @@ export default class Naming {
     }
 
     return { name, other, info };
+  }
+
+  private removeAlphanumericMatches(key: typeof this.stringKeys[number], matches: (string | number)[], other: string): string {
+    for (const match of matches) {
+      if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
+      const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
+      other = other.replace(new RegExp(pattern, 'i'), '');
+    }
+    return other;
+  }
+
+  private readonly formatFlags: Partial<Record<typeof this.stringKeys[number], (value: string | number) => string>> = {
+    samplerate: value => `${value}kHz`,
+    channels: value => Number(value).toFixed(1),
+    source: value => ({ bluray: 'BluRay', 'web-dl': 'WEBDL' }[value] ?? String(value).toUpperCase()),
+    language: value => ({ multi: 'MULTi' }[value] ?? String(value).toUpperCase()),
+    audio: value => ({ atmos: 'Atmos', truehd: 'TrueHD' }[value] ?? String(value).toUpperCase()),
+    codec: value => String(value)[['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? 'toLowerCase' : 'toUpperCase'](),
+    season: value => `S${String(value).padStart(2, '0')}`,
+    episode: value => `E${String(value).padStart(2, '0')}`,
+    title: value => this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) : String(value)
+  };
+
+  private readonly cleanupStringFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
+    bitdepth: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?bits?)?`, 'i'), ''),
+    samplerate: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), ''),
+    language: (matches, other) => matches.includes('eng') ? other.replace(/English/i, '') : other,
+    season: (matches, other) => other.replaceAll(new RegExp(`S(?:eason)?.?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})(?:[. ]Complete)?`, 'gi'), ''),
+    episode: (matches, other) => other.replaceAll(new RegExp(`E(?:pisode)?.?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})`, 'gi'), ''),
+    source: (matches, other) => {
+      if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
+      if (matches.includes('bluray')) other = other.replace(/\b(br|blu-ray)\b/i, '');
+      return other;
+    },
+    color: (matches, other) => {
+      if (matches.includes('HDR')) other = other.replace('HDR10', '');
+      if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
+      return other;
+    },
+    audio: (matches, other) => {
+      if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
+      else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
+      if (matches.includes('dts-hd-ma')) other = other.replace(/DTS-HD.MA/i, '');
+      for (const match of matches) other = other.replace(new RegExp(`(${match})(\\d)`, "i"), '$2');
+      return other;
+    },
+    resolution: (matches, other) => {
+      if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
+      else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
+      else if (matches.includes('720p')) other = other.replace(/\bSDR\b/i, '');
+      return other;
+    },
+    service: (matches, other) => {
+      if (matches.includes('NFLX')) other = other.replace(/[. ](?:NF|Netflix)[. ]/i, '');
+      else if (matches.includes('AMZN')) other = other.replace(/[. []Amazon[. \]]/i, '');
+      else if (matches.includes('HMAX')) other = other.replace(/[. []H?MAX[. \]]/i, '');
+      else if (matches.includes('iT')) other = other.replace(/[. []iTunes[. \]]/i, '');
+      return other;
+    },
+    codec: (matches, other) => {
+      if (matches.includes('h265') || matches.includes('x265')) other = other.replace(/hevc/i, '');
+      else if (matches.includes('h264') || matches.includes('x264')) other = other.replace(/avc/i, '');
+      else if (matches.includes('dts-hd-ma')) other= other.replace(/DTS-HD[\s-.]?MA/i, '')
+      return other;
+    },
+    channels: (matches, other) => {
+      other = other.replace(Number(matches[0]).toFixed(1), '');
+      other = other.replace(Number(matches[0]).toFixed(1).replace('.', ' '), '');
+      if (matches.includes(7.1)) other = other.replace(/8(?:CH)/, '');
+      else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
+      else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
+      return other;
+    }
+  }
+
+  private cleanupBooleanFlags(key: typeof this.booleanKeys[number], other: string): string {
+    const cleanups = {
+      extended: /extended(?:[\s.](?:cut|edition))?/gi,
+      openmatte: /open(?:[\s.]matte)?/gi,
+      repack: /rerip/i,
+      remastered: /Remaster(?:ed)?/i
+    } as const;
+
+    if (key in cleanups) other = other.replace(cleanups[key as keyof typeof cleanups], '');
+    return other.replace(new RegExp(key, 'gi'), '');
+  }
+
+  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => { matches: (string | number)[], other: string }>> = {
+    codec: (matches, other) => {
+      if (matches.includes('h264') && matches.includes('x264')) {
+        matches = matches.filter(match => match !== 'h264');
+        other = other.replace(/h264/i, '');
+      } else if (matches.includes('h265') && matches.includes('x265')) {
+        matches = matches.filter(match => match !== 'h265');
+        other = other.replace(/h265/i, '');
+      }
+      return { matches, other }
+    },
+    audio: (matches, other) => {
+      if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
+      return { matches, other }
+    }
   }
 
   static test(name: string) {
