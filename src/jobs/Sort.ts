@@ -95,8 +95,9 @@ export default class Sort {
           const shouldSkipApiCall = nextTorrent && current_priority && positionTracker.indexOf(nextTorrent.hash) === current_priority;
 
           const type = checkingTorrents.find(t => t.hash === torrent.hash) ? '[CHECKING]' : (movingTorrents.find(t => t.hash === torrent.hash) ? '[MOVING]' : '[ACTIVE]');
-          if (shouldSkipApiCall) console.log(torrent.hash, `\x1b[32m[qBittorrent]\x1b[0m [SORT] ${type} Skipping redundant move`, torrent.name);
-          else {
+          if (shouldSkipApiCall) {
+            // console.log(torrent.hash, `\x1b[32m[qBittorrent]\x1b[0m [SORT] ${type} Skipping redundant move`, torrent.name);
+          } else {
             await this.api.topPriority(processedTorrents);
             api_moves++;
 
