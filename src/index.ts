@@ -52,12 +52,12 @@ const fetchTorrents = async () => {
     }
   }
 
-  changes += (await Promise.all([
-    Duplicates.run(api, torrents),
-    Sort.run(api, torrents),
-    Queue.run(api, torrents),
-    Naming.run(api, torrents, originalNames.names)
-  ])).reduce((partialSum, a) => partialSum + a, 0);
+  // changes += (await Promise.all([
+  changes += await Duplicates.run(api, torrents);
+  changes += await Sort.run(api, torrents);
+  changes += await Queue.run(api, torrents);
+  changes += await Naming.run(api, torrents, originalNames.names);
+  // ])).reduce((partialSum, a) => partialSum + a, 0);
 
   await Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
   return changes;
