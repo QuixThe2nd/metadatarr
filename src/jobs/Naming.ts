@@ -53,53 +53,51 @@ export default class Naming {
     let changes = 0;
     for (const torrent of this.torrents) {
       const tags = torrent.tags.split(', ');
-      changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent.name, tags.includes("!renameFailed"), tags.includes("!renamed"));
+      changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent);
     }
     if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1].count - a[1].count).map(other => `${other[0]} (${other[1].count}) - ${other[1].example} - ${JSON.stringify(other[1].info)}`))
     return changes;
   }
 
-  private async renameTorrent(hash: string, origName: string | undefined, currentName: string, failedTag: boolean, renamedTag: boolean): Promise<number> {
+  private async renameTorrent(hash: string, origName: string | undefined, torrent: Torrent): Promise<number> {
     let changes = 0;
     if (!origName) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && this.torrents.find(torrent => torrent.hash === hash)!.size > 0) this.api.addTags([hash], '!missingOriginalName');
+      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) this.api.addTags([hash], '!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
-        if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(currentName, "Original name not found");
+        if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
         return 0;
       }
-    } else if (this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes('!missingOriginalName')) {
-      this.api.removeTags([hash], '!missingOriginalName');
-    }
-    const { name, other } = this.cleanName(origName ?? currentName);
+    } else if (torrent.tags.split(', ').includes('!missingOriginalName')) this.api.removeTags([hash], '!missingOriginalName');
+    const { name, other } = this.cleanName(origName ?? torrent.name);
 
     if (other.length) {
-      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? currentName, info: ptt.parse(origName ?? currentName) })
-      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? currentName, info: ptt.parse(origName ?? currentName) })
-      if (this.config.TAG_FAILED_PARSING && !failedTag) {
+      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? torrent.name, info: ptt.parse(origName ?? torrent.name) })
+      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? torrent.name, info: ptt.parse(origName ?? torrent.name) })
+      if (this.config.TAG_FAILED_PARSING && !torrent.tags.includes("!renameFailed")) {
         changes++;
         await this.api.addTags([hash], "!renameFailed");
       }
-      if (this.config.TAG_SUCCESSFUL_PARSING && renamedTag) {
+      if (this.config.TAG_SUCCESSFUL_PARSING && torrent.tags.includes("!renamed")) {
         changes++;
         await this.api.removeTags([hash], '!renamed');
       }
       if (this.config.RESET_ON_FAIL && origName) {
-        if (origName !== currentName) await this.api.rename(hash, origName);
+        if (origName !== torrent.name) await this.api.rename(hash, origName);
         changes++;
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else {
-      if (this.config.TAG_FAILED_PARSING && failedTag) {
+      if (this.config.TAG_FAILED_PARSING && torrent.tags.includes("!renameFailed")) {
         changes++;
         await this.api.removeTags([hash], "!renameFailed");
       }
-      if (this.config.TAG_SUCCESSFUL_PARSING && !renamedTag) {
+      if (this.config.TAG_SUCCESSFUL_PARSING && !torrent.tags.includes("!renamed")) {
         changes++;
         await this.api.addTags([hash], '!renamed');
       }
     }
 
-    if (currentName !== name) {
+    if (torrent.name !== name) {
       changes++;
       await this.api.rename(hash, name);
     }
