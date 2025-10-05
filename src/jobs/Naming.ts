@@ -107,7 +107,11 @@ export default class Naming {
     if (this.config.RENAME_FILES) {
       const files = await this.api.files(hash);
       if (!files) return changes;
-      const oldFolder = files[0]?.name.split('/')[0];
+      const parts = files[0]!.name.split('/');
+
+      if (parts.length === 1) return changes;
+
+      const oldFolder = parts[0];
       if (!oldFolder) return changes;
       const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
 
