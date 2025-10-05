@@ -62,7 +62,7 @@ export default class Naming {
   private async renameTorrent(hash: string, origName: string | undefined, torrent: Torrent): Promise<number> {
     let changes = 0;
     if (!origName) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) this.api.addTags([hash], '!missingOriginalName');
+      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.split(', ').includes('!missingOriginalName')) this.api.addTags([hash], '!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
         if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
         return 0;
