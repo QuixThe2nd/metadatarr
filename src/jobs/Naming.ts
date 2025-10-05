@@ -64,7 +64,7 @@ export default class Naming {
     if (!origName) {
       if (this.config.TAG_MISSING_ORIGINAL_NAME && this.torrents.find(torrent => torrent.hash === hash)!.size > 0) this.api.addTags([hash], '!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
-        console.warn(currentName, "Original name not found");
+        if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(currentName, "Original name not found");
         return 0;
       }
     } else if (this.torrents.find(torrent => torrent.hash === hash)?.tags.split(', ').includes('!missingOriginalName')) {
