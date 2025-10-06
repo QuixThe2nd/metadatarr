@@ -1,4 +1,4 @@
 import Naming from '../src/jobs/Naming'
 
-const naming = Naming.test('Up.2009.DSNP.WEB-DL.1080p.HDR10.DDPDA5.1.HEVC-ARCADE.mkv');
+const naming = Naming.test('Modern Family.S02.1080p.Bluray.DTS-HD Master Audio.5.1.SDR.x265-j3rico');
 console.log(naming);

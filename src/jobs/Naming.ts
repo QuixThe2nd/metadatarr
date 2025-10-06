@@ -239,7 +239,7 @@ export default class Naming {
       if (matches.includes("atmos")) other = other.replace(/\b((?:DDP)?DA)(\d)/i, '$2');
       if (matches.includes('ddp')) other = other.replace(/DD(?:\+|PA?)|EAC-?3/i, '');
       else if (matches.includes('dd')) other = other.replace(/AC-?3/i, '');
-      if (matches.includes('dts-hd-ma')) other = other.replace(/DTS-HD.MA/i, '');
+      if (matches.includes('dts-hd-ma')) other = other.replace(/DTS-HD[\s-.]?(MA|Master Audio)/, '');
       for (const match of matches) other = other.replace(new RegExp(`(${match})(\\d)`, "i"), '$2');
       return other;
     },
