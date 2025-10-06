@@ -6,9 +6,6 @@ const filter = '';
 const qB = await Qbittorrent.connect()
 
 const torrents = await qB.torrents();
-for (const torrent of torrents) {
-  await Promise.all([qB.addTrackers(torrent.hash)]);
-}
 const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
