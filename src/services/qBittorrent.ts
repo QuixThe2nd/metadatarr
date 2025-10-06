@@ -15,7 +15,8 @@ const TorrentSchema = z.object({
   progress: z.number(),
   private: z.boolean().nullable(),
   amount_left: z.number().nullable(),
-  seq_dl: z.boolean()
+  seq_dl: z.boolean(),
+  added_on: z.number()
 });
 export type Torrent = z.infer<typeof TorrentSchema>;
 

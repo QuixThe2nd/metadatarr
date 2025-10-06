@@ -43,7 +43,7 @@ export default class Naming {
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
-    const naming = new Naming(api, torrents, originalNames);
+    const naming = new Naming(api, torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
     let changes = await naming.renameAll();
     console.log('Renamed torrents');
     return changes;
