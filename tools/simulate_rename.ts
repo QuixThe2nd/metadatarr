@@ -1,113 +1,22 @@
 import Naming from '../src/jobs/Naming'
+import Qbittorrent from '../src/services/qBittorrent'
 
-const tests = [
-  "Breaking Bad (2008) S01 (1080p DS4K AMZN WEB-DL x265 SDR DDP 5.1 English - Yogi HONE)",
-  "Mission.Impossible.2.2000.Blu-ray.720p.AC3.x264.RoSubbed-playHD",
-  "Harry.Potter.and.the.Sorcerer's.Stone.2001.Theatrical.Cut.1080p.UHD.BluRay.DDP7.1.HDR.x265-BMF.mkv",
-  "8 Mile 2002 BluRay 1080p DTS-HD MA 5.1 x264 dxva-FraMeSToR",
-  "Gladiator.2000.Theatrical.720p.BluRay.DD5.1-EbP",
-  "House S08 br 10bit dts hevc-d3g",
-  "Jaws.1975.Uncut.1080p.PCOK.WEB-DL.DDP5.1.H.264-Softboat.mkv",
-  "Saturday.Night.Live.The.Best.of.Adam.Sandler.1999.NTSC.DVD.REMUX-ARCHIVED.mkv",
-  "Tulsa.King.S03E03.The.G.and.the.OG.REPACK.1080p.AMZN.WEB-DL.DDP5.1.H.264-BLOOM.mkv",
-  "Deadpool.2.2018.Super.Duper.Cut.720p.BluRay.DD5.1.x264-TayTO",
-  "For All Mankind 2019 S04E09 1080p ATVP WEB-DL H265 SDR DDP Atmos 5 1 English-HONE[EZTVx.to].mkv",
-  "David_Bowie-The_Hearts_Filthy_Lesson_Mix_E.P.-EP-16BIT-WEB-FLAC-2025-OBZEN",
-  "They.Live.1988.Shout.Factory.CE.1080p.UHD.BluRay.DD+.5.1.DV.HDR.x265-SQS.mkv",
-  "Hot Tub Time Machine (2010) Unrated REPACK (1080p BDRip x265 10bit DTS-HD MA 5.1 - JBENT)[TAoE].mkv",
-  "Mission.Impossible.Ghost.Protocol.2011.1080p.UHD.BluRay.DD+.EX.7.1.DV.HDR.x265-SQS.mkv",
-  "Fat.Pizza.vs.Housos.Live.2016.576p.PAL.DVD.REMUX.DD.2.0-Headpatter.mkv",
-  "Shutter.Island.2010.1080P.Bluray.HDR10.DTS-HD.MA.5.1.HEVC.X265-FZHD",
-  "Eminem.-.The.Slim.Shady.LP.1999.Log+Cue.16bit.44kHz.FLAC",
-  "Trailer.Park.Boys.The.SwearNet.Show.S07.1080p.SwearNet.WEB-DL.AAC.2.0.H.264-ACA30",
-  "Guardians of the Galaxy Vol 2 2017 IMAX Enhanced 1080p HFR WEB-DL HDR10 HEVC 10bit DD 5 1-Robo29",
-  "Da Ali G Show.2004.s2.AVO.Kotov",
-  "Blade.Runner.1982.The.Final.Cut.UHD.BluRay.1080p.DD+Atmos.5.1.DoVi.HDR10.x265-SM737",
-  "Modern Family.S02.1080p.Bluray.DTS-HD Master Audio.5.1.SDR.x265-j3rico",
-  "Ali.G.Indahouse.2002.DTS-HD.DTS.1080p.BluRay.x264.HQ-TUSAHD",
-  "12.Angry.Men.1957.CRITERION.1080p.BluRay.FLAC.x264-decibeL.mkv",
-  "Goodfellas.1990.Anniversary.Edition.1080p.BluRay.x265.DTS-HD.MA.5.1-LEGJOB.mkv",
-  "American Wedding 2003 Unrated + Extras 1080p BluRay H.265 10bit AAC 5.1-FreetheFish",
-  "Philadelphia S04 - [1080p WEB h264] [NORDIC] - [EGEN]",
-  "Die.Hard.With.a.Vengeance.1995.1080p.BluRay.x264.DTS-HD.MA5.1.SiMPLE",
-  "Harry Potter  and the Deathly Hallows Part 2 2011br hdr 10bit hevc-d3g",
-  "F1 2025 Hybrid 1080p UHD BluRay DD 5 1 Atmos DV HDR10X265-HiDt",
-  "Good.Will.Hunting.1997.1080p.15th.Anniversary.Edition.BluRay.DTS-HD.x264-BARC0DE",
-  "Eminem-Encore-PROPER-2CD-FLAC-2004-CALiFLAC",
-  "Dirty.Work.1998.Dirtier.Cut.UHD.BluRay.1080p.DDP.5.1.DoVi.HDR10.x265-SM737",
-  "Mad.Max.Fury.Road.2015.Black.And.Chrome.Edition.720p.BluRay.DD5.1.x264-DON",
-  "Spider.Man.No.Way.Home.2021.IMAX.1080p.CORE.UHD.WEBRip.DD+Atmos.7.1.DoVi.HDR10+x265-SM737.mkv",
-  "Mad.Max.Fury.Road.2015.1080p.UHD.BluRay.HDR.DoVi.TrueHD.Atmos.7.1-SM737.mkv",
-  "Harry.Potter.and.the.Philosopher's.Stone.2001.2in1.720p.BluRay.DTS.x264-EbP",
-  "Mad Max Beyond Thunderdome (1985) (1080p AMZN WEB-DL H265 SDR DDP 5.1 English - DarQ).mkv",
-  "Uncut Gems (2019) Criterion (1080p BluRay x265 SDR DDP Atmos 7.1 English - DarQ HONE).mkv",
-  "Silicon.Valley.S00E04.Ten.Years.Later.The.Extended.Pied.Piper.Documentary.720p.AMZN.WEB-DL.DDP2.0.H.264-NTb[eztv].mkv",
-  "Tulsa.King.S03E02.The.Fifty.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv",
-  "Tulsa.King.S03E01.Blood.and.Bourbon.1080p.AMZN.WEB-DL.DDP5.1.H.264-FLUX.mkv",
-  "Mad.Max.2.1981.720p.BluRay.DD5.1.x264-playHD",
-  "The.Boys.(2019).Season.1.S01.(1080p.AMZN.WEB-DL.x265.HEVC.10bit.EAC3.5.1.RZeroX)",
-  "F1.The.Movie.2025.1080p.iT.WEB-DL.DDP5.1.Atmos.H.265-WADU.mkv",
-  "Prehistoric Planet (2022) Season 1 S01 (1080p ATVP WEB-DL x265 HEVC 10bit EAC3 5.1 Silence)",
-  "Pirates of the Caribbean Dead Mans Chest 2006 1080p BluRay HEVC 10-bit TrueHD Atmos 7 1 incl Commentary-MrTentsaw",
-  "Are You Mad at Me_ - Meg Josephson",
-  "The.Rookie..Season.2.S02.(1080p.AMZN.WEB-DL.x265.HEVC.10bit.AAC.5.1.Vyndros)",
-  "Spider-Man Into The Spider-Verse (2018) 1080p AMZN WEB-DL Multi-Audio DDP 5.1 E-Sub -24xHD",
-  "Mr. Deeds 2002 720p BluRay DD5.1 x264 ROSubbed-EbP",
-  "Mr.Robot.S02E00.Hacking.Robot.102.720p.HDTV.x264-BATV[eztv].mkv",
-  "Mr.Robot.S02E00.Hacking.Robot.101.720p.HDTV.x264-BATV[eztv].mkv",
-  "The Fantastic Four First Steps 2025 UHD BluRay 1080p DD Atmos 5 1 DoVi HDR10x265-SM737",
-  "Suits S07br avc-pir8",
-  "The.Blacklist.S10E14.The.Nowhere.Bride.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E13.The.Sicilian.Error.of.Color.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E03.The.Four.Guns.1080p.HULU.WEBRip.AAC2.0.H264-WhiteHat[TGx]",
-  "The.Blacklist.S10E22.Raymond.Reddington.Good.Night.Part.2.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E21.Raymond.Reddington.Part.1.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E20.Arthur.Hudson.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E19.Room.417.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E18.Wormwood.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "The.Blacklist.S10E15.The.Hat.Trick.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb[eztv.re].mkv",
-  "Ali G Rezurection (Season 1) [Effx]",
-  "The.Good.Place.S04E00.Series.Finale.Aftershow.720p.HDTV.x264-CROOKS[eztv].mkv",
-  "The.Blacklist.S08E21.Nachalo.720p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E19.Balthazar.Bino.Baker.720p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E15.The.Russian.Knot.720p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E09.The.Cyranoid.720p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "afi-the.blacklist.s08e07.1080p[eztv.re].mkv",
-  "The.Blacklist.S08E16.Nicholas.Obenrader.1080p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E12.Rakitin.1080p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E11.Captain.Kidd.1080p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E10.Dr.Laken.Perillos.1080p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "The.Blacklist.S08E08.Ogden.Greely.1080p.AMZN.WEBRip.DDP5.1.x264-NTb[eztv.re].mkv",
-  "Mr.Robot.S04E06.406.Not.Acceptable.720p.AMZN.WEB-DL.DDP5.1.H.264-NTG[eztv].mkv",
-  "Mr.Robot.S04E05.405.Method.Not.Allowed.720p.AMZN.WEB-DL.DDP5.1.H.264-NTG[eztv].mkv",
-  "Mr.Robot.S04E03.403.Forbidden.720p.AMZN.WEB-DL.DDP5.1.H.264-NTG[eztv].mkv",
-  "Curb Your Enthusiasm (2000) S00E01 Larry David - Curb Your Enthusiasm (1080p Webrip x265 10bit EAC3 2.0 - JBENT)[TAoE].mkv",
-  "Rick.and.Morty.S00E177.Rick.and.Morty.In.The.Eternal.Nightmare.Machine.720p.AMZN.WEBRip.DDP2.0.x264[eztv.re].mkv",
-  "Shakes.the.Clown.1992.WEB-DL.720p_by_vedigo.mkv",
-  "modern.family.s11e00.a.modern.farewell.internal.720p.web.h264-bamboozle[eztv].mkv",
-  "Takie.raznye.bliznety.2011.D.BDRip.1080p.IRONCLUB.mkv",
-  "Pirates of the Caribbean - The Curse of the Black Pearl (2003) REPACK (1080p BluRay x265 HEVC 10bit AAC 5.1 Tigole)",
-  "Succession.S04E10.With.Open.Eyes.REPACK.1080p.MAX.WEBRip.DDP5.1.x264-NTb",
-  "Good.Will.Hunting.1997.1080p.15th.Anniversary.Edition.BluRay.x264.Exsosus",
-  "The.Boys.S02.1080p.AMZN.WEBRip.DDP5.1.x264MultiSubbed-NTb",
-  "David Bowie - Original Album Classics {2012, EU, Sony 88691906172}",
-  "The Beatles - 2023 - Now And Then [FLAC]",
-  "David_Bowie_and_Mick_Jagger-Dancing_In_The_Street-Remastered-Single-WEB-2025-MARR",
-  "David Bowie [1990] Changesbowie (EMI, CDP 79 4180 2)",
-  "David Bowie - 1991 - Early On 1964-1966",
-  "David Bowie - Changestwobowie (2018) 320",
-  "David Bowie - (1991) Young Americans",
-  "Elton John - 2020 - Jewel Box [EP]",
-  "The Beatles - Sgt. Pepper's Lonely Hearts Club Band (Remastered) (1967) [FLAC 16-44]-maladicta",
-  "The Beatles - Rubber Soul (Remastered 2009) (1965) [FLAC 16-44]-maladicta",
-  "David Bowie - 2022 - Moonage Daydream – A Brett Morgen Film"
-];
-const failures: { originalName: string, name: string, other: string }[] = []
+const filter = '';
+
+const qB = await Qbittorrent.connect()
+
+const tests = (await qB.torrents()).map(t => t.name).filter(t => t.includes(filter));
+
+const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  const naming = Naming.test(test);
-  if (naming.other) failures.push({ originalName: test, ...naming });
+  let { other, ...result } = Naming.test(test);
+  if (other) {
+    if (!fails[other]) fails[other] = { originalName: test, count: 0, ...result};
+    fails[other].count++;
+  }
 }
 
-console.log(failures);
-console.log(`Success: ${tests.length-failures.length}`);
-console.log(`Failure: ${failures.length}`);
+const failCount = Object.values(fails).reduce((a, b) => a + b.count, 0);
+for (const fail of Object.entries(fails).sort((a, b) => a[1].count - b[1].count)) console.log(JSON.stringify(fail, null, 2))
+console.log('Failures:', failCount)
+console.log('Successes:', tests.length - failCount)

@@ -38,8 +38,8 @@ export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
   private others = new Map<string, { count: number, example: string; info: unknown }>();
-  private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year'] as const;
-  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid'] as const;
+  private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
+  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut'] as const;
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
@@ -197,7 +197,7 @@ export default class Naming {
     for (const match of matches) {
       if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
       const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
-      other = other.replace(new RegExp(pattern, 'i'), '');
+      other = other.replaceAll(new RegExp(pattern, 'gi'), '');
     }
     return other;
   }
@@ -268,6 +268,10 @@ export default class Naming {
       else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
       else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
       return other;
+    },
+    downscaled: (matches, other) => {
+      if (matches.includes('4k')) other = other.replace(/\bDS4K\b/, '');
+      return other;
     }
   }
 
@@ -276,7 +280,8 @@ export default class Naming {
       extended: /extended(?:[\s.](?:cut|edition))?/gi,
       openmatte: /open(?:[\s.]matte)?/gi,
       repack: /rerip/i,
-      remastered: /Remaster(?:ed)?/i
+      remastered: /Remaster(?:ed)?/i,
+      theatrical: /Theatrical(?:[. ]Cut)/i
     } as const;
 
     if (key in cleanups) other = other.replace(cleanups[key as keyof typeof cleanups], '');
