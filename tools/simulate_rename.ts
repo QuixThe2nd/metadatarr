@@ -10,7 +10,7 @@ const tests = (await qB.torrents()).map(t => t.name).filter(t => t.includes(filt
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
   let { other, ...result } = Naming.test(test);
-  if (other) {
+  if (other && other.includes(filter)) {
     if (!fails[other]) fails[other] = { originalName: test, count: 0, ...result};
     fails[other].count++;
   }
