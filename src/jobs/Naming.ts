@@ -201,6 +201,7 @@ export default class Naming {
 
   private readonly formatFlags: Partial<Record<typeof this.stringKeys[number], (value: string | number) => string>> = {
     bitdepth: value => `${value}bit`,
+    downscaled: value => `DS${value}`,
     samplerate: value => `${value}kHz`,
     channels: value => Number(value).toFixed(1),
     source: value => ({ bluray: 'BluRay', 'web-dl': 'WEBDL' }[value] ?? String(value).toUpperCase()),

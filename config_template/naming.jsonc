@@ -18,7 +18,7 @@
 	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
 	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
 	*/
-	"SCHEME": "[title] ([year]) [extended] [uncut] [theatrical] [remastered] [unrated] [season][episode] [hybrid] [internal] [proper] [repack] - [[resolution] [downscaled] [color] [service] [source] [remux] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
+	"SCHEME": "[title] ([year]) [extended] [uncut] [theatrical] [remastered] [unrated] [season][episode] [hybrid] [internal] [proper] [repack] - [[resolution] [downscaled] [service] [color] [source] [remux] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
 	// Separator between different fields
 	"SPACING": " ",
 	/* Find and replace strings in the name
