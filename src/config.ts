@@ -35,7 +35,8 @@ const SortConfigSchema = z.object({
   METHODS: z.array(SortMethodsSchema),
   CHECKING_METHODS: z.array(SortMethodsSchema),
   MOVING_METHODS: z.array(SortMethodsSchema),
-  MOVE_STOPPED: z.number(),
+  MOVE_STOPPED: z.number().min(-1).max(1),
+  PREFER_CHECKING_DOWNLOADS: z.number().min(-1).max(1),
   PERSISTENT_MOVES: z.boolean()
 });
 

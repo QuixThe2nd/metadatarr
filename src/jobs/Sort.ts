@@ -66,12 +66,17 @@ export default class Sort {
         .sort((a, b) => a.hash.localeCompare(b.hash));
 
       for (const sort of this.config.METHODS) torrents = SortEngine.sort(torrents, sort);
-      let checkingTorrents = torrents.filter(torrent => torrent.state === "checkingUP" || torrent.state === "checkingDL");
+      let checkingTorrents = torrents.filter(torrent => torrent.state === "checkingUP" || torrent.state === "checkingDL").sort((a, b) => {
+        const aCheckingDL = a.state === 'checkingDL' ? 1 : 0;
+        const bCheckingDL = b.state === 'checkingDL' ? 1 : 0;
+        return (aCheckingDL - bCheckingDL)*this.config.PREFER_CHECKING_DOWNLOADS;
+      });;
       for (const sort of this.config.CHECKING_METHODS) checkingTorrents = SortEngine.sort(checkingTorrents, sort);
       let movingTorrents = torrents.filter(torrent => torrent.state === "moving");
       for (const sort of this.config.MOVING_METHODS) movingTorrents = SortEngine.sort(movingTorrents, sort);
-      const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving");
-      torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents].sort((a, b) => {
+      const checkingResumeData = torrents.filter(torrent => torrent.state === "checkingResumeData");
+      const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving" && torrent.state !== 'checkingResumeData');
+      torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents, ...checkingResumeData].sort((a, b) => {
         const aStopped = a.state.startsWith('stopped') ? 1 : 0;
         const bStopped = b.state.startsWith('stopped') ? 1 : 0;
         return (aStopped - bStopped)*this.config.MOVE_STOPPED;
