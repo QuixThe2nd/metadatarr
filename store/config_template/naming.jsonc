@@ -28,7 +28,7 @@
   */
 	"REPLACE": [],
 	// Fix common mistakes in group names
-	"FIX_BAD_GROUPS": ["GPRS", "ESiR", "STRiFE", "NiSHKRiY0", "FanTAHD", "KOGi", "FLUX", "ARCADE", "PiRaTeS", "EDITH", "playWEB", "SADPANA", "iVy", "ViSUM", "Yassmiso", "Kitsune", "MZABI", "PHOENiX", "ION10", "BS", "EDGE2020", "NTb", "BAE", "TiMELORDS", "ETRG", "KiNGS", "CMRG", "EVO", "RegEdits", "LAMA", "LEGi0N", "POIASD", "BiOMA", "SiGMA", "OFT", "WADU", "SADPANDA", "CRFW", "ShinZoku", "SHORTBREHD", "Tigole", "RAWR", "edge2020", "NTG", "TURG", "Yuki", "SiNNERS", "Vyndros", "PiGNUS", "THEVOiD", "NOSiViD", "hallowed", "Rajput42", "ETHEL", "successfulcrab", "iSlaNd", "cakes", "SiMPLE", "BHDStudio", "PFa", "YAWNTiC", "rttr", "DiMEPiECE", "PMEDIA", "BlessUp", "FHC", "BTN", "BLOOM", "SPARKS", "XEBEC", "AndreMor", "aAF", "FLAME", "THR", "SWAXXON", "CUPCAKES", "NiXON", "TheWretched", "eSc", "YAWNiX", "TAoE", "VEXED", "AccomplishedYak", "VietHD", "d3g", "TOMMY", "FilmHD", "ENRiCH", "playHD", "orbitron", "TEPES", "Dooky", "CasStudio", "JAMTARTS", "LiNKLE", "TASTETV", "WRE", "NRS", "G66", "MAHOU", "iNSiDiOUS", "FLX", "J91", "FreetheFish", "SPirate", "EzzRips", "HETeam", "HONE", "SLiMSHADY", "PERFECT", "AUDiOFiLE", "seedpool", "UTR", "TFM"],
+	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin"],
 	// If true, will rename files based on the naming scheme
 	"RENAME_FILES": true,
 	// If true, will remove domain names from titles
