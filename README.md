@@ -92,6 +92,7 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
 ## TODO:
+- recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Remove torrents with category (cross-seed-links) if progress under threshold (95%)
 - Download shows in order (s01e01 before s01e02 before s02)
 - Delete torrents with completed=0 matching certain strings (so i can delete individual episodes before they download so no HnR and keep only season pack)
