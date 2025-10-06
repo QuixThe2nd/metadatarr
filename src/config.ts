@@ -94,30 +94,24 @@ const CoreSchema = z.object({
 export type Source = z.infer<typeof MetadataSchema>['sources'];
 export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
-function parseConfigFile<T>(filePath: string, schema: z.ZodSchema<T>): T {
-  if (!fs.existsSync(filePath)) {
-    if (!fs.existsSync('./store/config')) fs.mkdirSync('./store/config');
-    fs.copyFileSync(filePath.replace('/config/', '/config_template/'), filePath);
+function parseConfigFile<T extends z.ZodObject<any>>(filePath: string, schema: T): z.infer<T> {
+  const defaultConfig = schema.strict().parse(JSONC.parse(fs.readFileSync(`./store/config_template/${filePath}`, 'utf8'))) as z.infer<T>;
+  const config = (fs.existsSync(`./store/config/${filePath}`) ? schema.partial().parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) : {}) as Partial<z.infer<T>>;
+  for (const key in config) {
+    if (config[key] !== undefined) defaultConfig[key] = config[key];
   }
-
-  try {
-    return schema.parse(JSONC.parse(fs.readFileSync(filePath, 'utf8')));
-  } catch (e) {
-    if (e instanceof z.ZodError) console.error(`Invalid configuration in ${filePath}: ${e.message}`);
-    else console.error(`Invalid config, failed to parse ${filePath}`, e);
-    process.exit(1);
-  }
+  return defaultConfig;
 }
 
 export const CONFIG = {
-  CLIENT: () => parseConfigFile('./store/config/.qbittorrent_client.jsonc', QbittorrentClientSchema.strict()),
-  METADATA: () => parseConfigFile('./store/config/metadata.jsonc', MetadataSchema.strict()),
-  TORRENTS: () => parseConfigFile('./store/config/torrents.jsonc', TorrentsSchema.strict()),
-  SORT: () => parseConfigFile('./store/config/sort.jsonc', SortConfigSchema.strict()),
-  NAMING: () => parseConfigFile('./store/config/naming.jsonc', NamingConfigSchema.strict()),
-  DUPLICATES: () => parseConfigFile('./store/config/duplicates.jsonc', DuplicatesSchema.strict()),
-  QUEUE: () => parseConfigFile('./store/config/queue.jsonc', QueueSchema.strict()),
-  CORE: () => parseConfigFile('./store/config/core.jsonc', CoreSchema.strict()),
+  CLIENT: () => parseConfigFile('.qbittorrent_client.jsonc', QbittorrentClientSchema),
+  METADATA: () => parseConfigFile('metadata.jsonc', MetadataSchema),
+  TORRENTS: () => parseConfigFile('torrents.jsonc', TorrentsSchema),
+  SORT: () => parseConfigFile('sort.jsonc', SortConfigSchema),
+  NAMING: () => parseConfigFile('naming.jsonc', NamingConfigSchema),
+  DUPLICATES: () => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
+  QUEUE: () => parseConfigFile('queue.jsonc', QueueSchema),
+  CORE: () => parseConfigFile('core.jsonc', CoreSchema),
 };
 
 export const testConfig = () => {
