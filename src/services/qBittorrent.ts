@@ -35,7 +35,7 @@ export default class Qbittorrent {
       const response = await fetch(`${client.ENDPOINT}/api/v2/auth/login`, { method: 'POST', body: new URLSearchParams({ username: client.USERNAME, password: client.PASSWORD }) });
       const cookie = response.headers.get('set-cookie');
       if (!cookie) throw new Error("[qBittorrent] Failed to login");
-      fs.writeFileSync('./cookies.txt', cookie);
+      fs.writeFileSync('./store/cookies.txt', cookie);
       return cookie;
     } catch (e) {
       console.error('[qBittorrent] Failed to login', e);
@@ -44,9 +44,9 @@ export default class Qbittorrent {
   }
 
   private static getCookie = async (force = false) => await new Promise<string>(resolve => {
-    if (!force && fs.existsSync('./cookies.txt')) {
+    if (!force && fs.existsSync('./store/cookies.txt')) {
       console.log('\x1b[32m[qBittorrent]\x1b[0m Already logged in');
-      return resolve(fs.readFileSync('./cookies.txt').toString());
+      return resolve(fs.readFileSync('./store/cookies.txt').toString());
     }
     console.log('\x1b[32m[qBittorrent]\x1b[0m Logging in');
     const attempt = () => this.login().then(res => {
