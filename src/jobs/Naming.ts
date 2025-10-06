@@ -152,7 +152,6 @@ export default class Naming {
       const resolutions = ['480p', '720p', '1080p', '4k']
       for (let i = 0; i < resolutions.length-1; i++) {
         const nextResolution = resolutions[i+1]!;
-        console.log(resolutions[i], nextResolution)
         if (info.resolutionlist.includes(resolutions[i]!) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
           info.resolution = resolutions[i];
           info.downscaled = nextResolution;
@@ -212,7 +211,7 @@ export default class Naming {
 
   private readonly formatFlags: Partial<Record<typeof this.stringKeys[number], (value: string | number) => string>> = {
     bitdepth: value => `${value}bit`,
-    downscaled: value => `DS${value}`,
+    downscaled: value => `DS${String(value).toUpperCase()}`,
     samplerate: value => `${value}kHz`,
     channels: value => Number(value).toFixed(1),
     source: value => ({ bluray: 'BluRay', 'web-dl': 'WEBDL' }[value] ?? String(value).toUpperCase()),
