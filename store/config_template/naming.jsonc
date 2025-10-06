@@ -28,7 +28,7 @@
   */
 	"REPLACE": [],
 	// Fix common mistakes in group names
-	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin"],
+	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE"],
 	// If true, will rename files based on the naming scheme
 	"RENAME_FILES": true,
 	// If true, will remove domain names from titles
