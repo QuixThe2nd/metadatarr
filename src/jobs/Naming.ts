@@ -300,6 +300,10 @@ export default class Naming {
     audio: (matches, other) => {
       if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
       return { matches, other }
+    },
+    color: (matches, other) => {
+      if (matches.includes('DV') && matches.includes('HDR')) matches = matches.filter(match => match !== 'HDR');
+      return { matches, other }
     }
   }
 
