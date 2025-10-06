@@ -95,7 +95,7 @@ export type Source = z.infer<typeof MetadataSchema>['sources'];
 export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
 function parseConfigFile<T extends z.ZodObject<any>>(filePath: string, schema: T): z.infer<T> {
-  const defaultConfig = schema.strict().parse(JSONC.parse(fs.readFileSync(`./store/config_template/${filePath}`, 'utf8'))) as z.infer<T>;
+  const defaultConfig = schema.strict().parse(JSONC.parse(fs.readFileSync(`./config_template/${filePath}`, 'utf8'))) as z.infer<T>;
   const config = (fs.existsSync(`./store/config/${filePath}`) ? schema.partial().parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) : {}) as Partial<z.infer<T>>;
   for (const key in config) {
     if (config[key] !== undefined) defaultConfig[key] = config[key];

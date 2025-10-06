@@ -42,7 +42,7 @@
 	// Trim container (.mkv, .mp4, etc) from end of title
 	"TRIM_CONTAINER": true,
 	// List of known TLDs to remove from titles if REMOVE_DOMAINS is true
-	"REMOVE_TLDS": ["com", "net", "org", "io", "co", "us", "uk", "me", "tv", "gg", "in", "info", "biz", "online", "site", "tech", "to", "cc"],
+	"REMOVE_TLDS": [],
 	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"
 	"NO_YEAR_IN_SEASONS": true,
 	// If true, will recheck the torrent after renaming
