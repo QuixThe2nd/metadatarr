@@ -51,10 +51,7 @@ export default class Naming {
 
   private async renameAll() {
     let changes = 0;
-    for (const torrent of this.torrents) {
-      const tags = torrent.tags.split(', ');
-      changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent);
-    }
+    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent);
     if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1].count - a[1].count).map(other => `${other[0]} (${other[1].count}) - ${other[1].example} - ${JSON.stringify(other[1].info)}`))
     return changes;
   }
