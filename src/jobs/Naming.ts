@@ -152,6 +152,7 @@ export default class Naming {
       const resolutions = ['480p', '720p', '1080p', '4k']
       for (let i = 0; i < resolutions.length-1; i++) {
         const nextResolution = resolutions[i+1]!;
+        console.log(resolutions[i], nextResolution)
         if (info.resolutionlist.includes(resolutions[i]!) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
           info.resolution = resolutions[i];
           info.downscaled = nextResolution;
@@ -254,7 +255,11 @@ export default class Naming {
     resolution: (matches, other) => {
       if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
       else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
-      else if (matches.includes('720p')) other = other.replace(/\bSDR\b/i, '');
+      return other;
+    },
+    downscaled: (matches, other) => {
+      if (matches.includes('4k')) other = other.replace(/\b(UHD|DS4K)\b/i, '');
+      else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
       return other;
     },
     service: (matches, other) => {
@@ -275,10 +280,6 @@ export default class Naming {
       if (matches.includes(7.1)) other = other.replace(/8(?:CH)/, '');
       else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
       else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
-      return other;
-    },
-    downscaled: (matches, other) => {
-      if (matches.includes('4k')) other = other.replace(/\bDS4K\b/, '');
       return other;
     }
   }
