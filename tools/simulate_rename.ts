@@ -1,4 +1,4 @@
 import Naming from '../src/jobs/Naming'
 
-const naming = Naming.test('Rush.Hour.3.2007.German.EAC3.DL.1080p.BluRay.x265-VECTOR');
+const naming = Naming.test('Pirates of the Caribbean At Worlds End 2007 1080p BluRay HEVC 10-bit DTS-HD MA 5 1-MrTentsaw');
 console.log(naming);
