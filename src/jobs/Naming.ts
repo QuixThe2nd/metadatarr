@@ -136,7 +136,7 @@ export default class Naming {
     for (const [find, replace] of this.config.REPLACE) other = other.replaceAll(new RegExp(find, "gi"), replace);
     for (const group of this.config.FIX_BAD_GROUPS) other = other.replace(new RegExp(` ${group}\\)?$`, "i"), ` - ${group}`);
 
-    if (this.config.REMOVE_DOMAINS) other = other.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
+    if (this.config.REMOVE_DOMAINS && this.config.REMOVE_TLDS.length) other = other.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
     const container = ptt.parse(other).container;
     if (this.config.TRIM_CONTAINER && container) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
     const info = ptt.parse(other);
