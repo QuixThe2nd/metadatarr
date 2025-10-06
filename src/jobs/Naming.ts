@@ -182,7 +182,7 @@ export default class Naming {
     // Remove unused tags
     for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
-    other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ');
+    other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ').trim();
     name = cleanString(name.replace('[other]', other)).trim();
 
     if (firstRun) {
