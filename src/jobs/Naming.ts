@@ -148,6 +148,18 @@ export default class Naming {
       delete info.year;
     }
 
+    if (info.resolutionlist && info.resolutionlist.length > 1) {
+      const resolutions = ['480p', '720p', '1080p', '4k']
+      for (let i = 0; i < resolutions.length-1; i++) {
+        if (info.resolutionlist.includes(resolutions[i]!) && info.resolutionlist.includes(resolutions[i+1]!)) {
+          info.resolution = resolutions[i];
+          info.downscaled = resolutions[i+1];
+          delete info.resolutionlist;
+          break;
+        }
+      }
+    }
+
     for (const key of this.stringKeys) {
       if (!(key in info)) continue;
 
