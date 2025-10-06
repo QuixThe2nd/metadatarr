@@ -257,9 +257,8 @@ export default class Naming {
       return other;
     },
     codec: (matches, other) => {
-      if (matches.includes('h265') || matches.includes('x265')) other = other.replace(/hevc/i, '');
-      else if (matches.includes('h264') || matches.includes('x264')) other = other.replace(/avc/i, '');
-      else if (matches.includes('dts-hd-ma')) other= other.replace(/DTS-HD[\s-.]?MA/i, '')
+      if (matches.includes('h265') || matches.includes('x265')) other = other.replace(/hevc|\b[xh]264/i, '');
+      else if (matches.includes('h264') || matches.includes('x264')) other = other.replace(/avc|\b[xh]264/i, '');
       return other;
     },
     channels: (matches, other) => {
