@@ -217,8 +217,8 @@ export default class Naming {
   private readonly cleanupStringFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
     bitdepth: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.-]?bits?)?`, 'i'), ''),
     samplerate: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), ''),
-    season: (matches, other) => other.replaceAll(new RegExp(`S(?:eason)?.?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})(?:[. ]Complete)?`, 'gi'), ''),
-    episode: (matches, other) => other.replaceAll(new RegExp(`E(?:pisode)?.?(?:${matches.map(num => String(num).padStart(2, '0')).join('|')})`, 'gi'), ''),
+    season: (matches, other) => other.replaceAll(new RegExp(`S(?:eason)?[. ]?(?:${matches.map(num => [String(num), String(num).padStart(2, '0')]).flat().join('|')})(?:[. ]Complete)?`, 'gi'), ''),
+    episode: (matches, other) => other.replaceAll(new RegExp(`E(?:pisode)?[. ]?(?:${matches.map(num => [String(num), String(num).padStart(2, '0')]).flat().join('|')})`, 'gi'), ''),
     language: (matches, other) => {
       if (matches.includes('eng')) other = other.replace(/English/i, '');
       if (matches.includes('dual')) other = other.replace(/[. ]DL[. ]/, '');
