@@ -151,9 +151,10 @@ export default class Naming {
     if (info.resolutionlist && info.resolutionlist.length > 1) {
       const resolutions = ['480p', '720p', '1080p', '4k']
       for (let i = 0; i < resolutions.length-1; i++) {
-        if (info.resolutionlist.includes(resolutions[i]!) && info.resolutionlist.includes(resolutions[i+1]!)) {
+        const nextResolution = resolutions[i+1]!;
+        if (info.resolutionlist.includes(resolutions[i]!) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
           info.resolution = resolutions[i];
-          info.downscaled = resolutions[i+1];
+          info.downscaled = nextResolution;
           delete info.resolutionlist;
           break;
         }
