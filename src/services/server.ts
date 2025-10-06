@@ -27,6 +27,7 @@ export const startServer = (api: Qbittorrent) => new Promise(resolve => {
         console.log("\x1b[32m[Cross-Seed]\x1b[0m Replacing public torrent");
         await api.delete([old_infohash]);
         if (old_torrent.category && payload.infoHashes[0]) await api.setCategory([payload.infoHashes[0]], old_torrent.category);
+        await api.addTags([payload.infoHashes[0]!], 'uncross-seed');
       }
     }
     res.status(200).send();
