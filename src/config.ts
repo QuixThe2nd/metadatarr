@@ -83,7 +83,8 @@ const QueueSchema = z.object({
   HARD_QUEUE_SIZE_LIMIT: z.boolean(),
   INCLUDE_MOVING_TORRENTS: z.boolean(),
   EXCLUDE_CATEGORIES: z.array(z.string()),
-  MINIMUM_QUEUE_SIZE: z.number()
+  MINIMUM_QUEUE_SIZE: z.number(),
+  MAXIMUM_QUEUE_SIZE: z.number()
 });
 
 const CoreSchema = z.object({
