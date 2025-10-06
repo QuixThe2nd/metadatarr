@@ -54,11 +54,11 @@
 	"MOVE_STOPPED": 1,
 
 	/* Prefers incomplete torrents in a download state over upload state
-	1: Prefer downloading
+	-1: Prefer downloading
 	0: Prefer neither
-	-1: Prefer uploading
+	1: Prefer uploading
 	*/
-	"PREFER_CHECKING_DOWNLOADS": 1,
+	"PREFER_CHECKING_DOWNLOADS": -1,
 
 	/*
 	Sorts are applied in reverse order, with last being highest priority
