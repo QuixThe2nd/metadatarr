@@ -58,7 +58,7 @@
 	0: Prefer neither
 	1: Prefer uploading
 	*/
-	"PREFER_CHECKING_DOWNLOADS": -1,
+	"PREFER_CHECKING_DOWNLOADS": 1,
 
 	/*
 	Sorts are applied in reverse order, with last being highest priority
