@@ -154,15 +154,12 @@ export default class Naming {
       let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
       if (troubleshoot) console.log(key, matches);
 
-      const filtered = this.redundantFlags[key]?.(matches, other) ?? { matches, other };
-      matches = filtered.matches;
-      other = filtered.other;
+      other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
+      other = this.removeAlphanumericMatches(key, matches, other)
+
+      matches = this.redundantFlags[key]?.(matches, other) ?? matches;
 
       name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
-
-      other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
-      
-      other = this.removeAlphanumericMatches(key, matches, other)
 
       delete info[key];
       if (troubleshoot) console.log(other, "\n")
@@ -286,7 +283,7 @@ export default class Naming {
     return other.replace(new RegExp(key, 'gi'), '');
   }
 
-  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => { matches: (string | number)[], other: string }>> = {
+  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => (string | number)[]>> = {
     codec: (matches, other) => {
       if (matches.includes('h264') && matches.includes('x264')) {
         matches = matches.filter(match => match !== 'h264');
@@ -295,15 +292,15 @@ export default class Naming {
         matches = matches.filter(match => match !== 'h265');
         other = other.replace(/h265/i, '');
       }
-      return { matches, other }
+      return matches
     },
     audio: (matches, other) => {
       if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
-      return { matches, other }
+      return matches
     },
     color: (matches, other) => {
       if (matches.includes('DV') && matches.includes('HDR')) matches = matches.filter(match => match !== 'HDR');
-      return { matches, other }
+      return matches
     }
   }
 
