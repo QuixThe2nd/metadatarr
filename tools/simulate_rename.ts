@@ -21,3 +21,4 @@ const failCount = Object.values(fails).reduce((a, b) => a + b.count, 0);
 for (const fail of Object.entries(fails).sort((a, b) => a[1].count - b[1].count)) console.log(JSON.stringify(fail, null, 2))
 console.log('Failures:', failCount)
 console.log('Successes:', tests.length - failCount)
+console.log('Fail Rate:', Math.round(10_000*failCount/tests.length)/100 + "%")

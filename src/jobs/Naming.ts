@@ -39,7 +39,7 @@ export default class Naming {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
   private others = new Map<string, { count: number, example: string; info: unknown }>();
   private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
-  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut'] as const;
+  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
     console.log('Renaming torrents');
@@ -224,12 +224,13 @@ export default class Naming {
   };
 
   private readonly cleanupStringFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
-    bitdepth: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.-]?bits?)?`, 'i'), ''),
+    bitdepth: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.-]?bits?)`, 'i'), ''),
     samplerate: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), ''),
     season: (matches, other) => other.replaceAll(new RegExp(`\\bS(?:eason)?[. ]?(?:${matches.map(num => [String(num), String(num).padStart(2, '0')]).flat().join('|')})(?:[. ]Complete)?`, 'gi'), ''),
     episode: (matches, other) => other.replaceAll(new RegExp(`\\bE(?:pisode)?[. ]?(?:${matches.map(num => [String(num), String(num).padStart(2, '0')]).flat().join('|')})`, 'gi'), ''),
     language: (matches, other) => {
       if (matches.includes('eng')) other = other.replace(/English/i, '');
+      if (matches.includes('romanian')) other = other.replace(/RoSubbed/i, '');
       if (matches.includes('dual')) other = other.replace(/[. ]DL[. ]/, '');
       if (matches.includes('multi')) other = other.replace(/\bMULTi(?:Lang|-audio)?\b/i, '')
       return other;
