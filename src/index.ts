@@ -52,12 +52,24 @@ const fetchTorrents = async () => {
     }
   }
 
-  // changes += (await Promise.all([
-  changes += await Duplicates.run(api, torrents);
-  changes += await Sort.run(api, torrents);
-  changes += await Queue.run(api, torrents);
-  changes += await Naming.run(api, torrents, originalNames.names);
-  // ])).reduce((partialSum, a) => partialSum + a, 0);
+  const tasks = {
+    Duplicates: () => Duplicates.run(api, torrents),
+    Sort: () => Sort.run(api, torrents),
+    Queue: () => Queue.run(api, torrents),
+    Naming: () => Naming.run(api, torrents, originalNames.names),
+  } as const;
+  const originalConsoleLog = console.log;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleError = console.error;
+  for (const [name, task] of Object.entries(tasks)) {
+    console.log = (...args) => originalConsoleLog.apply(console, [`[${name.toUpperCase()}]`, ...args]);
+    console.warn = (...args) => originalConsoleWarn.apply(console, [`[${name.toUpperCase()}]`, ...args]);
+    console.error = (...args) => originalConsoleError.apply(console, [`[${name.toUpperCase()}]`, ...args]);
+    changes += await task();
+  }
+  console.log = originalConsoleLog;
+  console.warn = originalConsoleWarn;
+  console.error = originalConsoleError;
 
   await Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
   return changes;
