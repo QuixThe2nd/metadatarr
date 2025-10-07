@@ -237,7 +237,7 @@ export default class Naming {
     },
     source: (matches, other) => {
       if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
-      if (matches.includes('bluray')) other = other.replace(/\b(br|blu-ray)\b/i, '');
+      if (matches.includes('bluray')) other = other.replace(/(\b(?:Blu-?Ray)|(?:(?:\b(\d))BR))\b/i, '$2');
       return other;
     },
     color: (matches, other) => {
