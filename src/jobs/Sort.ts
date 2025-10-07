@@ -82,7 +82,7 @@ export default class Sort {
         return (aStopped - bStopped)*this.config.MOVE_STOPPED;
       });
 
-      console.log(`\x1b[32m[qBittorrent]\x1b[0m [SORT] Sorting ${torrents.length} torrents`);
+      console.log(`Sorting ${torrents.length} torrents`);
 
       let positionTracker = [...torrents].sort((a, b) => a.priority - b.priority).map(torrent => torrent.hash);
 
@@ -101,7 +101,7 @@ export default class Sort {
 
           const type = checkingTorrents.find(t => t.hash === torrent.hash) ? '[CHECKING]' : (movingTorrents.find(t => t.hash === torrent.hash) ? '[MOVING]' : '[ACTIVE]');
           if (shouldSkipApiCall) {
-            // console.log(torrent.hash, `\x1b[32m[qBittorrent]\x1b[0m [SORT] ${type} Skipping redundant move`, torrent.name);
+            // console.log(torrent.hash, `${type} Skipping redundant move`, torrent.name);
           } else {
             await this.api.topPriority(processedTorrents);
             api_moves++;
@@ -112,16 +112,16 @@ export default class Sort {
           moves++;
 
           if (this.config.RESORT_STEP_CALLS !== 0 && api_moves >= this.config.RESORT_STEP_CALLS) {
-            console.log(`\x1b[32m[qBittorrent]\x1b[0m [SORT] Stepping sort`);
+            console.log(`Stepping sort`);
             break;
           } else if (this.config.RESORT_STEP !== 0 && moves >= this.config.RESORT_STEP && api_moves >= this.config.RESORT_STEP_MINIMUM_CALLS) {
-            console.log(`\x1b[32m[qBittorrent]\x1b[0m [SORT] Stepping sort`);
+            console.log(`Stepping sort`);
             break;
           }
         }
       }
 
-      console.log(`\x1b[32m[qBittorrent]\x1b[0m [SORT] Sorted ${torrents.length} torrents - Moved: ${moves} - API Calls: ${api_moves}`);
+      console.log(`Sorted ${torrents.length} torrents - Moved: ${moves} - API Calls: ${api_moves}`);
     } catch (e) {
       console.error(e)
     }

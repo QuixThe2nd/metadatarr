@@ -87,7 +87,7 @@ export default class Qbittorrent {
     const payload: { category?: string; hash?: string; hashes?: string } = rest ?? {};
     if (typeof hashes === "string") payload.hash = hashes;
     else payload.hashes = hashes.join('|');
-    console.log(typeof hashes === 'string' ? hashes : hashes[0], `\x1b[32m[qBittorrent]\x1b[0m Calling ${method}`, rest ?? '');
+    console.log(`\x1b[32m[qBittorrent]\x1b[0m ${typeof hashes === 'string' ? hashes : hashes[0]} Calling ${method}`, rest ?? '');
     return this.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
   public start = (hashes: string[]) => this.torrentMethod('start', hashes);
