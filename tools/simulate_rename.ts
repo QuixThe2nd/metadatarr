@@ -1,7 +1,7 @@
 import Naming from '../src/jobs/Naming'
 import Qbittorrent from '../src/services/qBittorrent'
 
-const filter = 'UHD';
+const filter = '';
 
 const qB = await Qbittorrent.connect()
 

@@ -231,6 +231,7 @@ export default class Naming {
     language: (matches, other) => {
       if (matches.includes('eng')) other = other.replace(/English/i, '');
       if (matches.includes('dual')) other = other.replace(/[. ]DL[. ]/, '');
+      if (matches.includes('multi')) other = other.replace(/\bMULTi(?:Lang|-audio)?\b/i, '')
       return other;
     },
     source: (matches, other) => {
