@@ -6,11 +6,9 @@ export default class Metadata {
   private constructor() {}
 
   static async run(torrents: Torrent[], webtorrent: Instance, saveMetadata: (hash: string, metadata: Buffer, source: string) => Promise<void>) {
-    console.log('Fetching metadata');
     for (const torrent of torrents) {
       if (torrent.size <= 0) await new FetchMetadata(webtorrent, torrent, saveMetadata).state;
     }
-    console.log('Fetched metadata');
     return 0;
   }
 }

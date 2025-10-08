@@ -25,7 +25,6 @@ export default class Duplicates {
   }
 
   static async run(api: Qbittorrent, torrents: Torrent[]) {
-    console.log('Removing duplicate torrents');
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
     let changes = 0;
@@ -36,7 +35,6 @@ export default class Duplicates {
         changes++;
       }
     }
-    console.log('Done removing duplicate torrents');
     return changes;
   }
 }

@@ -6,11 +6,8 @@ export default class Queue {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly config = CONFIG.QUEUE()) {}
 
   static async run(api: Qbittorrent, torrents: Torrent[]) {
-    console.log('Updating queue size');
     const queue = new Queue(api, torrents);
-    const changed = await queue.update();
-    console.log('Updated queue size');
-    return changed;
+    return await queue.update();
   }
 
   async update() {

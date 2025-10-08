@@ -42,10 +42,8 @@ export default class Naming {
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
   static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
-    console.log('Renaming torrents');
     const naming = new Naming(api, torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
     let changes = await naming.renameAll();
-    console.log('Renamed torrents');
     return changes;
   }
 
