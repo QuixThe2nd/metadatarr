@@ -144,11 +144,11 @@
 		ASC: Contains last
 		DESC: Contains first
 		*/
-		{
-			"key": "NAME_CONTAINS",
-			"direction": "DESC",
-			"searchString": "S01"
-		},
+		// {
+			// "key": "NAME_CONTAINS",
+			// "direction": "DESC",
+			// "searchString": "S01"
+		// },
 		/* Prefer torrents in specific categories
 		ASC: Without categories first
 		DESC: With categories first
