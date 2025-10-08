@@ -2,6 +2,7 @@ import Naming from '../src/jobs/Naming'
 import Qbittorrent from '../src/services/qBittorrent'
 
 const filter = '';
+const verbose = false;
 
 const qB = await Qbittorrent.connect()
 
@@ -10,7 +11,7 @@ const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  let { other, ...result } = Naming.test(test);
+  let { other, ...result } = Naming.test(test, verbose);
   if (other && other.includes(filter)) {
     if (!fails[other]) fails[other] = { originalName: test, count: 0, ...result};
     fails[other].count++;

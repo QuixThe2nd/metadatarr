@@ -323,9 +323,9 @@ export default class Naming {
     }
   }
 
-  static test(name: string) {
+  static test(name: string, verbose=true) {
     // @ts-expect-error:
     const naming = new Naming();
-    return { ...naming.cleanName(name, false, true), info: ptt.parse(name) };
+    return { ...naming.cleanName(name, false, verbose), info: ptt.parse(name) };
   }
 }
