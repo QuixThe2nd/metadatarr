@@ -185,14 +185,14 @@
 			"prefix": "Priority - " // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
 		},
 		/* Prefer torrents without metadata
-		ASC: Torrents without metadata first
-		DESC: Torrents with metadata first
+		ASC: Torrents with metadata first
+		DESC: Torrents without metadata first
 		By default, torrents without metadata are de-prioritised as they can't accurately be sorted by size or progress.
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
 		{
 			"key": "NO_METADATA",
-			"direction": "DESC"
+			"direction": "ASC"
 		}
 	],
 	/*
