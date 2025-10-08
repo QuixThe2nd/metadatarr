@@ -51,7 +51,7 @@ const runJobs = async (torrents: Torrent[]) => {
   return changes;
 }
 
-const fetchTorrents = async () => {
+while (true) {
   const torrents = await api.torrents();
 
   let changes = 0;
@@ -83,12 +83,5 @@ const fetchTorrents = async () => {
   changes += await runJobs(torrents);
   console.log('Jobs Finished')
 
-  return changes;
-}
-
-while (true) {
-  console.log('Running jobs');
-  const changes = await fetchTorrents();
-  console.log('Done running jobs');
   if (changes === 0) await new Promise(res => setTimeout(res, CONFIG.CORE().JOB_WAIT));
 }

@@ -12,15 +12,13 @@ export default class ImportMetadataFiles {
   }
 
   async scan() {
-    console.log(`Scanning torrent metadata directory`);
-    console.log('Scanning torrent import directory');
+    console.log(`Scanning torrent import directory`);
     for (const file of fs.readdirSync(this.dir)) await this.importFile(this.dir, file);
-    console.log('Scanned torrent directory');
 
     fs.watch(this.dir, (_, filename) => {
       if (filename) this.importFile(this.dir, filename).catch(console.error);
     });
-    console.log('Scanned torrent import directories');
+    console.log('Scanned torrent import directory');
   }
 
   async importFile(dir: string, file: string) {

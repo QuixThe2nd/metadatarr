@@ -24,10 +24,9 @@ export default class OriginalNames {
     const totalFiles = files.length;
     let lastLoggedPercent = 0;
 
-    console.log('Loading cache');
     const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
 
-    console.log(`Scan: 0% complete (0 of ${totalFiles})`)
+    console.log(`Scan: 0% complete (0 of ${totalFiles})`);
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       if (file in cache) {
@@ -43,8 +42,8 @@ export default class OriginalNames {
         lastLoggedPercent = currentPercent;
       }
     }
-    fs.writeFileSync('./store/original_names.json', JSON.stringify(cache))
-    console.log('Scanned torrent name directory');
+    fs.writeFileSync('./store/original_names.json', JSON.stringify(cache));
+    console.log(`Scan: 100% complete (${totalFiles} of ${totalFiles})`);
   }
 
   private async saveName(dir: string, file: string): Promise<false | { name: string; hash: string }> {
