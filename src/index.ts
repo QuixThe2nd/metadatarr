@@ -57,6 +57,7 @@ const fetchTorrents = async () => {
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(api, torrents, originalNames.names),
+    Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   const originalConsoleLog = console.log;
   const originalConsoleWarn = console.warn;
@@ -65,13 +66,14 @@ const fetchTorrents = async () => {
     console.log = (...args) => originalConsoleLog.apply(console, [`[${name.toUpperCase()}]`, ...args]);
     console.warn = (...args) => originalConsoleWarn.apply(console, [`[${name.toUpperCase()}]`, ...args]);
     console.error = (...args) => originalConsoleError.apply(console, [`[${name.toUpperCase()}]`, ...args]);
+    console.log('Job Running:', name);
     changes += await task();
+    console.log('Job Finished:', name);
   }
   console.log = originalConsoleLog;
   console.warn = originalConsoleWarn;
   console.error = originalConsoleError;
 
-  await Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
   return changes;
 }
 
