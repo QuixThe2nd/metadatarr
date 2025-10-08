@@ -31,7 +31,7 @@ const runJobs = async (torrents: Torrent[]) => {
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(api, torrents, originalNames.names),
-    Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
+    // Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   const originalConsoleLog = console.log;
   const originalConsoleWarn = console.warn;
