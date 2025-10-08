@@ -76,9 +76,9 @@ export default class Naming {
         changes++;
         await this.api.removeTags([hash], '!renamed');
       }
-      if (this.config.RESET_ON_FAIL && origName) {
-        if (origName !== torrent.name) await this.api.rename(hash, origName);
+      if (this.config.RESET_ON_FAIL && origName && origName !== torrent.name) {
         changes++;
+        await this.api.rename(hash, origName);
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else {

@@ -44,6 +44,7 @@ export default class OriginalNames {
     }
     fs.writeFileSync('./store/original_names.json', JSON.stringify(cache));
     console.log(`Scan: 100% complete (${totalFiles} of ${totalFiles})`);
+    console.log('Scanned torrent name directory');
   }
 
   private async saveName(dir: string, file: string): Promise<false | { name: string; hash: string }> {
