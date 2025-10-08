@@ -67,8 +67,9 @@ const fetchTorrents = async () => {
     console.warn = (...args) => originalConsoleWarn.apply(console, [`[${name.toUpperCase()}]`, ...args]);
     console.error = (...args) => originalConsoleError.apply(console, [`[${name.toUpperCase()}]`, ...args]);
     console.log('Job Running:', name);
-    changes += await task();
-    console.log('Job Finished:', name);
+    const taskChanges = await task();
+    changes += taskChanges;
+    console.log('Job Finished:', name, 'Changes:', taskChanges);
   }
   console.log = originalConsoleLog;
   console.warn = originalConsoleWarn;
