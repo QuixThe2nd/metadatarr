@@ -14,6 +14,7 @@ import hook from '../tools/inject.ts';
 import type Torrent from './classes/Torrent.ts';
 import { logContext } from './log.ts';
 import Metadata from './jobs/Metadata.ts';
+import actions from './jobs/Actions.ts';
 
 await testConfig();
 
@@ -30,10 +31,11 @@ await ImportMetadataFiles.start((hash: string, metadata: Buffer, source: string)
 const runJobs = async (torrents: Torrent[]) => {
   let changes = 0;
   const tasks = {
-    Duplicates: () => Duplicates.run(api, torrents),
+    Actions: () => actions(torrents),
+    Duplicates: () => Duplicates.run(torrents),
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
-    Naming: () => Naming.run(api, torrents, originalNames.names),
+    Naming: () => Naming.run(torrents, originalNames.names),
     Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
@@ -55,34 +57,6 @@ while (true) {
   }
 
   let changes = 0;
-  const config = CONFIG.TORRENTS();
-  const removeConfig = CONFIG.REMOVE();
-  for (const torrent of torrents) {
-    if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) {
-      changes++;
-      await torrent.toggleSequentialDownload();
-    }
-    if (config.FORCE_SEQUENTIAL_DOWNLOAD === -1 && torrent.seq_dl) {
-      changes++;
-      await torrent.toggleSequentialDownload();
-    }
-    if (config.RESUME_COMPLETED && torrent.state === 'stoppedUP') {
-      changes++;
-      await torrent.start();
-    }
-    if (config.RECHECK_MISSING && torrent.state === "missingFiles") {
-      changes++;
-      await torrent.recheck();
-    }
-    if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) {
-      changes++;
-      await torrent.start();
-    }
-    if (torrent.category === removeConfig.CATEGORY && !['checkingDL', 'checkingUL'].includes(torrent.state) && torrent.progress < removeConfig.PROGRESS) {
-      await torrent.delete();
-    }
-  }
-
   console.log('Jobs Started')
   changes += await runJobs(torrents);
   console.log('Jobs Finished')

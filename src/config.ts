@@ -1,6 +1,7 @@
 import fs from 'fs';
 import JSONC from 'jsonc-parser';
 import { z } from 'zod';
+import { SelectorSchema } from './classes/SelectorEngine';
 
 const QbittorrentClientSchema = z.object({
   ENDPOINT: z.url(),
@@ -15,16 +16,6 @@ const MetadataSchema = z.object({
   }))
 });
 
-const BaseSortMethodSchema = z.object({ direction: z.enum(["ASC", "DESC"]) });
-
-const SortMethodsSchema = z.union([
-  BaseSortMethodSchema.extend({ key: z.enum(["SIZE", "COMPLETED", "PRIVATE", "PROGRESS", "NO_METADATA", "REMAINING"]) }),
-  BaseSortMethodSchema.extend({ key: z.literal("NAME_CONTAINS"), searchString: z.string().min(1) }),
-  BaseSortMethodSchema.extend({ key: z.literal("TAGS"), tags: z.array(z.string().min(1)).min(1) }),
-  BaseSortMethodSchema.extend({ key: z.literal("CATEGORIES"), categories: z.array(z.string().min(1)).min(1) }),
-  BaseSortMethodSchema.extend({ key: z.literal("PRIORITY_TAG"), prefix: z.string().min(1) }),
-  BaseSortMethodSchema.extend({ key: z.literal("PROGRESS_THRESHOLD"), threshold: z.number().min(0).max(1) })
-]);
 
 const SortConfigSchema = z.object({
   SORT: z.literal(true),
@@ -32,17 +23,15 @@ const SortConfigSchema = z.object({
   RESORT_STEP: z.number().int().nonnegative(),
   RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
   RESORT_STEP_CALLS: z.number().int().nonnegative(),
-  METHODS: z.array(SortMethodsSchema),
-  CHECKING_METHODS: z.array(SortMethodsSchema),
-  MOVING_METHODS: z.array(SortMethodsSchema),
-  MOVE_STOPPED: z.number().min(-1).max(1),
-  PREFER_CHECKING_DOWNLOADS: z.number().min(-1).max(1),
+  METHODS: z.array(SelectorSchema),
+  CHECKING_METHODS: z.array(SelectorSchema),
+  MOVING_METHODS: z.array(SelectorSchema),
   PERSISTENT_MOVES: z.boolean()
 });
 
 const DuplicatesSchema = z.object({
   DOWNLOADS_ONLY: z.boolean(),
-  TIE_BREAKERS: z.array(SortMethodsSchema),
+  TIE_BREAKERS: z.array(SelectorSchema),
   IGNORE_TAG: z.string(),
   PREFER_UPLOADING: z.boolean()
 });
@@ -71,13 +60,6 @@ const NamingConfigSchema = z.object({
 
 export type NamingConfig = z.infer<typeof NamingConfigSchema>
 
-const TorrentsSchema = z.object({
-  RESUME_COMPLETED: z.boolean(),
-  RECHECK_MISSING: z.boolean(),
-  RESUME_ALMOST_FINISHED_THRESHOLD: z.number(),
-  FORCE_SEQUENTIAL_DOWNLOAD: z.number().min(-1).max(1)
-});
-
 const QueueSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number(),
   HARD_QUEUE_SIZE_LIMIT: z.boolean(),
@@ -93,17 +75,19 @@ const CoreSchema = z.object({
   DRY_RUN: z.boolean()
 });
 
-const RemoveSchema = z.object({
-  CATEGORY: z.string(),
-  PROGRESS: z.number().min(0).max(1)
-});
+const ActionsSchema = z.array(z.object({
+  if: z.array(SelectorSchema),
+  then: z.union([z.literal('delete'), z.literal('start'), z.literal('recheck'), z.literal('toggleSequentialDownload')])
+}));
 
 export type Source = z.infer<typeof MetadataSchema>['sources'];
-export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
-function parseConfigFile<T extends z.ZodObject<any>>(filePath: string, schema: T): z.infer<T> {
-  const defaultConfig = schema.strict().parse(JSONC.parse(fs.readFileSync(`./config_template/${filePath}`, 'utf8'))) as z.infer<T>;
-  const config = (fs.existsSync(`./store/config/${filePath}`) ? schema.partial().parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) : {}) as Partial<z.infer<T>>;
+function parseConfigFile<T extends z.ZodObject<any> | z.ZodArray<any>>(filePath: string, schema: T): z.infer<T> {
+  const strict = schema instanceof z.ZodObject ? schema.strict() : schema;
+  const partial = schema instanceof z.ZodObject ? schema.partial() : schema;
+
+  const defaultConfig = strict.parse(JSONC.parse(fs.readFileSync(`./config_template/${filePath}`, 'utf8'))) as z.infer<T>;
+  const config = (fs.existsSync(`./store/config/${filePath}`) ? partial.parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) : {}) as Partial<z.infer<T>>;
   for (const key in config) {
     if (config[key] !== undefined) defaultConfig[key] = config[key];
   }
@@ -113,13 +97,12 @@ function parseConfigFile<T extends z.ZodObject<any>>(filePath: string, schema: T
 export const CONFIG = {
   CLIENT: () => parseConfigFile('.qbittorrent_client.jsonc', QbittorrentClientSchema),
   METADATA: () => parseConfigFile('metadata.jsonc', MetadataSchema),
-  TORRENTS: () => parseConfigFile('torrents.jsonc', TorrentsSchema),
   SORT: () => parseConfigFile('sort.jsonc', SortConfigSchema),
   NAMING: () => parseConfigFile('naming.jsonc', NamingConfigSchema),
   DUPLICATES: () => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
   QUEUE: () => parseConfigFile('queue.jsonc', QueueSchema),
   CORE: () => parseConfigFile('core.jsonc', CoreSchema),
-  REMOVE: () => parseConfigFile('remove.jsonc', RemoveSchema),
+  ACTIONS: () => parseConfigFile('actions.jsonc', ActionsSchema),
 };
 
 const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;

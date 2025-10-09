@@ -36,12 +36,12 @@ function cleanString(str: string): string {
 
 export default class Naming {
   private readonly config = CONFIG.NAMING();
-  private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
+  private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
   private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
-  static async run(api: Qbittorrent, torrents: Torrent[], originalNames: Record<string, string>) {
-    const naming = new Naming(api, torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
+  static async run(torrents: Torrent[], originalNames: Record<string, string>) {
+    const naming = new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
     let changes = await naming.renameAll();
     return changes;
   }

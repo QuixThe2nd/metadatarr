@@ -1,50 +1,7 @@
-import { type SortMethods, CONFIG } from "../config";
+import { CONFIG } from "../config";
 import type Qbittorrent from "../classes/qBittorrent";
 import type Torrent from "../classes/Torrent";
-
-type Direction = "ASC" | "DESC";
-
-export class SortEngine {
-  private static strategies = {
-    SIZE: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.size),
-    COMPLETED: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.completed ?? 0),
-    PROGRESS: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.progress),
-    REMAINING: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.amount_left ?? 0),
-    PRIVATE: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.private),
-    NAME_CONTAINS: (torrents: Torrent[], direction: Direction, search: String) => this.booleanSort(torrents, direction, t => t.name.toLowerCase().includes(search.toLowerCase())),
-    TAGS: (torrents: Torrent[], direction: Direction, tags: string[]) => this.booleanSort(torrents, direction, t => tags.some(tag => t.tags.split(", ").includes(tag))),
-    NO_METADATA: (torrents: Torrent[], direction: Direction) => this.booleanSort(torrents, direction, t => t.size <= 0),
-    PRIORITY_TAG: (torrents: Torrent[], direction: Direction, prefix: string) => this.numericSort(torrents, direction, t => {
-      const priority = Number(t.tags.split(", ").find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
-      return Number.isNaN(priority) ? 50 : priority;
-    }),
-    CATEGORIES: (torrents: Torrent[], direction: Direction, categories: string[]) => this.booleanSort(torrents, direction, t => categories.includes(t.category ?? "")),
-    PROGRESS_THRESHOLD: (torrents: Torrent[], direction: Direction, threshold: number) => this.booleanSort(torrents, direction, t => t.progress > threshold),
-  }
-
-  static sort(torrents: Torrent[], sortMethod: SortMethods): Torrent[] {
-    if (sortMethod.key === 'NAME_CONTAINS') return this.strategies.NAME_CONTAINS(torrents, sortMethod.direction, sortMethod.searchString);
-    else if (sortMethod.key === 'TAGS') return this.strategies.TAGS(torrents, sortMethod.direction, sortMethod.tags);
-    else if (sortMethod.key === 'PRIORITY_TAG') return this.strategies.PRIORITY_TAG(torrents, sortMethod.direction, sortMethod.prefix);
-    else if (sortMethod.key === 'CATEGORIES') return this.strategies.CATEGORIES(torrents, sortMethod.direction, sortMethod.categories);
-    else if (sortMethod.key === 'PROGRESS_THRESHOLD') return this.strategies.PROGRESS_THRESHOLD(torrents, sortMethod.direction, sortMethod.threshold);
-    else return this.strategies[sortMethod.key](torrents, sortMethod.direction);
-  }
-
-  private static numericSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => number) {
-    const multiplier = direction === "DESC" ? -1 : 1;
-    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
-  }
-
-  private static booleanSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => boolean | null) {
-    const multiplier = direction === "DESC" ? -1 : 1;
-    return [...torrents].sort((a, b) => {
-      return (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier;
-    });
-  }
-
-  private static getNumericValue = (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2;
-}
+import { SelectorEngine } from "../classes/SelectorEngine";
 
 export default class Sort {
   private readonly config = CONFIG.SORT();
@@ -65,22 +22,14 @@ export default class Sort {
         // This is needed to ensure sorts are consistent. Otherwise order could be different every run if 2 torrents have the same priority as defined by sort this.config.
         .sort((a, b) => a.hash.localeCompare(b.hash));
 
-      for (const sort of this.config.METHODS) torrents = SortEngine.sort(torrents, sort);
+      for (const sort of this.config.METHODS) torrents = SelectorEngine.execute(torrents, sort, 'SORT');
       let checkingTorrents = torrents.filter(torrent => torrent.state === "checkingUP" || torrent.state === "checkingDL");
-      for (const sort of this.config.CHECKING_METHODS) checkingTorrents = SortEngine.sort(checkingTorrents, sort).sort((a, b) => {
-        const aCheckingDL = a.state === 'checkingDL' ? 1 : 0;
-        const bCheckingDL = b.state === 'checkingDL' ? 1 : 0;
-        return (aCheckingDL - bCheckingDL)*this.config.PREFER_CHECKING_DOWNLOADS;
-      });
+      for (const sort of this.config.CHECKING_METHODS) checkingTorrents = SelectorEngine.execute(checkingTorrents, sort, 'SORT');
       let movingTorrents = torrents.filter(torrent => torrent.state === "moving");
-      for (const sort of this.config.MOVING_METHODS) movingTorrents = SortEngine.sort(movingTorrents, sort);
+      for (const sort of this.config.MOVING_METHODS) movingTorrents = SelectorEngine.execute(movingTorrents, sort, 'SORT');
       const checkingResumeData = torrents.filter(torrent => torrent.state === "checkingResumeData");
       const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving" && torrent.state !== 'checkingResumeData');
-      torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents, ...checkingResumeData].sort((a, b) => {
-        const aStopped = a.state.startsWith('stopped') ? 1 : 0;
-        const bStopped = b.state.startsWith('stopped') ? 1 : 0;
-        return (aStopped - bStopped)*this.config.MOVE_STOPPED;
-      });
+      torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents, ...checkingResumeData];
 
       console.log(`Sorting ${torrents.length} torrents`);
 

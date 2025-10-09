@@ -1,6 +1,0 @@
-{
-  // Recheck all errored torrents
-  "RECHECK": true,
-  // Remove errored torrents from category
-  "REMOVE_CATEGORY": "cross-seed-links"
-}

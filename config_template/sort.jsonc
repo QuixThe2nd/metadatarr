@@ -46,20 +46,6 @@
 	*/
 	"RESORT_STEP_CALLS": 100,
 
-	/* Move stopped to the bottom of the queue
-	1: Move to bottom
-	0: Leave as-is
-	-1: Move to top
-	*/
-	"MOVE_STOPPED": 1,
-
-	/* Prefers incomplete torrents in a download state over upload state
-	-1: Prefer downloading
-	0: Prefer neither
-	1: Prefer uploading
-	*/
-	"PREFER_CHECKING_DOWNLOADS": 1,
-
 	/*
 	Sorts are applied in reverse order, with last being highest priority
 	For example, if you want to prefer private torrents over finishing ones, put PRIVATE after REMAINING
@@ -193,6 +179,11 @@
 		{
 			"key": "NO_METADATA",
 			"direction": "ASC"
+		},
+		{
+			"key": "STATES",
+			"states": ["stoppedDL", "stoppedUP"],
+			"direction": "ASC"
 		}
 	],
 	/*
@@ -214,6 +205,11 @@
 			"key": "PRIORITY_TAG",
 			"direction": "ASC",
 			"prefix": "Priority - " // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
+		},
+		{
+			"key": "STATES",
+			"states": ["checkingUL"],
+			"direction": "DESC"
 		}
 	],
 	/*

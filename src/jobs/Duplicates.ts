@@ -1,7 +1,6 @@
 import { CONFIG } from "../config";
-import type Qbittorrent from "../classes/qBittorrent";
 import Torrent from "../classes/Torrent";
-import { SortEngine } from "./Sort";
+import { SelectorEngine } from "../classes/SelectorEngine";
 
 export default class Duplicates {
   private readonly config = CONFIG.DUPLICATES();
@@ -19,12 +18,12 @@ export default class Duplicates {
       if (!AUploading && BUploading) return 1;
       return 0;
     });
-    for (const sort of this.config.TIE_BREAKERS) torrents = SortEngine.sort(torrents, sort);
+    for (const sort of this.config.TIE_BREAKERS) torrents = SelectorEngine.execute(torrents, sort, 'SORT');
 
     this.torrents = torrents;
   }
 
-  static async run(api: Qbittorrent, torrents: Torrent[]) {
+  static async run(torrents: Torrent[]) {
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
     let changes = 0;
