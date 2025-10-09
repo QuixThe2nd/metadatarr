@@ -36,3 +36,17 @@ console.error = function(...args) {
   logFile.write('[ERROR] ' + args.join(' ') + '\n');
   originalConsoleError.apply(console, ['[ERROR]', ...args]);
 };
+
+export const logContext = async <T>(context: string, callback: () => Promise<T>): Promise<T> => {
+  const originalConsoleLog = console.log;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleError = console.error;
+  console.log = (...args) => originalConsoleLog.apply(console, [`[${context.toUpperCase()}]`, ...args]);
+  console.warn = (...args) => originalConsoleWarn.apply(console, [`[${context.toUpperCase()}]`, ...args]);
+  console.error = (...args) => originalConsoleError.apply(console, [`[${context.toUpperCase()}]`, ...args]);
+  const result = await callback();
+  console.log = originalConsoleLog;
+  console.warn = originalConsoleWarn;
+  console.error = originalConsoleError;
+  return result;
+}

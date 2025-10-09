@@ -12,6 +12,7 @@ import Duplicates from "./jobs/Duplicates.ts";
 import Queue from './jobs/Queue.ts';
 import hook from '../tools/inject.ts';
 import type Torrent from './classes/Torrent.ts';
+import { logContext } from './log.ts';
 
 await testConfig();
 
@@ -34,21 +35,12 @@ const runJobs = async (torrents: Torrent[]) => {
     Naming: () => Naming.run(api, torrents, originalNames.names),
     // Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
-  const originalConsoleLog = console.log;
-  const originalConsoleWarn = console.warn;
-  const originalConsoleError = console.error;
   for (const [name, task] of Object.entries(tasks)) {
-    console.log = (...args) => originalConsoleLog.apply(console, [`[${name.toUpperCase()}]`, ...args]);
-    console.warn = (...args) => originalConsoleWarn.apply(console, [`[${name.toUpperCase()}]`, ...args]);
-    console.error = (...args) => originalConsoleError.apply(console, [`[${name.toUpperCase()}]`, ...args]);
     console.log('Job Started');
-    const taskChanges = await task();
+    const taskChanges = await logContext(name, task);
     changes += taskChanges;
     console.log('Job Finished - Changes:', taskChanges);
   }
-  console.log = originalConsoleLog;
-  console.warn = originalConsoleWarn;
-  console.error = originalConsoleError;
   return changes;
 }
 

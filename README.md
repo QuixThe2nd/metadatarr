@@ -92,7 +92,6 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
 ## TODO:
-- logContext() function so the [JOB_NAME] log doesnt have to be coded in index.ts
 - turn Torrent type to Torrent class.
 - Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
 - demo video showcasing features like sorting
