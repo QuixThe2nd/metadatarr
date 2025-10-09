@@ -90,7 +90,8 @@ const QueueSchema = z.object({
 const CoreSchema = z.object({
   DEV: z.boolean(),
   JOB_WAIT: z.number(),
-  DEV_INJECT: z.boolean()
+  DEV_INJECT: z.boolean(),
+  DRY_RUN: z.boolean()
 });
 
 export type Source = z.infer<typeof MetadataSchema>['sources'];
@@ -116,8 +117,15 @@ export const CONFIG = {
   CORE: () => parseConfigFile('core.jsonc', CoreSchema),
 };
 
-export const testConfig = () => {
-  for (const config of Object.values(CONFIG)) {
-    config()
-  }
+export const testConfig = async () => {
+  for (const config of Object.values(CONFIG)) config();
+
+  console.warn('================================');
+  if (CONFIG.CORE().DRY_RUN)
+    console.warn('       DRY RUN IS ENABLED       ');
+  else
+    console.warn('       DRY RUN IS DISABLED      ');
+  console.warn('================================');
+  
+  await new Promise(res => setTimeout(res, 5_000))
 }

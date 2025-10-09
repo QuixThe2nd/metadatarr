@@ -9,11 +9,10 @@ import SaveMetadata from './helpers/SaveMetadata.ts';
 import Naming from "./jobs/Naming.ts";
 import Sort from "./jobs/Sort.ts";
 import Duplicates from "./jobs/Duplicates.ts";
-import Metadata from "./jobs/Metadata.ts";
 import Queue from './jobs/Queue.ts';
 import inject from '../tools/inject.ts';
 
-testConfig()
+await testConfig();
 
 console.log('Starting WebTorrent');
 const webtorrent = new WebTorrent({ downloadLimit: 1024 });

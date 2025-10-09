@@ -62,6 +62,9 @@ export default class Qbittorrent {
   });
 
   private async request(path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> {
+    if (body && CONFIG.CORE().DRY_RUN) {
+      return '[DRY RUN] Not executing';
+    }
     try {
       const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } });
       if (response.status === 403) {
