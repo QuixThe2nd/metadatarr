@@ -1,6 +1,6 @@
 import { CONFIG } from "../config";
-import type Qbittorrent from "../services/qBittorrent";
-import type { Torrent } from "../services/qBittorrent";
+import type Qbittorrent from "../classes/qBittorrent";
+import Torrent from "../classes/Torrent";
 import ptt from "parse-torrent-title";
 
 function cleanString(str: string): string {
@@ -49,20 +49,20 @@ export default class Naming {
 
   private async renameAll() {
     let changes = 0;
-    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent.hash, this.originalNames[torrent.hash], torrent);
+    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
     if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1].count - a[1].count).map(other => `${other[0]} (${other[1].count}) - ${other[1].example} - ${JSON.stringify(other[1].info)}`))
     return changes;
   }
 
-  private async renameTorrent(hash: string, origName: string | undefined, torrent: Torrent): Promise<number> {
+  private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
     let changes = 0;
     if (!origName) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.split(', ').includes('!missingOriginalName')) this.api.addTags([hash], '!missingOriginalName');
+      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.split(', ').includes('!missingOriginalName')) torrent.addTags('!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
         if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
         return 0;
       }
-    } else if (torrent.tags.split(', ').includes('!missingOriginalName')) this.api.removeTags([hash], '!missingOriginalName');
+    } else if (torrent.tags.split(', ').includes('!missingOriginalName')) torrent.removeTags('!missingOriginalName');
     const { name, other } = this.cleanName(origName ?? torrent.name);
 
     if (other.length) {
@@ -70,35 +70,35 @@ export default class Naming {
       else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? torrent.name, info: ptt.parse(origName ?? torrent.name) })
       if (this.config.TAG_FAILED_PARSING && !torrent.tags.includes("!renameFailed")) {
         changes++;
-        await this.api.addTags([hash], "!renameFailed");
+        await torrent.addTags("!renameFailed");
       }
       if (this.config.TAG_SUCCESSFUL_PARSING && torrent.tags.includes("!renamed")) {
         changes++;
-        await this.api.removeTags([hash], '!renamed');
+        await torrent.removeTags('!renamed');
       }
       if (this.config.RESET_ON_FAIL && origName && origName !== torrent.name) {
         changes++;
-        await this.api.rename(hash, origName);
+        await torrent.rename(origName);
       }
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     } else {
       if (this.config.TAG_FAILED_PARSING && torrent.tags.includes("!renameFailed")) {
         changes++;
-        await this.api.removeTags([hash], "!renameFailed");
+        await torrent.removeTags("!renameFailed");
       }
       if (this.config.TAG_SUCCESSFUL_PARSING && !torrent.tags.includes("!renamed")) {
         changes++;
-        await this.api.addTags([hash], '!renamed');
+        await torrent.addTags('!renamed');
       }
     }
 
     if (torrent.name !== name) {
       changes++;
-      await this.api.rename(hash, name);
+      await torrent.rename(name);
     }
 
     if (this.config.RENAME_FILES) {
-      const files = await this.api.files(hash);
+      const files = await torrent.files();
       if (!files) return changes;
       const parts = files[0]?.name.split('/');
 
@@ -111,7 +111,7 @@ export default class Naming {
       if (folderOther.length) {
         if (this.config.TAG_FAILED_PARSING) {
           changes++;
-          await this.api.addTags([hash], "!renameFolderFailed");
+          await torrent.addTags("!renameFolderFailed");
         }
         if (this.config.SKIP_IF_UNKNOWN) return changes;
       }
@@ -121,7 +121,7 @@ export default class Naming {
         const newFileName = file.name.replaceAll(oldFolder, newFolder);
         if (oldFileName !== newFileName) {
           changes++;
-          await this.api.renameFile(hash, oldFileName, newFileName);
+          await torrent.renameFile(oldFileName, newFileName);
         }
       }
     }

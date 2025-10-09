@@ -1,8 +1,8 @@
 import './log.ts';
 import { CONFIG, testConfig } from './config.ts';
 import WebTorrent from 'webtorrent';
-import { startServer } from './services/server.ts';
-import Qbittorrent, { type Torrent } from "./services/qBittorrent.ts";
+import { startServer } from './classes/server.ts';
+import Qbittorrent from "./classes/qBittorrent.ts";
 import OriginalNames from "./helpers/OriginalNames.ts";
 import ImportMetadataFiles from "./helpers/ImportMetadataFiles.ts";
 import SaveMetadata from './helpers/SaveMetadata.ts';
@@ -11,6 +11,7 @@ import Sort from "./jobs/Sort.ts";
 import Duplicates from "./jobs/Duplicates.ts";
 import Queue from './jobs/Queue.ts';
 import hook from '../tools/inject.ts';
+import type Torrent from './classes/Torrent.ts';
 
 await testConfig();
 
@@ -66,26 +67,26 @@ while (true) {
   for (const torrent of torrents) {
     if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) {
       changes++;
-      await api.toggleSequentialDownload([torrent.hash]);
+      await torrent.toggleSequentialDownload();
     }
     if (config.FORCE_SEQUENTIAL_DOWNLOAD === -1 && torrent.seq_dl) {
       changes++;
-      await api.toggleSequentialDownload([torrent.hash]);
+      await torrent.toggleSequentialDownload();
     }
     if (config.RESUME_COMPLETED && torrent.state === 'stoppedUP') {
       changes++;
-      await api.start([torrent.hash]);
+      await torrent.start();
     }
     if (config.RECHECK_MISSING && torrent.state === "missingFiles") {
       changes++;
-      await api.recheck([torrent.hash]);
+      await torrent.recheck();
     }
     if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) {
       changes++;
-      await api.start([torrent.hash]);
+      await torrent.start();
     }
     if (torrent.category === removeConfig.CATEGORY && !['checkingDL', 'checkingUL'].includes(torrent.state) && torrent.progress < removeConfig.PROGRESS) {
-      await api.delete([torrent.hash]);
+      await torrent.delete();
     }
   }
 

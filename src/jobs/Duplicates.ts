@@ -1,6 +1,6 @@
 import { CONFIG } from "../config";
-import type Qbittorrent from "../services/qBittorrent";
-import type { Torrent } from "../services/qBittorrent";
+import type Qbittorrent from "../classes/qBittorrent";
+import Torrent from "../classes/Torrent";
 import { SortEngine } from "./Sort";
 
 export default class Duplicates {
@@ -31,7 +31,7 @@ export default class Duplicates {
     for (const torrent of deduplicate.torrents) {
       if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
       else {
-        await api.delete([torrent.hash]);
+        await torrent.delete();
         changes++;
       }
     }

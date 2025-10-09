@@ -2,6 +2,7 @@ import fs from 'fs';
 import express from 'express';
 import z from 'zod';
 import Qbittorrent from './qBittorrent';
+import { PartialTorrent } from './Torrent';
 
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({
@@ -13,7 +14,7 @@ const UncrossSeedRequestSchema = z.object({
   })
 });
 
-export const startServer = (api: Qbittorrent) => new Promise(resolve => {
+export const startServer = (qB: Qbittorrent) => new Promise(resolve => {
   const app = express();
   app.use(express.json());
 
@@ -21,13 +22,13 @@ export const startServer = (api: Qbittorrent) => new Promise(resolve => {
     const validatedData = UncrossSeedRequestSchema.parse(req.body);
     const payload = validatedData.extra;
     if (payload.result === 'INJECTED') {
-      const old_infohash = payload.searchee.infoHash;
-      const old_torrent = (await api.torrents()).find(torrent => torrent.hash === old_infohash);
-      if (old_torrent && !old_torrent.private) {
+      const oldTorrent = (await qB.torrents()).find(torrent => torrent.hash === payload.searchee.infoHash);
+      const newTorrent = (await qB.torrents()).find(torrent => torrent.hash === payload.infoHashes[0])!;
+      if (oldTorrent && !oldTorrent.private) {
         console.log("\x1b[32m[Cross-Seed]\x1b[0m Replacing public torrent");
-        await api.delete([old_infohash]);
-        if (old_torrent.category && payload.infoHashes[0]) await api.setCategory([payload.infoHashes[0]], old_torrent.category);
-        await api.addTags([payload.infoHashes[0]!], 'uncross-seed');
+        await oldTorrent.delete();
+        if (oldTorrent.category && payload.infoHashes[0]) await newTorrent.setCategory(oldTorrent.category);
+        await newTorrent.addTags('uncross-seed');
       }
     }
     res.status(200).send();

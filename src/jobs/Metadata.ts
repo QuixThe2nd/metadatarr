@@ -1,6 +1,6 @@
 import type { Instance } from "webtorrent";
 import FetchMetadata from "../helpers/FetchMetadata";
-import type { Torrent } from "../services/qBittorrent";
+import Torrent from "../classes/Torrent";
 
 export default class Metadata {
   private constructor() {}

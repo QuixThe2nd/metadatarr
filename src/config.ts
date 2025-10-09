@@ -120,7 +120,7 @@ export const CONFIG = {
   DUPLICATES: () => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
   QUEUE: () => parseConfigFile('queue.jsonc', QueueSchema),
   CORE: () => parseConfigFile('core.jsonc', CoreSchema),
-  REMOVE: () => parseConfigFile('remove.json', RemoveSchema),
+  REMOVE: () => parseConfigFile('remove.jsonc', RemoveSchema),
 };
 
 const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;

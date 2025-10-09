@@ -1,5 +1,5 @@
 import Naming from '../src/jobs/Naming'
-import Qbittorrent from '../src/services/qBittorrent'
+import Qbittorrent from '../src/classes/qBittorrent'
 
 const filter = '';
 const verbose = false;

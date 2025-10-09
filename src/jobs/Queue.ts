@@ -1,6 +1,6 @@
 import { CONFIG } from "../config";
-import type { Torrent } from "../services/qBittorrent";
-import Qbittorrent from '../services/qBittorrent';
+import Torrent from "../classes/Torrent";
+import Qbittorrent from '../classes/qBittorrent';
 
 export default class Queue {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly config = CONFIG.QUEUE()) {}

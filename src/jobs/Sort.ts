@@ -1,6 +1,6 @@
 import { type SortMethods, CONFIG } from "../config";
-import type Qbittorrent from "../services/qBittorrent";
-import type { Torrent } from "../services/qBittorrent";
+import type Qbittorrent from "../classes/qBittorrent";
+import type Torrent from "../classes/Torrent";
 
 type Direction = "ASC" | "DESC";
 
@@ -99,8 +99,8 @@ export default class Sort {
           const nextTorrent = torrents[processedTorrents.length];
           const shouldSkipApiCall = nextTorrent && current_priority && positionTracker.indexOf(nextTorrent.hash) === current_priority;
 
-          const type = checkingTorrents.find(t => t.hash === torrent.hash) ? '[CHECKING]' : (movingTorrents.find(t => t.hash === torrent.hash) ? '[MOVING]' : '[ACTIVE]');
           if (shouldSkipApiCall) {
+            // const type = checkingTorrents.find(t => t.hash === torrent.hash) ? '[CHECKING]' : (movingTorrents.find(t => t.hash === torrent.hash) ? '[MOVING]' : '[ACTIVE]');
             // console.log(torrent.hash, `${type} Skipping redundant move`, torrent.name);
           } else {
             await this.api.topPriority(processedTorrents);

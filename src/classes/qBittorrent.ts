@@ -1,24 +1,8 @@
 import fs from 'fs';
 import z, { ZodError } from "zod";
 import { CONFIG } from "../config";
-
-const TorrentSchema = z.object({
-  state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "queuedUP", "forcedDL", "forcedUP"]),
-  hash: z.string().nonempty(),
-  magnet_uri: z.string(),
-  name: z.string(),
-  size: z.number(),
-  priority: z.number(),
-  category: z.string().nullable(),
-  tags: z.string(),
-  completed: z.number().nullable(),
-  progress: z.number(),
-  private: z.boolean().nullable(),
-  amount_left: z.number().nullable(),
-  seq_dl: z.boolean(),
-  added_on: z.number()
-});
-export type Torrent = z.infer<typeof TorrentSchema>;
+import Torrent from './Torrent';
+import { TorrentSchema } from './Torrent';
 
 const PreferencesSchema = z.object({
   max_active_downloads: z.number()
@@ -61,9 +45,10 @@ export default class Qbittorrent {
     attempt().catch(console.error);
   });
 
-  private async request(path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> {
+  public async request(path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> {
     if (body && CONFIG.CORE().DRY_RUN) {
-      return '[DRY RUN] Not executing';
+      console.log('[DRY RUN] Not executing')
+      return '';
     }
     try {
       const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } });
@@ -86,28 +71,6 @@ export default class Qbittorrent {
     }
   }
 
-  private torrentMethod = (method: string, hashes: string | string[], rest?: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string }) => {
-    const payload: { category?: string; hash?: string; hashes?: string } = rest ?? {};
-    if (typeof hashes === "string") payload.hash = hashes;
-    else payload.hashes = hashes.join('|');
-    console.log(`\x1b[32m[qBittorrent]\x1b[0m ${typeof hashes === 'string' ? hashes : hashes[0]} Calling ${method}`, rest ?? '');
-    return this.request(`/torrents/${method}`, new URLSearchParams(payload));
-  }
-  public start = (hashes: string[]) => this.torrentMethod('start', hashes);
-  public recheck = (hashes: string[]) => this.torrentMethod('recheck', hashes);
-  public delete = (hashes: string[]) => this.torrentMethod('delete', hashes, { deleteFiles: false });
-  public topPriority = (hashes: string[]) => this.torrentMethod('topPrio', hashes);
-  public setCategory = (hashes: string[], category: string) => this.torrentMethod('setCategory', hashes, { category });
-  public rename = (hash: string, name: string) => this.torrentMethod('rename', hash, { name });
-  public renameFile = async (hash: string, oldPath: string, newPath: string) => {
-    const result = await this.torrentMethod('renameFile', hash, { oldPath, newPath });
-    if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck([hash]);
-    return result;
-  }
-  public toggleSequentialDownload = (hashes: string[]) => this.torrentMethod('toggleSequentialDownload', hashes);
-  public removeTags = (hashes: string[], tags: string) => this.torrentMethod('removeTags', hashes, { tags });
-  public addTags = (hashes: string[], tags: string) => this.torrentMethod('addTags', hashes, { tags });
-
   public getPreferences = async () => {
     const result = await this.request('/app/preferences');
     if (!result) return false;
@@ -120,17 +83,6 @@ export default class Qbittorrent {
     return this.request('/app/setPreferences', fd)
   }
 
-  public files = async (hash: string): Promise<{ name: string }[] | false> => {
-    const data = await this.request(`/torrents/files?hash=${hash}`);
-    if (!data) return false;
-    return z.array(z.object({ name: z.string() })).parse(JSON.parse(data));
-  }
-
-  public add = (torrent: Buffer) => {
-    const body = new FormData();
-    body.append('torrents', new Blob([Uint8Array.from(torrent)]), 'torrent.torrent');
-    return this.request('/torrents/add', body);
-  }
   public async torrents(): Promise<Torrent[]> {
     const response = await this.request('/torrents/info')
     if (!response) return [];
@@ -139,7 +91,7 @@ export default class Qbittorrent {
       data = JSON.parse(response);
       const torrents = z.array(TorrentSchema).parse(data);
       console.log(`\x1b[32m[qBittorrent]\x1b[0m Fetched ${torrents.length} torrents`);
-      return torrents.sort((a, b) => a.priority - b.priority);
+      return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));
     } catch (e) {
         if (e instanceof ZodError) {
           let item = data;
