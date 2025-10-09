@@ -90,6 +90,8 @@ export default class Qbittorrent {
     let data: unknown;
     try {
       data = JSON.parse(response);
+      // console.log(data[0])
+      // process.exit()
       const torrents = z.array(TorrentSchema).parse(data);
       logContext('qBittorrent', () => console.log(`Fetched ${torrents.length} torrents`));
       return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));

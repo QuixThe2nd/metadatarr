@@ -4,7 +4,12 @@ import type Torrent from "./Torrent";
 const BaseSelectorSchema = z.object({ direction: z.enum(["ASC", "DESC"]) });
 
 export const SelectorSchema = z.union([
-  BaseSelectorSchema.extend({ key: z.enum(["SIZE", "COMPLETED", "PRIVATE", "PROGRESS", "NO_METADATA", "REMAINING"]) }),
+  BaseSelectorSchema.extend({ 
+    key: z.enum(["SIZE", "COMPLETED", "PROGRESS", "REMAINING", "SEEDERS"]),
+    threshold: z.number().optional()
+  }),
+
+  BaseSelectorSchema.extend({ key: z.enum(["PRIVATE", "NO_METADATA"]) }),
   BaseSelectorSchema.extend({ key: z.literal("NAME_CONTAINS"), searchString: z.string().min(1) }),
   BaseSelectorSchema.extend({ key: z.literal("TAGS"), tags: z.array(z.string().min(1)).min(1) }),
   BaseSelectorSchema.extend({ key: z.literal("CATEGORIES"), categories: z.array(z.string().min(1)).min(1) }),
@@ -20,10 +25,26 @@ type Mode = 'SORT' | 'MATCH';
 
 export class SelectorEngine {
   private static strategies = {
-    SIZE: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.size),
-    COMPLETED: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.completed ?? 0),
-    PROGRESS: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.progress),
-    REMAINING: (torrents: Torrent[], direction: Direction) => this.numericSort(torrents, direction, t => t.amount_left ?? 0),
+    SIZE: (torrents: Torrent[], direction: Direction, mode: Mode, threshold?: number) => 
+      threshold !== undefined
+        ? this.booleanSort(torrents, direction, mode, t => t.size >= threshold)
+        : this.numericSort(torrents, direction, t => t.size),
+    COMPLETED: (torrents: Torrent[], direction: Direction, mode: Mode, threshold?: number) => 
+      threshold !== undefined
+        ? this.booleanSort(torrents, direction, mode, t => (t.completed ?? 0) >= threshold)
+        : this.numericSort(torrents, direction, t => t.completed ?? 0),
+    PROGRESS: (torrents: Torrent[], direction: Direction, mode: Mode, threshold?: number) => 
+      threshold !== undefined
+        ? this.booleanSort(torrents, direction, mode, t => t.progress >= threshold)
+        : this.numericSort(torrents, direction, t => t.progress),
+    REMAINING: (torrents: Torrent[], direction: Direction, mode: Mode, threshold?: number) => 
+      threshold !== undefined
+        ? this.booleanSort(torrents, direction, mode, t => (t.amount_left ?? 0) >= threshold)
+        : this.numericSort(torrents, direction, t => t.amount_left ?? 0),
+    SEEDERS: (torrents: Torrent[], direction: Direction, mode: Mode, threshold?: number) => 
+      threshold !== undefined
+        ? this.booleanSort(torrents, direction, mode, t => t.num_complete >= threshold)
+        : this.numericSort(torrents, direction, t => t.num_complete),
     PRIVATE: (torrents: Torrent[], direction: Direction, mode: Mode) => this.booleanSort(torrents, direction, mode, t => t.private),
     NAME_CONTAINS: (torrents: Torrent[], direction: Direction, mode: Mode, search: String) => this.booleanSort(torrents, direction, mode, t => t.name.toLowerCase().includes(search.toLowerCase())),
     TAGS: (torrents: Torrent[], direction: Direction, mode: Mode, tags: string[]) => this.booleanSort(torrents, direction, mode, t => tags.some(tag => t.tags.split(", ").includes(tag))),

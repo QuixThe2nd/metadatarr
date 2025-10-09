@@ -18,28 +18,33 @@ export const TorrentSchema = z.object({
   amount_left: z.number().nullable(),
   seq_dl: z.boolean(),
   auto_tmm: z.boolean(),
-  added_on: z.number()
+  added_on: z.number(),
+  num_complete: z.number()
 });
 type TorrentType = z.infer<typeof TorrentSchema>;
 
-type PartialTorrentType = Partial<TorrentType> & { hash: string }
+type Undefinable<T> = {
+  [P in keyof T]: T[P] | undefined;
+};
+type PartialTorrentType = Undefinable<TorrentType> & { hash: string }
 
 export class PartialTorrent implements PartialTorrentType { 
   public readonly hash!: TorrentType['hash'];
-  public readonly state?: TorrentType['state'];
-  public readonly magnet_uri?: TorrentType['magnet_uri'];
-  public readonly name?: TorrentType['name'];
-  public readonly size?: TorrentType['size'];
-  public readonly priority?: TorrentType['priority'];
-  public readonly category?: TorrentType['category'];
-  public readonly tags?: TorrentType['tags'];
-  public readonly completed?: TorrentType['completed'];
-  public readonly progress?: TorrentType['progress'];
-  public readonly private?: TorrentType['private'];
-  public readonly amount_left?: TorrentType['amount_left'];
-  public readonly seq_dl?: TorrentType['seq_dl'];
-  public readonly auto_tmm?: TorrentType['auto_tmm'];
-  public readonly added_on?: TorrentType['added_on'];
+  public readonly state: PartialTorrentType['state'];
+  public readonly magnet_uri: PartialTorrentType['magnet_uri'];
+  public readonly name: PartialTorrentType['name'];
+  public readonly size: PartialTorrentType['size'];
+  public readonly priority: PartialTorrentType['priority'];
+  public readonly category: PartialTorrentType['category'];
+  public readonly tags: PartialTorrentType['tags'];
+  public readonly completed: PartialTorrentType['completed'];
+  public readonly progress: PartialTorrentType['progress'];
+  public readonly private: PartialTorrentType['private'];
+  public readonly amount_left: PartialTorrentType['amount_left'];
+  public readonly seq_dl: PartialTorrentType['seq_dl'];
+  public readonly auto_tmm: PartialTorrentType['auto_tmm'];
+  public readonly added_on: PartialTorrentType['added_on'];
+  public readonly num_complete: PartialTorrentType['num_complete'];
 
   constructor(private readonly qB: Qbittorrent, data: PartialTorrentType) {
     Object.assign(this, data);
@@ -88,7 +93,7 @@ export class PartialTorrent implements PartialTorrentType {
   public addTags = (tags: string) => this.request('addTags', { tags });
 }
 
-export default class Torrent extends PartialTorrent implements Torrent {
+export default class Torrent extends PartialTorrent implements TorrentType {
   declare state: TorrentType['state'];
   declare magnet_uri: TorrentType['magnet_uri'];
   declare name: TorrentType['name'];
@@ -103,6 +108,7 @@ export default class Torrent extends PartialTorrent implements Torrent {
   declare seq_dl: TorrentType['seq_dl'];
   declare added_on: TorrentType['added_on'];
   declare auto_tmm: TorrentType['auto_tmm'];
+  declare num_complete: TorrentType['num_complete'];
 
   constructor(qB: Qbittorrent, data: PartialTorrentType) {
     super(qB, data);
