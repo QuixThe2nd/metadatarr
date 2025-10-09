@@ -93,6 +93,7 @@ export default class Qbittorrent {
       console.log(`\x1b[32m[qBittorrent]\x1b[0m Fetched ${torrents.length} torrents`);
       return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));
     } catch (e) {
+        console.error(e);
         if (e instanceof ZodError) {
           let item = data;
           const path = e.issues[0]!.path as (string | number)[];
@@ -101,8 +102,7 @@ export default class Qbittorrent {
             item = item[part];
             console.log(item);
           }
-          console.error(e)
-        } else console.error(e);
+        }
         process.exit();
     }
     return [];
