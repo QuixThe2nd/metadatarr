@@ -117,15 +117,21 @@ export const CONFIG = {
   CORE: () => parseConfigFile('core.jsonc', CoreSchema),
 };
 
+const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;
 export const testConfig = async () => {
   for (const config of Object.values(CONFIG)) config();
 
-  console.warn('================================');
-  if (CONFIG.CORE().DRY_RUN)
-    console.warn('       DRY RUN IS ENABLED       ');
-  else
-    console.warn('       DRY RUN IS DISABLED      ');
-  console.warn('================================');
+  console.warn(yellow('|==================================|'));
+  console.warn(yellow('||                                ||'));
+  if (CONFIG.CORE().DRY_RUN) {
+    console.warn(yellow('||       Dry Run is Enabled       ||'));
+    console.warn(yellow('||       CHANGES WONT SAVE        ||'));
+  } else {
+    console.warn(yellow('||       Dry Run is Disabled      ||'));
+    console.warn(yellow('||       CHANGES WILL SAVE        ||'));
+  }
+  console.warn(yellow('||                                ||'));
+  console.warn(yellow('|==================================|'));
   
   await new Promise(res => setTimeout(res, 5_000))
 }
