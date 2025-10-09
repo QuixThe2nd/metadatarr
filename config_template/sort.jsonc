@@ -151,12 +151,12 @@
 		Threshold is a float between 0 and 1, representing the progress percentage.
 		*/
 		{
-			"key": "PROGRESS_THRESHOLD",
+			"key": "PROGRESS",
 			"direction": "DESC",
 			"threshold": 0.1
 		},
 		{
-			"key": "PROGRESS_THRESHOLD",
+			"key": "PROGRESS",
 			"direction": "DESC",
 			"threshold": 0.99
 		},

@@ -18,6 +18,7 @@ const actions = async (torrents: Torrent[]) => {
       else if (action.then === 'start') await torrent.start();
       else if (action.then === 'recheck') await torrent.recheck();
       else if (action.then === 'toggleSequentialDownload') await torrent.toggleSequentialDownload();
+      else if (action.then === 'setAutoManagement') await torrent.setAutoManagement(action.arg);
       changes++;
     }
   }

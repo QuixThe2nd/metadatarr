@@ -17,6 +17,7 @@ export const TorrentSchema = z.object({
   private: z.boolean().nullable(),
   amount_left: z.number().nullable(),
   seq_dl: z.boolean(),
+  auto_tmm: z.boolean(),
   added_on: z.number()
 });
 type TorrentType = z.infer<typeof TorrentSchema>;
@@ -37,6 +38,7 @@ export class PartialTorrent implements PartialTorrentType {
   public readonly private?: TorrentType['private'];
   public readonly amount_left?: TorrentType['amount_left'];
   public readonly seq_dl?: TorrentType['seq_dl'];
+  public readonly auto_tmm?: TorrentType['auto_tmm'];
   public readonly added_on?: TorrentType['added_on'];
 
   constructor(private readonly qB: Qbittorrent, data: PartialTorrentType) {
@@ -50,8 +52,15 @@ export class PartialTorrent implements PartialTorrentType {
     return qB.request('/torrents/add', body);
   }
 
-  private request = (method: string, rest?: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string }) => {
-    const payload = { ...rest, hashes: this.hash, deleteFiles: rest?.deleteFiles ? 'true' : 'false' };
+  private request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}) => {
+    const { enable, deleteFiles, ...restWithoutProps } = rest;
+    const payload = {
+      ...restWithoutProps,
+      hashes: this.hash,
+      ...(typeof enable !== "undefined" && { enable: enable ? 'true' : 'false' }),
+      ...(typeof deleteFiles !== "undefined" && { deleteFiles: deleteFiles ? 'true' : 'false' })
+    };
+
     logContext('qBittorrent', () => console.log(`${this.hash} Calling ${method}`, rest ?? ''));
     return this.qB.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
@@ -74,6 +83,7 @@ export class PartialTorrent implements PartialTorrentType {
     return result;
   }
   public toggleSequentialDownload = () => this.request('toggleSequentialDownload');
+  public setAutoManagement = (enable: boolean) => this.request('setAutoManagement', { enable });
   public removeTags = (tags: string) => this.request('removeTags', { tags });
   public addTags = (tags: string) => this.request('addTags', { tags });
 }
@@ -92,6 +102,7 @@ export default class Torrent extends PartialTorrent implements Torrent {
   declare amount_left: TorrentType['amount_left'];
   declare seq_dl: TorrentType['seq_dl'];
   declare added_on: TorrentType['added_on'];
+  declare auto_tmm: TorrentType['auto_tmm'];
 
   constructor(qB: Qbittorrent, data: PartialTorrentType) {
     super(qB, data);

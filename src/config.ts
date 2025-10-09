@@ -3,37 +3,16 @@ import JSONC from 'jsonc-parser';
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
 
+const CoreSchema = z.object({
+  JOB_WAIT: z.number(),
+  DEV_INJECT: z.boolean(),
+  DRY_RUN: z.boolean()
+});
+
 const QbittorrentClientSchema = z.object({
   ENDPOINT: z.url(),
   USERNAME: z.string().min(1),
   PASSWORD: z.string().min(1)
-});
-
-const MetadataSchema = z.object({
-  TORRENT_PATH: z.string().min(1),
-  sources: z.array(z.object({
-    url: z.tuple([z.string().url(), z.union([z.string(), z.void()])])
-  }))
-});
-
-
-const SortConfigSchema = z.object({
-  SORT: z.literal(true),
-  MOVE_DELAY: z.number().int().nonnegative(),
-  RESORT_STEP: z.number().int().nonnegative(),
-  RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
-  RESORT_STEP_CALLS: z.number().int().nonnegative(),
-  METHODS: z.array(SelectorSchema),
-  CHECKING_METHODS: z.array(SelectorSchema),
-  MOVING_METHODS: z.array(SelectorSchema),
-  PERSISTENT_MOVES: z.boolean()
-});
-
-const DuplicatesSchema = z.object({
-  DOWNLOADS_ONLY: z.boolean(),
-  TIE_BREAKERS: z.array(SelectorSchema),
-  IGNORE_TAG: z.string(),
-  PREFER_UPLOADING: z.boolean()
 });
 
 const NamingConfigSchema = z.object({
@@ -58,7 +37,26 @@ const NamingConfigSchema = z.object({
   RESET_ON_FAIL: z.boolean()
 });
 
-export type NamingConfig = z.infer<typeof NamingConfigSchema>
+export type NamingConfig = z.infer<typeof NamingConfigSchema>;
+
+const SortConfigSchema = z.object({
+  SORT: z.literal(true),
+  MOVE_DELAY: z.number().int().nonnegative(),
+  RESORT_STEP: z.number().int().nonnegative(),
+  RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
+  RESORT_STEP_CALLS: z.number().int().nonnegative(),
+  PERSISTENT_MOVES: z.boolean(),
+  METHODS: z.array(SelectorSchema),
+  CHECKING_METHODS: z.array(SelectorSchema),
+  MOVING_METHODS: z.array(SelectorSchema)
+});
+
+const ActionsSchema = z.array(
+  z.object({ if: z.array(SelectorSchema) }).and(z.union([
+    z.object({ then: z.literal('setAutoManagement'), arg: z.boolean() }),
+    z.object({ then: z.enum(['delete', 'start', 'recheck', 'toggleSequentialDownload']) })
+  ]))
+);
 
 const QueueSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number(),
@@ -69,16 +67,19 @@ const QueueSchema = z.object({
   MAXIMUM_QUEUE_SIZE: z.number()
 });
 
-const CoreSchema = z.object({
-  JOB_WAIT: z.number(),
-  DEV_INJECT: z.boolean(),
-  DRY_RUN: z.boolean()
+const DuplicatesSchema = z.object({
+  DOWNLOADS_ONLY: z.boolean(),
+  TIE_BREAKERS: z.array(SelectorSchema),
+  IGNORE_TAG: z.string(),
+  PREFER_UPLOADING: z.boolean()
 });
 
-const ActionsSchema = z.array(z.object({
-  if: z.array(SelectorSchema),
-  then: z.union([z.literal('delete'), z.literal('start'), z.literal('recheck'), z.literal('toggleSequentialDownload')])
-}));
+const MetadataSchema = z.object({
+  TORRENT_PATH: z.string().min(1),
+  sources: z.array(z.object({
+    url: z.tuple([z.string().url(), z.union([z.string(), z.void()])])
+  }))
+});
 
 export type Source = z.infer<typeof MetadataSchema>['sources'];
 

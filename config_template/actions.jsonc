@@ -32,7 +32,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 				"direction": "DESC"
 			},
 			{
-				"key": "PROGRESS_THRESHOLD",
+				"key": "PROGRESS",
 				"direction": "DESC",
 				"threshold": 0.95
 			}
@@ -86,7 +86,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 				"direction": "DESC"
 			},
 			{
-				"key": "PROGRESS_THRESHOLD",
+				"key": "PROGRESS",
 				"direction": "ASC",
 				"threshold": 0.95
 			},
@@ -98,14 +98,45 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		],
 		"then": "delete"
 	},
-  // Force disable sequential downloads on all torrents
-  {
-    "if": [
-      {
-        "key": "SEQ_DL",
-        "direction": "DESC"
-      }
-    ],
-    "then": "toggleSequentialDownload"
-  }
+	// Force disable sequential downloads on all torrents
+	{
+		"if": [
+			{
+				"key": "SEQ_DL",
+				"direction": "DESC"
+			}
+		],
+		"then": "toggleSequentialDownload"
+	},
+	// Force enable auto torrent management mode for non cross-seed torrents
+	{
+		"if": [
+			{
+				"key": "AUTO_TMM",
+				"direction": "ASC"
+			},
+			{
+				"key": "TAGS",
+				"tags": ["cross-seed"],
+				"direction": "ASC"
+			}
+		],
+		"then": "setAutoManagement",
+		"arg": true
+	},
+	// Remove Public Torrents
+	{
+		"if": [
+			{
+				"key": "PRIVATE",
+				"direction": "ASC"
+			},
+			{
+				"key": "SEEDERS",
+				"direction": "ASC",
+				"threshold": 5
+			}
+		],
+		"then": "delete"
+	}
 ]

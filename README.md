@@ -96,6 +96,9 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - before/after photos of torrent names
 
 ## TODO:
+- Tracker selector
+- Add/Remove tags action
+- Rewrite this so it uses the SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
 - Merge moving, checking, and normal sort methods
 - Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found

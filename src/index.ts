@@ -26,7 +26,7 @@ const originalNames = await OriginalNames.start();
 const saveMetadata = new SaveMetadata(api, webtorrent);
 await startServer(api);
 
-await ImportMetadataFiles.start((hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
+if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
 
 const runJobs = async (torrents: Torrent[]) => {
   let changes = 0;
