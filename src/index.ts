@@ -11,6 +11,7 @@ import Sort from "./jobs/Sort.ts";
 import Duplicates from "./jobs/Duplicates.ts";
 import Metadata from "./jobs/Metadata.ts";
 import Queue from './jobs/Queue.ts';
+import inject from '../tools/inject.ts';
 
 testConfig()
 
@@ -53,6 +54,11 @@ const runJobs = async (torrents: Torrent[]) => {
 
 while (true) {
   const torrents = await api.torrents();
+
+  if (CONFIG.CORE().DEV_INJECT) {
+    await inject(torrents);
+    continue;
+  }
 
   let changes = 0;
   const config = CONFIG.TORRENTS();

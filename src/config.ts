@@ -89,7 +89,8 @@ const QueueSchema = z.object({
 
 const CoreSchema = z.object({
   DEV: z.boolean(),
-  JOB_WAIT: z.number()
+  JOB_WAIT: z.number(),
+  DEV_INJECT: z.boolean()
 });
 
 export type Source = z.infer<typeof MetadataSchema>['sources'];
