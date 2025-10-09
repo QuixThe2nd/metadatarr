@@ -71,7 +71,7 @@ export class PartialTorrent implements PartialTorrentType {
   }
 
   public files = async (): Promise<{ name: string }[] | false> => {
-    const data = await this.request(`/files?hash=${this.hash}`);
+    const data = await this.request(`files?hash=${this.hash}`);
     if (!data) return false;
     return z.array(z.object({ name: z.string() })).parse(JSON.parse(data));
   }
