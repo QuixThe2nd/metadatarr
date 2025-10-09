@@ -88,7 +88,6 @@ const QueueSchema = z.object({
 });
 
 const CoreSchema = z.object({
-  DEV: z.boolean(),
   JOB_WAIT: z.number(),
   DEV_INJECT: z.boolean(),
   DRY_RUN: z.boolean()

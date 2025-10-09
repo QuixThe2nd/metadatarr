@@ -37,7 +37,6 @@ function cleanString(str: string): string {
 export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
-  private others = new Map<string, { count: number, example: string; info: unknown }>();
   private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
@@ -50,7 +49,6 @@ export default class Naming {
   private async renameAll() {
     let changes = 0;
     for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
-    if (CONFIG.CORE().DEV) console.log([...this.others.entries()].sort((a, b) => b[1].count - a[1].count).map(other => `${other[0]} (${other[1].count}) - ${other[1].example} - ${JSON.stringify(other[1].info)}`))
     return changes;
   }
 
@@ -66,8 +64,6 @@ export default class Naming {
     const { name, other } = this.cleanName(origName ?? torrent.name);
 
     if (other.length) {
-      if (!this.others.has(other)) this.others.set(other, { count: 1, example: origName ?? torrent.name, info: ptt.parse(origName ?? torrent.name) })
-      else this.others.set(other, { count: this.others.get(other)!.count + 1, example: origName ?? torrent.name, info: ptt.parse(origName ?? torrent.name) })
       if (this.config.TAG_FAILED_PARSING && !torrent.tags.includes("!renameFailed")) {
         changes++;
         await torrent.addTags("!renameFailed");

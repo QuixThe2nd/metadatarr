@@ -1,7 +1,5 @@
 {
   "DRY_RUN": true,
-  // If true, enables dev mode - Not recommended for production
-  "DEV": false,
   // Time (in ms) to wait between job runs if no changes were made in last run
   "JOB_WAIT": 10000,
   // If true, runs `./tools/inject.ts` and skips all jobs - For development only
