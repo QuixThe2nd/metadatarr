@@ -1,9 +1,15 @@
 import type { Torrent } from "../src/services/qBittorrent";
+import Qbittorrent from "../src/services/qBittorrent";
 
-const inject = async (torrents: Torrent[]): Promise<void> => {
-  console.log(torrents)
+const hook = async () => {
+  const qB = await Qbittorrent.connect();
 
-  await new Promise(res => setTimeout(res, 10_000))
+  return async (torrents: Torrent[]): Promise<void> => {
+    for (const torrent of torrents) {
+    }
+
+    await new Promise(res => setTimeout(res, 10_000))
+  }
 }
 
-export default inject;
+export default hook;

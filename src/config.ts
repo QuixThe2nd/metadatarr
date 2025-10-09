@@ -94,6 +94,11 @@ const CoreSchema = z.object({
   DRY_RUN: z.boolean()
 });
 
+const RemoveSchema = z.object({
+  CATEGORY: z.string(),
+  PROGRESS: z.number().min(0).max(1)
+});
+
 export type Source = z.infer<typeof MetadataSchema>['sources'];
 export type SortMethods = z.infer<typeof SortMethodsSchema>;
 
@@ -115,6 +120,7 @@ export const CONFIG = {
   DUPLICATES: () => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
   QUEUE: () => parseConfigFile('queue.jsonc', QueueSchema),
   CORE: () => parseConfigFile('core.jsonc', CoreSchema),
+  REMOVE: () => parseConfigFile('remove.json', RemoveSchema),
 };
 
 const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;

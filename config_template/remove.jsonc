@@ -1,7 +1,10 @@
-[
-  {
-    "CATEGORY": "cross-seed-links",
-    "PROGRESS": 0.9,
-    "OPERATOR": "lt"
-  }
-]
+{
+  /*
+  Auto remove torrents in a certain category if their progress is under a certain threshold.
+  Excludes checking torrents.
+  */
+
+  // Set progress to 0 to disable
+  "PROGRESS": 0,
+  "CATEGORY": "cross-seed-links"
+}

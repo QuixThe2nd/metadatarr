@@ -10,7 +10,7 @@ import Naming from "./jobs/Naming.ts";
 import Sort from "./jobs/Sort.ts";
 import Duplicates from "./jobs/Duplicates.ts";
 import Queue from './jobs/Queue.ts';
-import inject from '../tools/inject.ts';
+import hook from '../tools/inject.ts';
 
 await testConfig();
 
@@ -55,12 +55,14 @@ while (true) {
   const torrents = await api.torrents();
 
   if (CONFIG.CORE().DEV_INJECT) {
+    const inject = await hook();
     await inject(torrents);
     continue;
   }
 
   let changes = 0;
   const config = CONFIG.TORRENTS();
+  const removeConfig = CONFIG.REMOVE();
   for (const torrent of torrents) {
     if (config.FORCE_SEQUENTIAL_DOWNLOAD === 1 && !torrent.seq_dl) {
       changes++;
@@ -81,6 +83,9 @@ while (true) {
     if (torrent.state === "stoppedDL" && torrent.progress > config.RESUME_ALMOST_FINISHED_THRESHOLD) {
       changes++;
       await api.start([torrent.hash]);
+    }
+    if (torrent.category === removeConfig.CATEGORY && !['checkingDL', 'checkingUL'].includes(torrent.state) && torrent.progress < removeConfig.PROGRESS) {
+      await api.delete([torrent.hash]);
     }
   }
 
