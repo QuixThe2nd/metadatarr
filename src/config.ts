@@ -118,6 +118,10 @@ export const CONFIG = {
 };
 
 const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;
+const green_highlight = (text: string) => `\x1b[42m\x1b[30m${text}\x1b[0m`;
+const red_highlight = (text: string) => `\x1b[41m\x1b[37m${text}\x1b[0m`;
+const bold = (text: string) => `\x1b[1m${text}\x1b[0m`;
+
 export const testConfig = async () => {
   for (const config of Object.values(CONFIG)) config();
 
@@ -125,10 +129,10 @@ export const testConfig = async () => {
   console.warn(yellow('||                                ||'));
   if (CONFIG.CORE().DRY_RUN) {
     console.warn(yellow('||       Dry Run is Enabled       ||'));
-    console.warn(yellow('||       CHANGES WONT SAVE        ||'));
+    console.warn(yellow('||       CHANGES ') + green_highlight(bold('WONT')) + yellow(' SAVE        ||'));
   } else {
     console.warn(yellow('||       Dry Run is Disabled      ||'));
-    console.warn(yellow('||       CHANGES WILL SAVE        ||'));
+    console.warn(yellow('||       CHANGES ') + red_highlight(bold('WILL')) + yellow(' SAVE        ||'));
   }
   console.warn(yellow('||                                ||'));
   console.warn(yellow('|==================================|'));
