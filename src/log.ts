@@ -24,26 +24,25 @@ const originalConsoleError = console.error;
 
 console.log = function(...args) {
   logFile.write('[LOG] ' + args.join(' ') + '\n');
-  originalConsoleLog.apply(console, ['[LOG]', ...args]);
+  logContext('log', () => originalConsoleLog(...args));
 };
 
 console.warn = function(...args) {
   logFile.write('[WARN] ' + args.join(' ') + '\n');
-  originalConsoleWarn.apply(console, ['[WARN]', ...args]);
+  logContext('warn', () => originalConsoleWarn(...args));
 };
 
 console.error = function(...args) {
   logFile.write('[ERROR] ' + args.join(' ') + '\n');
-  originalConsoleError.apply(console, ['[ERROR]', ...args]);
+  logContext('error', () => originalConsoleError(...args));
 };
 
-export const logContext = async <T>(context: string, callback: () => Promise<T>): Promise<T> => {
-  const originalConsoleLog = console.log;
-  const originalConsoleWarn = console.warn;
-  const originalConsoleError = console.error;
-  console.log = (...args) => originalConsoleLog.apply(console, [`[${context.toUpperCase()}]`, ...args]);
-  console.warn = (...args) => originalConsoleWarn.apply(console, [`[${context.toUpperCase()}]`, ...args]);
-  console.error = (...args) => originalConsoleError.apply(console, [`[${context.toUpperCase()}]`, ...args]);
+const blue = (text: string) => `\x1b[32m${text}\x1b[0m`;
+
+export const logContext = async <T>(context: string, callback: () => T): Promise<T> => {
+  console.log = (...args) => originalConsoleLog.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
+  console.warn = (...args) => originalConsoleWarn.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
+  console.error = (...args) => originalConsoleError.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
   const result = await callback();
   console.log = originalConsoleLog;
   console.warn = originalConsoleWarn;

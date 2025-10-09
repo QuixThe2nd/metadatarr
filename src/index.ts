@@ -13,6 +13,7 @@ import Queue from './jobs/Queue.ts';
 import hook from '../tools/inject.ts';
 import type Torrent from './classes/Torrent.ts';
 import { logContext } from './log.ts';
+import Metadata from './jobs/Metadata.ts';
 
 await testConfig();
 
@@ -33,7 +34,7 @@ const runJobs = async (torrents: Torrent[]) => {
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(api, torrents, originalNames.names),
-    // Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
+    Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
     console.log('Job Started');

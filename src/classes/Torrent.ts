@@ -1,6 +1,7 @@
 import z from "zod";
 import Qbittorrent from './qBittorrent';
 import { CONFIG } from "../config";
+import { logContext } from "../log";
 
 export const TorrentSchema = z.object({
   state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "queuedUP", "forcedDL", "forcedUP"]),
@@ -43,6 +44,7 @@ export class PartialTorrent implements PartialTorrentType {
   }
 
   static add = (qB: Qbittorrent, data: Buffer) => {
+    logContext('qBittorrent', () => console.log(`Adding Torrent`));
     const body = new FormData();
     body.append('torrents', new Blob([Uint8Array.from(data)]), 'torrent.torrent');
     return qB.request('/torrents/add', body);
@@ -50,8 +52,7 @@ export class PartialTorrent implements PartialTorrentType {
 
   private request = (method: string, rest?: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string }) => {
     const payload = { ...rest, hashes: this.hash, deleteFiles: rest?.deleteFiles ? 'true' : 'false' };
-
-    console.log(`\x1b[32m[qBittorrent]\x1b[0m ${this.hash} Calling ${method}`, rest ?? '');
+    logContext('qBittorrent', () => console.log(`${this.hash} Calling ${method}`, rest ?? ''));
     return this.qB.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
 

@@ -3,6 +3,7 @@ import z, { ZodError } from "zod";
 import { CONFIG } from "../config";
 import Torrent from './Torrent';
 import { TorrentSchema } from './Torrent';
+import { logContext } from '../log';
 
 const PreferencesSchema = z.object({
   max_active_downloads: z.number()
@@ -30,13 +31,13 @@ export default class Qbittorrent {
 
   private static getCookie = async (force = false) => await new Promise<string>(resolve => {
     if (!force && fs.existsSync('./store/cookies.txt')) {
-      console.log('\x1b[32m[qBittorrent]\x1b[0m Already logged in');
+      logContext('qBittorrent', () => console.log('Already logged in'));
       return resolve(fs.readFileSync('./store/cookies.txt').toString());
     }
-    console.log('\x1b[32m[qBittorrent]\x1b[0m Logging in');
+    logContext('qBittorrent', () => console.log('Logging in'));
     const attempt = () => this.login().then(res => {
       if (res) {
-        console.log('\x1b[32m[qBittorrent]\x1b[0m Logged in')
+        logContext('qBittorrent', () => console.log('Logged in'))
         resolve(res);
       } else setTimeout(() => {
         attempt().catch(console.error)
@@ -47,14 +48,14 @@ export default class Qbittorrent {
 
   public async request(path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> {
     if (body && CONFIG.CORE().DRY_RUN) {
-      console.log('[DRY RUN] Not executing')
+      console.log('[DRY RUN] Not executing', path)
       return '';
     }
     try {
       const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } });
       if (response.status === 403) {
         if (typeof this.cookie === "string") {
-          console.log('\x1b[32m[qBittorrent]\x1b[0m Creating new session');
+          logContext('qBittorrent', () => console.log('Creating new session'));
           this.cookie = Qbittorrent.getCookie(true);
         }
         this.cookie = await this.cookie;
@@ -90,7 +91,7 @@ export default class Qbittorrent {
     try {
       data = JSON.parse(response);
       const torrents = z.array(TorrentSchema).parse(data);
-      console.log(`\x1b[32m[qBittorrent]\x1b[0m Fetched ${torrents.length} torrents`);
+      logContext('qBittorrent', () => console.log(`Fetched ${torrents.length} torrents`));
       return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));
     } catch (e) {
         console.error(e);

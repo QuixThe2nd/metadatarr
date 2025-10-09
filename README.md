@@ -91,11 +91,12 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
-## TODO:
-- turn Torrent type to Torrent class.
-- Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
+## DOCS TODO:
 - demo video showcasing features like sorting
 - before/after photos of torrent names
+
+## TODO:
+- Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Download shows in order (s01e01 before s01e02 before s02)
 - Delete torrents with completed=0 matching certain strings (so i can delete individual episodes before they download so no HnR and keep only season pack)
