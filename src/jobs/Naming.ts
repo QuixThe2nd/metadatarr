@@ -91,33 +91,33 @@ export default class Naming {
     if (torrent.name !== name) {
       changes++;
       await torrent.rename(name);
-    }
 
-    if (this.config.RENAME_FILES) {
-      const files = await torrent.files();
-      if (!files) return changes;
-      const parts = files[0]?.name.split('/');
+      if (this.config.RENAME_FILES) {
+        const files = await torrent.files();
+        if (!files) return changes;
+        const parts = files[0]?.name.split('/');
 
-      if (!parts || parts.length <= 1) return changes;
+        if (!parts || parts.length <= 1) return changes;
 
-      const oldFolder = parts[0];
-      if (!oldFolder) return changes;
-      const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
+        const oldFolder = parts[0];
+        if (!oldFolder) return changes;
+        const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
 
-      if (folderOther.length) {
-        if (this.config.TAG_FAILED_PARSING) {
-          changes++;
-          await torrent.addTags("!renameFolderFailed");
+        if (folderOther.length) {
+          if (this.config.TAG_FAILED_PARSING) {
+            changes++;
+            await torrent.addTags("!renameFolderFailed");
+          }
+          if (this.config.SKIP_IF_UNKNOWN) return changes;
         }
-        if (this.config.SKIP_IF_UNKNOWN) return changes;
-      }
 
-      for (const file of files) {
-        const oldFileName = file.name;
-        const newFileName = file.name.replaceAll(oldFolder, newFolder);
-        if (oldFileName !== newFileName) {
-          changes++;
-          await torrent.renameFile(oldFileName, newFileName);
+        for (const file of files) {
+          const oldFileName = file.name;
+          const newFileName = file.name.replaceAll(oldFolder, newFolder);
+          if (oldFileName !== newFileName) {
+            changes++;
+            await torrent.renameFile(oldFileName, newFileName);
+          }
         }
       }
     }
