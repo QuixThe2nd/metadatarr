@@ -75,116 +75,66 @@
 		ASC: Smallest first
 		DESC: Largest first
 		*/
-		{
-			"key": "SIZE",
-			"direction": "ASC"
-		},
+		{"key": "SIZE", "direction": "ASC"},
 		/* Prefer torrents with the most progress
 		ASC: Least progress first
 		DESC: Most progress first
 		*/
-		{
-			"key": "PROGRESS",
-			"direction": "DESC"
-		},
+		{"key": "PROGRESS", "direction": "DESC"},
 		/* Prefer torrents with the most completed data
 		ASC: Least completed first
 		DESC: Most completed first
 		*/
-		{
-			"key": "COMPLETED",
-			"direction": "DESC"
-		},
+		{"key": "COMPLETED", "direction": "DESC"},
 		/* Prefer torrents closest to completion
 		ASC: Closest to finishing first
 		DESC: Furthest from finishing first - This is useful if you want to prioritise starting new torrents over finishing existing ones
 		*/
-		{
-			"key": "REMAINING",
-			"direction": "ASC"
-		},
+		{"key": "REMAINING", "direction": "ASC"},
 		/* Prefer finishing private torrents
 		ASC: Non-private first
 		DESC: Private first
 		*/
-		{
-			"key": "PRIVATE",
-			"direction": "DESC"
-		},
+		{"key": "PRIVATE", "direction": "DESC"},
 		/* Prefer torrents with specific tags
 		ASC: Without tags first
 		DESC: With tags first
 		When specifying multiple tags, the order of tags does not matter. If you want to prioritise specific tags over others, use multiple sort entries.
 		*/
-		// {
-		// 	"key": "TAGS",
-		// 	"direction": "DESC",
-		// 	"tags": ["@DP"]
-		// },
-		// {
-		// 	"key": "TAGS",
-		// 	"direction": "DESC",
-		// 	"tags": ["@MaM"]
-		// },
+		// { "key": "TAGS", "direction": "DESC", "tags": ["@DP"] },
+		// { "key": "TAGS", "direction": "DESC", "tags": ["@MaM"] },
 		/* Prefer finishing torrents whose name contains a specific string
 		ASC: Contains last
 		DESC: Contains first
 		*/
-		{
-			"key": "NAME_CONTAINS",
-			"direction": "DESC",
-			"searchString": "S01"
-		},
+		{"key": "NAME_CONTAINS", "direction": "DESC", "searchString": "S01"},
 		/* Prefer torrents in specific categories
 		ASC: Without categories first
 		DESC: With categories first
 		When specifying multiple categories, the order of categories does not matter. If you want to prioritise specific categories over others, use multiple sort entries.
 		*/
-		{
-			"key": "CATEGORIES",
-			"direction": "DESC",
-			"categories": ["cross-seed-links"]
-		},
+		{"key": "CATEGORIES", "direction": "DESC", "categories": ["cross-seed-links"]},
 		/* Prefer torrents that are almost finished
 		ASC: Almost finished last
 		DESC: Almost finished first
 		Threshold is a float between 0 and 1, representing the progress percentage.
 		*/
-		{
-			"key": "PROGRESS",
-			"direction": "DESC",
-			"threshold": 0.1
-		},
-		{
-			"key": "PROGRESS",
-			"direction": "DESC",
-			"threshold": 0.99
-		},
+		{"key": "PROGRESS", "direction": "DESC", "threshold": 0.1},
+		{"key": "PROGRESS", "direction": "DESC", "threshold": 0.99},
 		/* Prefer manually prioritised torrents
 		ASC: Priority 1 first
 		DESC: Priority 1 last
 		Untagged torrents are considered priority 50
 		*/
-		{
-			"key": "PRIORITY_TAG",
-			"direction": "ASC",
-			"prefix": "Priority - " // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
-		},
+		{"key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - "}, // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
 		/* Prefer torrents without metadata
 		ASC: Torrents with metadata first
 		DESC: Torrents without metadata first
 		By default, torrents without metadata are de-prioritised as they can't accurately be sorted by size or progress.
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
-		{
-			"key": "NO_METADATA",
-			"direction": "ASC"
-		},
-		{
-			"key": "STATES",
-			"states": ["stoppedDL", "stoppedUP"],
-			"direction": "ASC"
-		}
+		{ "key": "NO_METADATA", "direction": "ASC" },
+		{ "key": "STATES", "states": ["stoppedDL", "stoppedUP"], "direction": "ASC" }
 	],
 	/*
 	Custom sort rules for torrents in a checking state
@@ -192,25 +142,10 @@
 	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
 	*/
 	"CHECKING_METHODS": [
-		{
-			"key": "REMAINING",
-			"direction": "ASC"
-		},
-		{
-			"key": "CATEGORIES",
-			"direction": "ASC",
-			"categories": ["cross-seed-links"]
-		},
-		{
-			"key": "PRIORITY_TAG",
-			"direction": "ASC",
-			"prefix": "Priority - " // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
-		},
-		{
-			"key": "STATES",
-			"states": ["checkingUL"],
-			"direction": "DESC"
-		}
+		{ "key": "REMAINING", "direction": "ASC" },
+		{ "key": "CATEGORIES", "direction": "ASC", "categories": ["cross-seed-links"] },
+		{ "key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - " },
+		{ "key": "STATES", "states": ["checkingUL"], "direction": "DESC" }
 	],
 	/*
 	Custom sort rules for torrents that are being moved
@@ -218,19 +153,9 @@
 	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
 	*/
 	"MOVING_METHODS": [
-		{
-			"key": "REMAINING",
-			"direction": "ASC"
-		},
+		{ "key": "REMAINING", "direction": "ASC" },
 		// We prefer completing existing moves to lower disk fragmentation
-		{
-			"key": "PROGRESS",
-			"direction": "DESC"
-		},
-		{
-			"key": "PRIORITY_TAG",
-			"direction": "ASC",
-			"prefix": "Priority - " // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
-		}
+		{ "key": "PROGRESS", "direction": "DESC" },
+		{ "key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - " }
 	]
 }
