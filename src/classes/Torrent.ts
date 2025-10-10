@@ -28,6 +28,8 @@ type Undefinable<T> = {
 };
 type PartialTorrentType = Undefinable<TorrentType> & { hash: string }
 
+const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile']
+
 export class PartialTorrent implements PartialTorrentType { 
   public readonly hash!: TorrentType['hash'];
   public readonly state: PartialTorrentType['state'];
@@ -61,7 +63,7 @@ export class PartialTorrent implements PartialTorrentType {
     const { enable, deleteFiles, ...restWithoutProps } = rest;
     const payload = {
       ...restWithoutProps,
-      hashes: this.hash,
+      ...(new URLSearchParams(method.split('?')[1]).get('hash') === null && { ['hash' + (SINGULAR_HASH_ENDPOINTS.includes(method) ? '' : 'es')]: this.hash }),
       ...(typeof enable !== "undefined" && { enable: enable ? 'true' : 'false' }),
       ...(typeof deleteFiles !== "undefined" && { deleteFiles: deleteFiles ? 'true' : 'false' })
     };

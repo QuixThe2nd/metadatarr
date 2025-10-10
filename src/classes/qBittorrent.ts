@@ -47,10 +47,12 @@ export default class Qbittorrent {
   });
 
   public async request(path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> {
+    if ([...body ?? []].length === 0) body = undefined;
     if (body && CONFIG.CORE().DRY_RUN) {
       console.log('[DRY RUN] Not executing', path)
       return '';
     }
+    // console.log(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } })
     try {
       const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } });
       if (response.status === 403) {
