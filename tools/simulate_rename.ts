@@ -14,9 +14,9 @@ const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  let { other, ...result } = Naming.test(test, verbose);
-  if (other && other.includes(filter)) {
-    if (!fails[other]) fails[other] = { originalName: test, count: 0, ...result};
+  const { other, ...result } = Naming.test(test, verbose);
+  if (other?.includes(filter)) {
+    fails[other] ??= { originalName: test, count: 0, ...result};
     fails[other].count++;
   }
 }

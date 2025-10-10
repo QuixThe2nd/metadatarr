@@ -101,68 +101,34 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
-## DOCS TODO:
+## TODO:
+### Docs:
 - demo video showcasing features like sorting
 - before/after photos of torrent names
 
-## TODO:
+### Queries:
+- Tracker selector
 - Abstract ASC/DESC to IS/IS-NOT for match based queries
-- Stricter types/eslint: no asserts, not !
+- MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
+- Nested sort - Apply sort queries only if matched another query - so we can merge moving, checking, and sort methods
+
+### Actions
+- Add/Remove tags action
+
+### Move from code to config
+- User configurable cleanup rules in Naming.ts
+- Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
+
+### Metadata
+- Use TVDB to parse episode names
+- Incremental backoff on metadata fetches
+
+### Other:
 - From Claude:
 ```
 The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_MINIMUM_CALLS, PERSISTENT_MOVES - these interact in non-obvious ways. The current implementation works, but explaining when to use each setting is hard. Could this be simplified to "max moves per cycle" and "keep moving until correct position"?
 ```
-- MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
-- User configurable cleanup rules in Naming.ts
 - Cleanup Naming.cleanName
-- Use TVDB to parse episode names
-- Tracker selector
-- Add/Remove tags action
-- Rewrite this so it uses the SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
-- Merge moving, checking, and normal sort methods
-- Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
-- Download shows in order (s01e01 before s01e02 before s02)
-- Delete torrents with completed=0 matching certain strings (so i can delete individual episodes before they download so no HnR and keep only season pack)
-- Incremental backoff on metadata fetches
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name
-- Sort torrents by seeds/peers - If you're reading this and have an idea, please submit an issue and tell me. Currently stuck here: qBittorrent only polls trackers for active torrents, so we're unable to pull swarm data from queued torrents.
-- Conditional actions: Auto run actions based on custom conditions. Examples:
-```json
-{
-  "condition": "stalled > 7d AND seeds < 2",
-  "action": "move_category",
-  "value": "dead"
-}
-{
-  "condition": "progress = 0% AND added > 24h",
-  "action": "set_priority", 
-  "value": "lowest"
-}
-{
-  "condition": "eta > 30d AND private = false",
-  "action": "pause_until_space"
-}
-{
-  "condition": "ratio > 3.0 AND seeding_time > 168h AND private = false",
-  "action": "remove_torrent"
-}
-{
-  "condition": "progress > 95% AND speed < 100KB/s FOR 2h",
-  "action": "force_reannounce"
-}
-{
-  "condition": "completed AND category = 'tv' AND name_contains 'S01E01'",
-  "action": "set_tag",
-  "value": "priority-high"
-}
-{
-  "condition": "free_space < 500GB",
-  "sort_config": "prefer_smaller_torrents.json"
-}
-{
-  "condition": "download_speed < 50MB/s AND time_of_day = night", 
-  "sort_config": "prefer_large_files.json"
-}
-```

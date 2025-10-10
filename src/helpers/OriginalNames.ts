@@ -13,7 +13,7 @@ export default class OriginalNames {
     if (!originalNames.dir.length) return { names: {} };
     await originalNames.scanDirectory();
     fs.watch(originalNames.dir, (_, filename) => {
-      if (filename) originalNames.saveName(originalNames.dir, filename);
+      if (filename) await originalNames.saveName(originalNames.dir, filename);
     });
     return originalNames;
   }
@@ -30,7 +30,7 @@ export default class OriginalNames {
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       if (file in cache) {
-        this.names[cache[file]!.hash!] = cache[file]!.name;
+        this.names[cache[file]!.hash] = cache[file]!.name;
         continue;
       }
       const res = await this.saveName(this.dir, file);

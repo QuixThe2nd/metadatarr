@@ -22,8 +22,6 @@ const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEn
   })
   .map(([key]) => key) as TypedKeysOf<T, typeof TorrentSchema.shape>[];
 
-  TorrentSchema.shape.state.enum
-
 const stringProperties = [...properties(z.ZodString), ...properties(z.ZodEnum)];
 const numberProperties = properties(z.ZodNumber);
 const booleanProperties = properties(z.ZodBoolean);

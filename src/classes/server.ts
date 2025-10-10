@@ -2,7 +2,6 @@ import fs from 'fs';
 import express from 'express';
 import z from 'zod';
 import Qbittorrent from './qBittorrent';
-import { PartialTorrent } from './Torrent';
 
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({

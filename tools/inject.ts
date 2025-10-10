@@ -3,6 +3,7 @@ import type Torrent from "../src/classes/Torrent";
 
 const hook = async () => {
   const qB = await Qbittorrent.connect();
+  console.log(qB);
 
   return async (torrents: Torrent[]): Promise<void> => {
     for (const torrent of torrents) {

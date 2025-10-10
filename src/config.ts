@@ -73,8 +73,6 @@ const ActionsSchema = z.array(z.object({ if: z.array(SelectorSchema) }).and(z.un
   z.object({ then: z.enum(filteredActions) })
 ])));
 
-type T = z.infer<typeof ActionsSchema>
-
 const QueueSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number(),
   HARD_QUEUE_SIZE_LIMIT: z.boolean(),

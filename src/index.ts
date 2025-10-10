@@ -13,7 +13,7 @@ import Queue from './jobs/Queue.ts';
 import hook from '../tools/inject.ts';
 import type Torrent from './classes/Torrent.ts';
 import { logContext } from './log.ts';
-import Metadata from './jobs/Metadata.ts';
+import metadata from './jobs/Metadata.ts';
 import actions from './jobs/Actions.ts';
 
 await testConfig();
@@ -26,7 +26,7 @@ const originalNames = await OriginalNames.start();
 const saveMetadata = new SaveMetadata(api, webtorrent);
 await startServer(api);
 
-if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source));
+if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((metadata: Buffer, source: string) => saveMetadata.save(metadata, source));
 
 const runJobs = async (torrents: Torrent[]) => {
   let changes = 0;
@@ -36,7 +36,7 @@ const runJobs = async (torrents: Torrent[]) => {
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(torrents, originalNames.names),
-    Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
+    Metadata: () => metadata(torrents, webtorrent, (metadata: Buffer, source: string) => saveMetadata.save(metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
     const taskChanges = await logContext(name, async () => {
