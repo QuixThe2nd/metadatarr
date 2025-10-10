@@ -33,7 +33,7 @@ const runJobs = async (torrents: Torrent[]) => {
   const tasks = {
     // Actions: () => actions(torrents),
     Duplicates: () => Duplicates.run(torrents),
-    // Sort: () => Sort.run(api, torrents),
+    Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(torrents, originalNames.names),
     Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
