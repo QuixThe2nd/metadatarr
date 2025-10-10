@@ -55,12 +55,12 @@ export default class Naming {
   private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
     let changes = 0;
     if (!origName) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.split(', ').includes('!missingOriginalName')) torrent.addTags('!missingOriginalName');
+      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.includes('!missingOriginalName')) torrent.addTags('!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
         if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
         return 0;
       }
-    } else if (torrent.tags.split(', ').includes('!missingOriginalName')) torrent.removeTags('!missingOriginalName');
+    } else if (torrent.tags.includes('!missingOriginalName')) torrent.removeTags('!missingOriginalName');
     const { name, other } = this.cleanName(origName ?? torrent.name);
 
     if (other.length) {

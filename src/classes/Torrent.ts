@@ -11,7 +11,7 @@ export const TorrentSchema = z.object({
   size: z.number(),
   priority: z.number(),
   category: z.string().nullable(),
-  tags: z.string(),
+  tags: z.codec(z.string(), z.array(z.string()), { decode: (str) => str.split(', '), encode: (arr) => arr.join(', ') }),
   completed: z.number().nullable(),
   progress: z.number(),
   private: z.boolean().nullable(),
@@ -23,12 +23,10 @@ export const TorrentSchema = z.object({
 });
 type TorrentType = z.infer<typeof TorrentSchema>;
 
-type Undefinable<T> = {
-  [P in keyof T]: T[P] | undefined;
-};
+type Undefinable<T> = { [P in keyof T]: T[P] | undefined };
 type PartialTorrentType = Undefinable<TorrentType> & { hash: string }
 
-const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile']
+const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile'];
 
 export class PartialTorrent implements PartialTorrentType { 
   public readonly hash!: TorrentType['hash'];
