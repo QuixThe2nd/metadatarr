@@ -7,6 +7,7 @@ import Torrent from './classes/Torrent';
 
 const CoreSchema = z.object({
   JOB_WAIT: z.number(),
+  NO_JOB_WAIT: z.number(),
   DEV_INJECT: z.boolean(),
   DRY_RUN: z.boolean()
 });

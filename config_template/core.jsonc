@@ -1,7 +1,9 @@
 {
-  "DRY_RUN": true,
-  // Time (in ms) to wait between job runs if no changes were made in last run
-  "JOB_WAIT": 10000,
-  // If true, runs `./tools/inject.ts` and skips all jobs - For development only
-  "DEV_INJECT": false
+	"DRY_RUN": true,
+	// Time (in ms) to wait between job runs if no changes were made in last run
+	"JOB_WAIT": 10000,
+	// Time (in ms) to wait between job runs if changes were made in last run
+	"NO_JOB_WAIT": 30000,
+	// If true, runs `./tools/inject.ts` and skips all jobs - For development only
+	"DEV_INJECT": false
 }
