@@ -67,16 +67,16 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "delete"
 	},
 	// Recheck errored torrents
-	{
-		"if": [
-			{
-				"key": "STATES",
-				"states": ["error"],
-				"direction": "DESC"
-			}
-		],
-		"then": "recheck"
-	},
+	// {
+	// 	"if": [
+	// 		{
+	// 			"key": "STATES",
+	// 			"states": ["error"],
+	// 			"direction": "DESC"
+	// 		}
+	// 	],
+	// 	"then": "recheck"
+	// },
 	// Remove cross-seed-links that have less than 95% progress
 	{
 		"if": [
