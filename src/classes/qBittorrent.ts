@@ -113,5 +113,8 @@ export default class Qbittorrent {
     return [];
   }
 
-  public topPriority = (hashes: string[]) => this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
+  public topPriority = async (hashes: string[]) => {
+    logContext('qBittorrent', () => console.log(`${hashes[hashes.length-1]} Calling topPrio`));
+    return await this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
+  }
 }
