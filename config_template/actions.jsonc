@@ -1,0 +1,154 @@
+/*
+Automatically execute actions on torrents based off custom rules
+
+Each array of objects is a set of rules that must all match for an action to be executed.
+Treat the parent array (array of arrays) as an OR condition, and each object under IF as an AND condition.
+
+To specify IS/IS NOT and greater/lesser than conditions, use the "direction" field.
+For example to match a boolean (true/false) field, use "ASC" to delete if false, and "DESC" to delete if true.
+To match a threshold (number) field, use "ASC" to delete if less than the threshold, and "DESC" to delete if greater than the threshold.
+
+Rules will be executed in order. When chaining many rules together, place the most specific rules first. E.g. if you auto resume torrents then later later delete stopped torrents, place the resume rule first.
+*/
+
+[
+	// Resume completed torrents that are stopped
+	{
+		"if": [
+			{
+				"key": "STATES",
+				"states": ["stoppedUP"],
+				"direction": "DESC"
+			}
+		],
+		"then": "start"
+	},
+	// Resume almost finished torrents that are stopped
+	{
+		"if": [
+			{
+				"key": "STATES",
+				"states": ["stoppedDL"],
+				"direction": "DESC"
+			},
+			{
+				"key": "PROGRESS",
+				"direction": "DESC",
+				"threshold": 0.95
+			}
+		],
+		"then": "start"
+	},
+	// Recheck missing files
+	{
+		"if": [
+			{
+				"key": "STATES",
+				"states": ["missingFiles"],
+				"direction": "DESC"
+			}
+		],
+		"then": "recheck"
+	},
+	// Remove errored cross-seed-links
+	{
+		"if": [
+			{
+				"key": "CATEGORIES",
+				"categories": ["cross-seed-links"],
+				"direction": "DESC"
+			},
+			{
+				"key": "STATES",
+				"states": ["error"],
+				"direction": "DESC"
+			}
+		],
+		"then": "delete"
+	},
+	// Recheck errored torrents
+	// {
+	// 	"if": [
+	// 		{
+	// 			"key": "STATES",
+	// 			"states": ["error"],
+	// 			"direction": "DESC"
+	// 		}
+	// 	],
+	// 	"then": "recheck"
+	// },
+	// Remove cross-seed-links that have less than 95% progress
+	{
+		"if": [
+			{
+				"key": "CATEGORIES",
+				"categories": ["cross-seed-links"],
+				"direction": "DESC"
+			},
+			{
+				"key": "PROGRESS",
+				"direction": "ASC",
+				"threshold": 0.95
+			},
+			{
+				"key": "STATES",
+				"states": ["checkingDL", "checkingUP"],
+				"direction": "ASC"
+			}
+		],
+		"then": "delete"
+	},
+	// Force disable sequential downloads on all torrents
+	{
+		"if": [
+			{
+				"key": "SEQ_DL",
+				"direction": "DESC"
+			}
+		],
+		"then": "toggleSequentialDownload"
+	},
+	// Force enable auto torrent management mode for non cross-seed torrents
+	{
+		"if": [
+			{
+				"key": "AUTO_TMM",
+				"direction": "ASC"
+			},
+			{
+				"key": "TAGS",
+				"tags": ["cross-seed"],
+				"direction": "ASC"
+			}
+		],
+		"then": "setAutoManagement",
+		"arg": true
+	},
+	// Remove Public Torrents
+	{
+		"if": [
+			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
+			{
+				"key": "TAGS",
+				"tags": ["Public Tracker"],
+				"direction": "DESC"
+			},
+			{
+				"key": "PRIVATE",
+				"direction": "ASC"
+			},
+
+			{
+				"key": "STATES",
+				"states": ["stalledUP", "stoppedUP", "uploading"],
+				"direction": "DESC"
+			},
+			{
+				"key": "SEEDERS",
+				"direction": "ASC",
+				"threshold": 5
+			}
+		],
+		"then": "delete"
+	}
+]

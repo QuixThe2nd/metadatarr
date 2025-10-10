@@ -18,7 +18,7 @@
 	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
 	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
 	*/
-	"SCHEME": "[title] ([year]) [extended] [remastered] [unrated] [season][episode] [proper] [repack] - [[resolution] [service] [source] [remux] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [group][[tracker]]",
+	"SCHEME": "[title] ([year]) [season][episode] - [extras] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [service] [source] [downscaled] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
 	// Separator between different fields
 	"SPACING": " ",
 	/* Find and replace strings in the name
@@ -26,12 +26,9 @@
   Example:
     ["x265|h265", "HEVC"]
   */
-	"REPLACE": [
-		["\\b5 1\\b", "5.1"],
-		["\\b7 1\\b", "7.1"]
-	],
+	"REPLACE": [],
 	// Fix common mistakes in group names
-	"FIX_BAD_GROUPS": ["GPRS", "ESiR", "STRiFE", "NiSHKRiY0", "FanTAHD", "KOGi", "FLUX", "ARCADE", "PiRaTeS", "EDITH", "playWEB", "SADPANA", "iVy", "ViSUM", "Yassmiso", "Kitsune", "MZABI", "PHOENiX", "ION10", "BS", "EDGE2020", "NTb", "BAE", "TiMELORDS", "ETRG", "KiNGS", "CMRG", "EVO", "RegEdits", "LAMA", "LEGi0N", "POIASD", "BiOMA", "SiGMA", "OFT", "WADU", "SADPANDA", "CRFW", "ShinZoku", "SHORTBREHD", "Tigole", "RAWR", "edge2020", "NTG", "TURG", "Yuki", "SiNNERS", "Vyndros", "PiGNUS", "THEVOiD", "NOSiViD", "hallowed", "Rajput42", "ETHEL", "successfulcrab", "iSlaNd", "cakes", "SiMPLE", "BHDStudio", "PFa", "YAWNTiC", "rttr", "DiMEPiECE", "PMEDIA", "BlessUp", "FHC", "BTN", "BLOOM", "SPARKS", "XEBEC", "AndreMor", "aAF", "FLAME", "THR", "SWAXXON", "CUPCAKES", "NiXON", "TheWretched", "eSc", "YAWNiX", "TAoE", "VEXED", "AccomplishedYak", "VietHD", "d3g", "TOMMY", "FilmHD", "ENRiCH", "playHD", "orbitron", "TEPES", "Dooky", "CasStudio", "JAMTARTS", "LiNKLE", "TASTETV", "WRE", "NRS", "G66", "MAHOU", "iNSiDiOUS", "FLX", "J91", "FreetheFish", "SPirate", "EzzRips", "HETeam", "HONE", "SLiMSHADY", "PERFECT", "AUDiOFiLE", "seedpool", "UTR"],
+	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo"],
 	// If true, will rename files based on the naming scheme
 	"RENAME_FILES": true,
 	// If true, will remove domain names from titles
@@ -45,7 +42,7 @@
 	// Trim container (.mkv, .mp4, etc) from end of title
 	"TRIM_CONTAINER": true,
 	// List of known TLDs to remove from titles if REMOVE_DOMAINS is true
-	"REMOVE_TLDS": ["com", "net", "org", "io", "co", "us", "uk", "me", "tv", "gg", "in", "info", "biz", "online", "site", "tech", "to", "cc"],
+	"REMOVE_TLDS": [],
 	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"
 	"NO_YEAR_IN_SEASONS": true,
 	// If true, will recheck the torrent after renaming
@@ -61,5 +58,11 @@
 	This is completely optional, but it improves rename accuracy in-case of errors caused by re-runs.
 	To disable this, leave it as an empty string "".
 	*/
-	"TORRENTS_DIR": "/torrents"
+	"TORRENTS_DIR": "",
+	// Only rename if the torrents original name is known (requires TORRENTS_DIR to be set)
+	"FORCE_ORIGINAL_NAME": false,
+	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
+	"TAG_MISSING_ORIGINAL_NAME": true,
+	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
+	"RESET_ON_FAIL": true
 }

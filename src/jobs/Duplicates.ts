@@ -1,7 +1,6 @@
 import { CONFIG } from "../config";
-import type Qbittorrent from "../services/qBittorrent";
-import type { Torrent } from "../services/qBittorrent";
-import { SortEngine } from "./Sort";
+import Torrent from "../classes/Torrent";
+import { SelectorEngine } from "../classes/SelectorEngine";
 
 export default class Duplicates {
   private readonly config = CONFIG.DUPLICATES();
@@ -19,24 +18,22 @@ export default class Duplicates {
       if (!AUploading && BUploading) return 1;
       return 0;
     });
-    for (const sort of this.config.TIE_BREAKERS) torrents = SortEngine.sort(torrents, sort);
+    for (const sort of this.config.TIE_BREAKERS) torrents = SelectorEngine.execute(torrents, sort, 'SORT');
 
     this.torrents = torrents;
   }
 
-  static async run(api: Qbittorrent, torrents: Torrent[]) {
-    console.log('Removing duplicate torrents');
+  static async run(torrents: Torrent[]) {
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
     let changes = 0;
     for (const torrent of deduplicate.torrents) {
       if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
       else {
-        await api.delete([torrent.hash]);
+        await torrent.delete();
         changes++;
       }
     }
-    console.log('Done removing duplicate torrents');
     return changes;
   }
 }

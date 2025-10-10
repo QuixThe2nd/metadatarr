@@ -1,16 +1,13 @@
 import { CONFIG } from "../config";
-import type { Torrent } from "../services/qBittorrent";
-import Qbittorrent from '../services/qBittorrent';
+import Torrent from "../classes/Torrent";
+import Qbittorrent from '../classes/qBittorrent';
 
 export default class Queue {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly config = CONFIG.QUEUE()) {}
 
   static async run(api: Qbittorrent, torrents: Torrent[]) {
-    console.log('Updating queue size');
     const queue = new Queue(api, torrents);
-    const changed = await queue.update();
-    console.log('Updated queue size');
-    return changed;
+    return await queue.update();
   }
 
   async update() {
@@ -45,6 +42,8 @@ export default class Queue {
             i--;
           }
         }
+        if (maxActiveDownloads < this.config.MINIMUM_QUEUE_SIZE) maxActiveDownloads = this.config.MINIMUM_QUEUE_SIZE;
+        if (maxActiveDownloads > this.config.MAXIMUM_QUEUE_SIZE) maxActiveDownloads = this.config.MAXIMUM_QUEUE_SIZE;
         if (maxActiveDownloads < 1) maxActiveDownloads = 1;
         if (maxActiveDownloads !== preferences.max_active_downloads) {
           console.log(`\x1b[32m[qBittorrent]\x1b[0m Setting maximum active downloads to ${maxActiveDownloads}`);

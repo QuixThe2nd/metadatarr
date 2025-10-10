@@ -17,5 +17,9 @@
 	/*
 	Exclude categories from queue size calculation
 	*/
-	"EXCLUDE_CATEGORIES": ["cross-seed-links"]
+	"EXCLUDE_CATEGORIES": ["cross-seed-links"],
+	// Minimum number of torrents to keep in the queue (ignoring size limit)
+	"MINIMUM_QUEUE_SIZE": 2,
+	// Maximum number of torrents to keep in the queue (ignoring size limit)
+	"MAXIMUM_QUEUE_SIZE": 20
 }

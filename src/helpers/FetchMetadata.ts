@@ -1,6 +1,6 @@
 import type { Instance } from 'webtorrent';
 import type { Source } from "../config";
-import type { Torrent } from "../services/qBittorrent";
+import Torrent from "../classes/Torrent";
 import { CONFIG } from '../config';
 
 export default class FetchMetadata {

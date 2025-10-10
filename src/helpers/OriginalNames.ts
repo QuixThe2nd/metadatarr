@@ -24,13 +24,15 @@ export default class OriginalNames {
     const totalFiles = files.length;
     let lastLoggedPercent = 0;
 
-    console.log('Loading cache');
     const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
 
-    console.log(`Scan: 0% complete (0 of ${totalFiles})`)
+    console.log(`Scan: 0% complete (0 of ${totalFiles})`);
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
-      if (file in cache) continue;
+      if (file in cache) {
+        this.names[cache[file]!.hash!] = cache[file]!.name;
+        continue;
+      }
       const res = await this.saveName(this.dir, file);
       if (!res) continue;
       cache[file] = res;
@@ -40,15 +42,22 @@ export default class OriginalNames {
         lastLoggedPercent = currentPercent;
       }
     }
-    fs.writeFileSync('./store/original_names.json', JSON.stringify(cache))
+    fs.writeFileSync('./store/original_names.json', JSON.stringify(cache));
+    console.log(`Scan: 100% complete (${totalFiles} of ${totalFiles})`);
     console.log('Scanned torrent name directory');
   }
 
   private async saveName(dir: string, file: string): Promise<false | { name: string; hash: string }> {
     if (!file.endsWith('.torrent')) return false;
     const filePath = path.join(dir, file);
-    const metadata = await parseTorrent(fs.readFileSync(filePath));
-    this.names[metadata.infoHash!] = metadata.name as string;
-    return { name: metadata.name as string, hash: metadata.infoHash! }
+    const torrent = fs.readFileSync(filePath);
+    try {
+      const metadata = await parseTorrent(torrent);
+      this.names[metadata.infoHash!] = metadata.name as string;
+      return { name: metadata.name as string, hash: metadata.infoHash! }
+    } catch (e) {
+      console.error(e, torrent.toString().slice(0, 100))
+      return false;
+    }
   }
 }
