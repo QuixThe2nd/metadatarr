@@ -1,7 +1,17 @@
 # Metadatarr: The missing arr for torrent management
 Like Sonarr for your torrent queue: Intelligent automation for power users managing large collections.
 
-Intelligent torrent management and automation for qBittorrent. Automatically & efficiently manages your queue, standardizes torrent names, and recovers metadata. Metadatarr is made for power users with large torrent collections that want fine-grained control over their system.
+Metadatarr is a highly modular Torrent automation tool giving you surgical control over your torrents. It continuously monitors your torrent client and applies rules you define to manage everything automatically.
+
+Automatically & efficiently manages your queue, standardizes torrent names, and recovers metadata. Metadatarr is made for power users with large torrent collections that want fine-grained control over their system.
+
+## Core Features
+- **Actions**: Automatically performs actions on your torrents based on custom rules IF/THEN rules (e.g. resume stopped torrents if above 95% complete, delete errored ones in the Radarr category, recheck missing files, etc.)
+- **Duplicates**: Find torrents with identical names and only keeps one with off custom rules (e.g. don't delete cross-seeds, prefer deleting private torrents, only delete incomplete torrents, etc.)
+- **Sort**: Automatically re-orders your torrent queue based off sophisticated custom chained rules (e.g. prefer small torrents BUT de-prioritise public torrents BUT prefer Sonarr torrents BUT prefer torrent names with "S01")
+- **Queue**: Automatically changes download queue size based off a configurable total size limit
+- **Naming**: Parses torrent titles and automatically renames them based off custom naming schemes
+- **Metadata**: Automatically fetches .torrent files for magnet links using external HTTP sources and DHT
 
 ## Overview
 If you're running Sonarr/Radarr with hundreds of torrents queued, you need Metadatarr to intelligently manage that queue.
@@ -96,6 +106,16 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - before/after photos of torrent names
 
 ## TODO:
+- Abstract ASC/DESC to IS/IS-NOT for match based queries
+- Stricter types/eslint: no asserts, not !
+- From Claude:
+```
+The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_MINIMUM_CALLS, PERSISTENT_MOVES - these interact in non-obvious ways. The current implementation works, but explaining when to use each setting is hard. Could this be simplified to "max moves per cycle" and "keep moving until correct position"?
+```
+- MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
+- User configurable cleanup rules in Naming.ts
+- Cleanup Naming.cleanName
+- Use TVDB to parse episode names
 - Tracker selector
 - Add/Remove tags action
 - Rewrite this so it uses the SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING

@@ -13,8 +13,8 @@
   See options in sort.jsonc for a list of tie breakers
   */
   "TIE_BREAKERS": [
-    { "key": "PROGRESS", "direction": "DESC" },
-    { "key": "PRIVATE", "direction": "DESC" }
+    { "key": "progress", "direction": "DESC" },
+    { "key": "private", "direction": "DESC" }
   ],
 
   // HIGHLY RECOMMENDED IF DOWNLOAD_ONLY IS OFF: If enabled, will prefer torrents that are seeding over those that are not

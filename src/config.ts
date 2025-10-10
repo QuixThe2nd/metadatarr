@@ -53,9 +53,7 @@ const SortConfigSchema = z.object({
   MOVING_METHODS: z.array(SelectorSchema)
 });
 
-type MethodNames<T> = {
-  [K in keyof T]: T[K] extends Function ? K : never;
-}[keyof T];
+type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
 
 function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
   const methods = new Set<string>();
@@ -64,9 +62,7 @@ function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
   }
   return [...methods] as MethodNames<T>[];
 }
-function exclude<T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] {
-  return arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
-}
+const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
 const actions = getMethodNames(new Torrent({} as Qbittorrent, {} as Torrent));
 const excludedActions = ['rename', 'renameFile', 'setCategory', 'removeTags', 'addTags', 'setAutoManagement', 'files'] as const;
