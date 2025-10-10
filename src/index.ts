@@ -61,5 +61,5 @@ while (true) {
   changes += await runJobs(torrents);
   console.log('Jobs Finished')
 
-  if (changes === 0) await new Promise(res => setTimeout(res, CONFIG.CORE().JOB_WAIT));
+  if (changes === 0 || CONFIG.CORE().DRY_RUN) await new Promise(res => setTimeout(res, CONFIG.CORE().JOB_WAIT));
 }
