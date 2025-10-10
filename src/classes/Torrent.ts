@@ -68,7 +68,7 @@ export class PartialTorrent implements PartialTorrentType {
       ...(typeof deleteFiles !== "undefined" && { deleteFiles: deleteFiles ? 'true' : 'false' })
     };
 
-    logContext('qBittorrent', () => console.log(`${this.hash} Calling ${method}`, rest ?? ''));
+    if (Object.keys(payload).length) logContext('qBittorrent', () => console.log(`${this.hash} Calling ${method}`, rest ?? ''));
     return this.qB.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
 
