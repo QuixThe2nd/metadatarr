@@ -19,7 +19,7 @@
 	
 	Set to 0 to disable delay - Will consume more CPU and may cause issues in qBittorrent.
 	*/
-	"MOVE_DELAY": 100,
+	"MOVE_DELAY": 250,
 
 	/* Maximum number of torrents to move each cycle
 	Once this threshold is reached, the sorter will wait for the move delay before running again.

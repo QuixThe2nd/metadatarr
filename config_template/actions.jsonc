@@ -34,23 +34,23 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		],
 		"then": "recheck"
 	},
-	// Remove errored cross-seed-links
-	{
-		"if": [
-			{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
-			{"key": "state", "type": "IS", "includes": ["error"]}
-		],
-		"then": "delete"
-	},
-	// Remove cross-seed-links that have less than 95% progress
-	{
-		"if": [
-			{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
-			{"key": "progress", "type": "IS NOT", "threshold": 0.95},
-			{"key": "state", "type": "IS NOT", "includes": ["checkingDL", "checkingUP"]}
-		],
-		"then": "delete"
-	},
+	// // Remove errored cross-seed-links
+	// {
+	// 	"if": [
+	// 		{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
+	// 		{"key": "state", "type": "IS", "includes": ["error"]}
+	// 	],
+	// 	"then": "delete"
+	// },
+	// // Remove cross-seed-links that have less than 95% progress
+	// {
+	// 	"if": [
+	// 		{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
+	// 		{"key": "progress", "type": "IS NOT", "threshold": 0.95},
+	// 		{"key": "state", "type": "IS NOT", "includes": ["checkingDL", "checkingUP"]}
+	// 	],
+	// 	"then": "delete"
+	// },
 	// Force disable sequential downloads on all torrents
 	{
 		"if": [
@@ -67,15 +67,15 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "setAutoManagement",
 		"arg": true
 	},
-	// Remove Public Torrents
-	{
-		"if": [
-			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
-			{"key": "tags", "type": "IS", "includes": ["Public Tracker"]},
-			{"key": "private", "type": "IS NOT"},
-			{"key": "state", "type": "IS", "includes": ["stalledUP", "stoppedUP", "uploading"]},
-			{"key": "num_complete", "type": "IS", "threshold": 5}
-		],
-		"then": "delete"
-	}
+	// // Remove Public Torrents
+	// {
+	// 	"if": [
+	// 		// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
+	// 		{"key": "tags", "type": "IS", "includes": ["Public Tracker"]},
+	// 		{"key": "private", "type": "IS NOT"},
+	// 		{"key": "state", "type": "IS", "includes": ["stalledUP", "stoppedUP", "uploading"]},
+	// 		{"key": "num_complete", "type": "IS", "threshold": 5}
+	// 	],
+	// 	"then": "delete"
+	// }
 ]

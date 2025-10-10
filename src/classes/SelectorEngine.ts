@@ -61,8 +61,8 @@ export class SelectorEngine {
     else if (isNumberProperty(query.key) && key === query.key) {
       const threshold = query.threshold;
       return threshold === undefined
-        ? this.numericSort(torrents, query.type, t => t.size)
-        : this.booleanQuery(torrents, query.type, t => t.size >= threshold, filter);
+        ? this.numericSort(torrents, query.type, t => (t[key] ?? 0))
+        : this.booleanQuery(torrents, query.type, t => (t[key] ?? 0) >= threshold, filter);
     } else throw new Error('Unexpected key???');
   }
 

@@ -212,7 +212,7 @@ export default class Naming {
     codec: value => String(value)[['h264', 'h265', 'x264', 'x265'].includes(String(value)) ? 'toLowerCase' : 'toUpperCase'](),
     season: value => `S${String(value).padStart(2, '0')}`,
     episode: value => `E${String(value).padStart(2, '0')}`,
-    title: value => this.config.FORCE_TITLE_CASE ? String(value).replace(/\b\w/g, char => char.toUpperCase()) : String(value)
+    title: value => this.config.FORCE_TITLE_CASE ? String(value).replace(/[ .]\w/g, char => char.toUpperCase()) : String(value)
   };
 
   private readonly cleanupStringFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
