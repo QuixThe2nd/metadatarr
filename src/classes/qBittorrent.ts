@@ -20,7 +20,7 @@ export default class Qbittorrent {
     try {
       const response = await fetch(`${client.ENDPOINT}/api/v2/auth/login`, { method: 'POST', body: new URLSearchParams({ username: client.USERNAME, password: client.PASSWORD }) });
       const cookie = response.headers.get('set-cookie');
-      if (!cookie) throw new Error("[qBittorrent] Failed to login");
+      if (cookie === null) throw new Error("[qBittorrent] Failed to login");
       fs.writeFileSync('./store/cookies.txt', cookie);
       return cookie;
     } catch (e) {
@@ -29,15 +29,15 @@ export default class Qbittorrent {
     }
   }
 
-  private static getCookie = async (force = false) => await new Promise<string>(resolve => {
+  private static getCookie = (force = false): Promise<string> => new Promise<string>(resolve => {
     if (!force && fs.existsSync('./store/cookies.txt')) {
-      logContext('qBittorrent', () => console.log('Already logged in'));
-      return resolve(fs.readFileSync('./store/cookies.txt').toString());
+      logContext('qBittorrent', () => { console.log('Already logged in'); });
+      resolve(fs.readFileSync('./store/cookies.txt').toString()); return;
     }
-    logContext('qBittorrent', () => console.log('Logging in'));
-    const attempt = () => this.login().then(res => {
-      if (res) {
-        logContext('qBittorrent', () => console.log('Logged in'))
+    logContext('qBittorrent', () => { console.log('Logging in'); });
+    const attempt = (): Promise<void> => this.login().then(res => {
+      if (res !== false) {
+        logContext('qBittorrent', () => { console.log('Logged in'); })
         resolve(res);
       } else setTimeout(() => {
         attempt().catch(console.error)
@@ -54,14 +54,14 @@ export default class Qbittorrent {
     }
     // console.log(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } })
     try {
-      const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } });
+      const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { ...(body && { method: 'POST', body }), headers: { Cookie: await this.cookie } });
       if (response.status === 403) {
         if (typeof this.cookie === "string") {
-          logContext('qBittorrent', () => console.log('Creating new session'));
+          logContext('qBittorrent', () => { console.log('Creating new session'); });
           this.cookie = Qbittorrent.getCookie(true);
         }
         this.cookie = await this.cookie;
-        return this.request(path, body);
+        return await this.request(path, body);
       }
       if (!response.ok) {
         console.error(`[qBittorrent] Request failed - ${response.status} ${response.statusText} - ${await response.text()}`);
@@ -74,36 +74,36 @@ export default class Qbittorrent {
     }
   }
 
-  public getPreferences = async () => {
+  public getPreferences = async (): Promise<Preferences | false> => {
     const result = await this.request('/app/preferences');
-    if (!result) return false;
+    if (result === false) return false;
     return PreferencesSchema.parse(JSON.parse(result))
   }
 
-  public setPreferences = (preferences: Partial<Preferences>) => {
+  public setPreferences = (preferences: Partial<Preferences>): Promise<string | false> => {
     const fd = new URLSearchParams();
     fd.set('json', JSON.stringify(preferences))
     return this.request('/app/setPreferences', fd)
   }
 
   public async torrents(): Promise<Torrent[]> {
-    logContext('qBittorrent', () => console.log('Fetching torrents'));
+    logContext('qBittorrent', () => { console.log('Fetching torrents'); });
     const response = await this.request('/torrents/info')
-    logContext('qBittorrent', () => console.log('Fetched torrents'));
-    if (!response) return [];
+    logContext('qBittorrent', () => { console.log('Fetched torrents'); });
+    if (response === false) return [];
     let data: unknown;
     try {
       data = JSON.parse(response);
       // console.log(data[0])
       // process.exit()
       const torrents = z.array(TorrentSchema).parse(data);
-      logContext('qBittorrent', () => console.log(`Fetched ${torrents.length} torrents`));
+      logContext('qBittorrent', () => { console.log(`Fetched ${torrents.length} torrents`); });
       return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));
     } catch (e) {
         console.error(e);
         if (e instanceof ZodError) {
           let item = data;
-          const path = e.issues[0]!.path as (string | number)[];
+          const path = e.issues[0]?.path as (string | number)[];
           for (const part of path) {
             // @ts-expect-error: Types are inherently unknown
             item = item[part];
@@ -112,11 +112,10 @@ export default class Qbittorrent {
         }
         process.exit();
     }
-    return [];
   }
 
-  public topPriority = async (hashes: string[]) => {
-    logContext('qBittorrent', () => console.log(`${hashes[hashes.length-1]} Moving to position ${hashes.length}`));
-    return await this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
+  public topPriority = (hashes: string[]): Promise<string | false> => {
+    logContext('qBittorrent', () => { console.log(`${hashes[hashes.length-1]} Moving to position ${hashes.length}`); });
+    return this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
   }
 }

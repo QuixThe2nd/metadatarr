@@ -1,6 +1,6 @@
 import { CONFIG } from "../config";
-import Torrent from "../classes/Torrent";
-import { SelectorEngine } from "../classes/SelectorEngine";
+import type Torrent from "../classes/Torrent";
+import { selectorEngine } from "../classes/SelectorEngine";
 
 export default class Duplicates {
   private readonly config = CONFIG.DUPLICATES();
@@ -18,22 +18,22 @@ export default class Duplicates {
       if (!AUploading && BUploading) return 1;
       return 0;
     });
-    for (const sort of this.config.TIE_BREAKERS) torrents = SelectorEngine.execute(torrents, sort, 'SORT');
+    for (const sort of this.config.TIE_BREAKERS) torrents = selectorEngine.execute(torrents, sort, false);
 
     this.torrents = torrents;
   }
 
-  static async run(torrents: Torrent[]) {
+  static async run(torrents: Torrent[]): Promise<number> {
     const deduplicate = new Duplicates(torrents);
     const keptTorrents = new Map<string, Torrent>();
     let changes = 0;
-    for (const torrent of deduplicate.torrents) {
+    for (const torrent of deduplicate.torrents) 
       if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
       else {
         await torrent.delete();
         changes++;
       }
-    }
+    
     return changes;
   }
 }

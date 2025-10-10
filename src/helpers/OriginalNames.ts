@@ -13,12 +13,12 @@ export default class OriginalNames {
     if (!originalNames.dir.length) return { names: {} };
     await originalNames.scanDirectory();
     fs.watch(originalNames.dir, (_, filename) => {
-      if (filename) originalNames.saveName(originalNames.dir, filename).catch(console.error);
+      if (filename !== null) originalNames.saveName(originalNames.dir, filename).catch(console.error);
     });
     return originalNames;
   }
 
-  private async scanDirectory() {
+  private async scanDirectory(): Promise<void>{
     console.log('Scanning torrent name directory');
     const files = fs.readdirSync(this.dir)
     const totalFiles = files.length;
@@ -28,13 +28,14 @@ export default class OriginalNames {
 
     console.log(`Scan: 0% complete (0 of ${totalFiles})`);
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]!;
-      if (file in cache) {
-        this.names[cache[file]!.hash] = cache[file]!.name;
+      const file = files[i];
+      if (file === undefined) continue;
+      if (cache[file]) {
+        this.names[cache[file].hash] = cache[file].name;
         continue;
       }
       const res = await this.saveName(this.dir, file);
-      if (!res) continue;
+      if (res === false) continue;
       cache[file] = res;
       const currentPercent = Math.floor((i + 1) / totalFiles * 100);
       if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
@@ -54,8 +55,9 @@ export default class OriginalNames {
     try {
       // eslint-disable-next-line
       const metadata = await parseTorrent(torrent);
-      this.names[metadata.infoHash!] = metadata.name as string;
-      return { name: metadata.name as string, hash: metadata.infoHash! }
+      if (metadata.infoHash === undefined) return false;
+      this.names[metadata.infoHash] = metadata.name as string;
+      return { name: metadata.name as string, hash: metadata.infoHash }
     } catch (e) {
       console.error(e, torrent.toString().slice(0, 100))
       return false;

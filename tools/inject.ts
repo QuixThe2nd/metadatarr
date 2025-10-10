@@ -6,9 +6,9 @@ const hook = async () => {
   console.log(qB);
 
   return async (torrents: Torrent[]): Promise<void> => {
-    for (const torrent of torrents) {
+    for (const torrent of torrents) 
       console.log(torrent)
-    }
+    
 
     await new Promise(res => setTimeout(res, 10_000))
   }

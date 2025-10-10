@@ -28,7 +28,7 @@ await startServer(api);
 
 if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((metadata: Buffer, source: string) => saveMetadata.save(metadata, source));
 
-const runJobs = async (torrents: Torrent[]) => {
+const runJobs = async (torrents: Torrent[]): Promise<number> => {
   let changes = 0;
   const tasks = {
     Actions: () => actions(torrents),
@@ -50,7 +50,7 @@ const runJobs = async (torrents: Torrent[]) => {
   return changes;
 }
 
-while (true) {
+for (;;) {
   const torrents = await api.torrents();
 
   if (CONFIG.CORE().DEV_INJECT) {

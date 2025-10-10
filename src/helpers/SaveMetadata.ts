@@ -9,10 +9,10 @@ import Torrent from '../classes/Torrent';
 export default class SaveMetadata {
   constructor(private readonly qB: Qbittorrent, private readonly webtorrent: Instance, private readonly torrentPath = CONFIG.METADATA().TORRENT_PATH) {}
 
-  async save(metadata: Buffer, source: string) {
+  async save(metadata: Buffer, source: string): Promise<void> {
     // eslint-disable-next-line
     const hash = (await parseTorrent(metadata)).infoHash!;
-    if (!await Torrent.add(this.qB, metadata)) fs.writeFileSync(path.join(this.torrentPath, `/${hash}_${source}.torrent`), metadata);
+    if (await Torrent.add(this.qB, metadata) === false) fs.writeFileSync(path.join(this.torrentPath, `/${hash}_${source}.torrent`), metadata);
     if (await this.webtorrent.get(hash)) {
       await this.webtorrent.remove(hash);
       console.log(hash, '\x1b[34m[WebTorrent]\x1b[0m Killed');

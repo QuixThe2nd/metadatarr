@@ -1,5 +1,5 @@
 import { CONFIG } from "../config";
-import Torrent from "../classes/Torrent";
+import type Torrent from "../classes/Torrent";
 import ptt from "parse-torrent-title";
 
 function cleanString(str: string): string {
@@ -39,12 +39,9 @@ export default class Naming {
   private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
-  static async run(torrents: Torrent[], originalNames: Record<string, string>) {
-    const naming = new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
-    return await naming.renameAll();
-  }
+  static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<number> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
 
-  private async renameAll() {
+  private async renameAll(): Promise<number> {
     let changes = 0;
     for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
     return changes;
@@ -52,7 +49,7 @@ export default class Naming {
 
   private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
     let changes = 0;
-    if (!origName) {
+    if (origName === undefined) {
       if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.includes('!missingOriginalName')) await torrent.addTags('!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
         if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
@@ -70,7 +67,7 @@ export default class Naming {
         changes++;
         await torrent.removeTags('!renamed');
       }
-      if (this.config.RESET_ON_FAIL && origName && origName !== torrent.name) {
+      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.name) {
         changes++;
         await torrent.rename(origName);
       }
@@ -92,13 +89,13 @@ export default class Naming {
 
       if (this.config.RENAME_FILES) {
         const files = await torrent.files();
-        if (!files) return changes;
+        if (files === false) return changes;
         const parts = files[0]?.name.split('/');
 
         if (!parts || parts.length <= 1) return changes;
 
         const oldFolder = parts[0];
-        if (!oldFolder) return changes;
+        if (oldFolder === undefined) return changes;
         const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
 
         if (folderOther.length) {
@@ -130,7 +127,7 @@ export default class Naming {
 
     if (this.config.REMOVE_DOMAINS && this.config.REMOVE_TLDS.length) other = other.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
     const container = ptt.parse(other).container;
-    if (this.config.TRIM_CONTAINER && container) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
+    if (this.config.TRIM_CONTAINER && container !== undefined) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
     const info = ptt.parse(other);
 
     let name = this.config.SCHEME;
@@ -143,8 +140,8 @@ export default class Naming {
     if (info.resolutionlist && info.resolutionlist.length > 1) {
       const resolutions = ['480p', '720p', '1080p', '4k']
       for (let i = 0; i < resolutions.length-1; i++) {
-        const nextResolution = resolutions[i+1]!;
-        if (info.resolutionlist.includes(resolutions[i]!) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
+        const nextResolution = resolutions[i+1];
+        if (info.resolutionlist.includes(resolutions[i]) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
           info.resolution = resolutions[i];
           info.downscaled = nextResolution;
           delete info.resolutionlist;
@@ -156,7 +153,7 @@ export default class Naming {
     for (const key of this.stringKeys) {
       if (!(key in info)) continue;
 
-      let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`]! : [info[key]!];
+      let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`] : [info[key]];
       if (troubleshoot) console.log(key, matches);
 
       other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
@@ -296,11 +293,11 @@ export default class Naming {
 
   private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[]) => (string | number)[]>> = {
     codec: matches => {
-      if (matches.includes('h264') && matches.includes('x264')) {
+      if (matches.includes('h264') && matches.includes('x264')) 
         matches = matches.filter(match => match !== 'h264');
-      } else if (matches.includes('h265') && matches.includes('x265')) {
+       else if (matches.includes('h265') && matches.includes('x265')) 
         matches = matches.filter(match => match !== 'h265');
-      }
+      
       return matches
     },
     audio: matches => {
@@ -313,7 +310,7 @@ export default class Naming {
     }
   }
 
-  static test(name: string, verbose=true) {
+  static test(name: string, verbose=true): { name: string; other: string, info: ParseTorrentTitle.DefaultParserResult } {
     // @ts-expect-error: Just used for tests, no api needed
     const naming = new Naming();
     return { ...naming.cleanName(name, false, verbose), info: ptt.parse(name) };

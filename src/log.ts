@@ -8,10 +8,10 @@ const __dirname = path.dirname(__filename);
 const logPath = path.join(__dirname, '../store/logs/metadatarr.log');
 const maxSize = 10 * 1024 * 1024;
 
-function checkLogSize() {
+function checkLogSize(): void {
   if (fs.existsSync(logPath)) {
     const stats = fs.statSync(logPath);
-    if (stats.size > maxSize) fs.renameSync(logPath, logPath + '.bak');
+    if (stats.size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
   }
 }
 
@@ -22,27 +22,27 @@ const originalConsoleLog = console.log;
 const originalConsoleWarn = console.warn;
 const originalConsoleError = console.error;
 
-console.log = function(...args) {
-  logFile.write('[LOG] ' + args.join(' ') + '\n');
-  logContext('log', () => originalConsoleLog(...args));
+console.log = (...args): void => {
+  logFile.write(`[LOG] ${  args.join(' ')  }\n`);
+  logContext('log', () => { originalConsoleLog(...args); });
 };
 
-console.warn = function(...args) {
-  logFile.write('[WARN] ' + args.join(' ') + '\n');
-  logContext('warn', () => originalConsoleWarn(...args));
+console.warn = (...args): void => {
+  logFile.write(`[WARN] ${  args.join(' ')  }\n`);
+  logContext('warn', () => { originalConsoleWarn(...args); });
 };
 
-console.error = function(...args) {
-  logFile.write('[ERROR] ' + args.join(' ') + '\n');
-  logContext('error', () => originalConsoleError(...args));
+console.error = (...args): void => {
+  logFile.write(`[ERROR] ${  args.join(' ')  }\n`);
+  logContext('error', () => { originalConsoleError(...args); });
 };
 
-const blue = (text: string) => `\x1b[32m${text}\x1b[0m`;
+const blue = (text: string): string=> `\x1b[32m${text}\x1b[0m`;
 
 export const logContext = <T>(context: string, callback: () => T): T => {
-  console.log = (...args) => originalConsoleLog.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
-  console.warn = (...args) => originalConsoleWarn.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
-  console.error = (...args) => originalConsoleError.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
+  console.log = (...args): void => { originalConsoleLog.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]); };
+  console.warn = (...args): void => { originalConsoleWarn.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]); };
+  console.error = (...args): void => { originalConsoleError.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]); };
   const result = callback();
   console.log = originalConsoleLog;
   console.warn = originalConsoleWarn;

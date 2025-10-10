@@ -1,6 +1,6 @@
 import type { Instance } from 'webtorrent';
 import type { Source } from "../config";
-import Torrent from "../classes/Torrent";
+import type Torrent from "../classes/Torrent";
 import { CONFIG } from '../config';
 
 export default class FetchMetadata {
@@ -16,13 +16,13 @@ export default class FetchMetadata {
     this.state = this.fetchMetadata().catch(console.error);
   }
 
-  private async fetchMetadata() {
+  private async fetchMetadata(): Promise<void> {
     console.log(this.hash, "Fetching metadata");
     await this.fetchWebtorrent();
     await Promise.all(this.sources.sort(() => Math.random() - 0.5).map(source => this.fetchFromHTTP(source)));
   }
 
-  private async fetchWebtorrent() {
+  private async fetchWebtorrent(): Promise<void> {
     if (await this.webtorrent.get(this.hash)) return;
     console.log(this.hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
     this.webtorrent.add(this.magnet_uri, { destroyStoreOnDestroy: false }, torrent => this.saveMetadata(torrent.torrentFile, "WebTorrent"));
@@ -35,7 +35,7 @@ export default class FetchMetadata {
       const response = await fetch(url);
       if (response.status === 404) console.warn(this.hash, `[${url.hostname}] No metadata found`);
       else if (!response.ok) console.warn(this.hash, `[${url.hostname}] Failed to fetch metadata - ${response.status} ${response.statusText}`);
-      else if (response.headers.get("content-type")?.startsWith("text/html")) console.warn(this.hash, `[${url.hostname}] Invalid response type - ${response.headers.get("content-type")}`);
+      else if (response.headers.get("content-type")?.startsWith("text/html") ?? false) console.warn(this.hash, `[${url.hostname}] Invalid response type - ${response.headers.get("content-type")}`);
       else this.saveMetadata(Buffer.from(await response.arrayBuffer()), url.hostname).catch(console.error);
     } catch (e) {
       console.warn(this.hash, `[${url.hostname}] An error occurred`, (e as Error).cause);

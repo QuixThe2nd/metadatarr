@@ -2,7 +2,7 @@ import fs from 'fs';
 import JSONC from 'jsonc-parser';
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
-import Qbittorrent from './classes/qBittorrent';
+import type Qbittorrent from './classes/qBittorrent';
 import Torrent from './classes/Torrent';
 
 const CoreSchema = z.object({
@@ -43,7 +43,7 @@ const NamingConfigSchema = z.object({
 export type NamingConfig = z.infer<typeof NamingConfigSchema>;
 
 const SortConfigSchema = z.object({
-  SORT: z.literal(true),
+  SORT: z.boolean(),
   MOVE_DELAY: z.number().int().nonnegative(),
   RESORT_STEP: z.number().int().nonnegative(),
   RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
@@ -58,9 +58,9 @@ type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyo
 
 function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
   const methods = new Set<string>();
-  for (let proto = obj; proto; proto = Object.getPrototypeOf(proto)) {
+  for (let proto = obj; proto; proto = Object.getPrototypeOf(proto)) 
     Object.getOwnPropertyNames(proto).forEach(prop => typeof (obj as any)[prop] === 'function' && prop !== 'constructor' && methods.add(prop));
-  }
+  
   return [...methods] as MethodNames<T>[];
 }
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
@@ -93,7 +93,7 @@ const DuplicatesSchema = z.object({
 const MetadataSchema = z.object({
   TORRENT_PATH: z.string().min(1),
   sources: z.array(z.object({
-    url: z.tuple([z.string().url(), z.union([z.string(), z.void()])])
+    url: z.tuple([z.url(), z.union([z.string(), z.void()])])
   }))
 });
 
@@ -105,29 +105,29 @@ function parseConfigFile<T extends z.ZodObject<any> | z.ZodArray<any>>(filePath:
 
   const defaultConfig = strict.parse(JSONC.parse(fs.readFileSync(`./config_template/${filePath}`, 'utf8'))) as z.infer<T>;
   const config = (fs.existsSync(`./store/config/${filePath}`) ? partial.parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) : {}) as Partial<z.infer<T>>;
-  for (const key in config) {
+  for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
-  }
+  
   return defaultConfig;
 }
 
 export const CONFIG = {
-  CLIENT: () => parseConfigFile('.qbittorrent_client.jsonc', QbittorrentClientSchema),
-  METADATA: () => parseConfigFile('metadata.jsonc', MetadataSchema),
-  SORT: () => parseConfigFile('sort.jsonc', SortConfigSchema),
-  NAMING: () => parseConfigFile('naming.jsonc', NamingConfigSchema),
-  DUPLICATES: () => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
-  QUEUE: () => parseConfigFile('queue.jsonc', QueueSchema),
-  CORE: () => parseConfigFile('core.jsonc', CoreSchema),
-  ACTIONS: () => parseConfigFile('actions.jsonc', ActionsSchema),
+  CLIENT: (): z.infer<typeof QbittorrentClientSchema> => parseConfigFile('.qbittorrent_client.jsonc', QbittorrentClientSchema),
+  METADATA: (): z.infer<typeof MetadataSchema> => parseConfigFile('metadata.jsonc', MetadataSchema),
+  SORT: (): z.infer<typeof SortConfigSchema> => parseConfigFile('sort.jsonc', SortConfigSchema),
+  NAMING: (): z.infer<typeof NamingConfigSchema> => parseConfigFile('naming.jsonc', NamingConfigSchema),
+  DUPLICATES: (): z.infer<typeof DuplicatesSchema> => parseConfigFile('duplicates.jsonc', DuplicatesSchema),
+  QUEUE: (): z.infer<typeof QueueSchema> => parseConfigFile('queue.jsonc', QueueSchema),
+  CORE: (): z.infer<typeof CoreSchema> => parseConfigFile('core.jsonc', CoreSchema),
+  ACTIONS: (): z.infer<typeof ActionsSchema> => parseConfigFile('actions.jsonc', ActionsSchema),
 };
 
-const yellow = (text: string) => `\x1b[33m${text}\x1b[0m`;
-const green_highlight = (text: string) => `\x1b[42m\x1b[30m${text}\x1b[0m`;
-const red_highlight = (text: string) => `\x1b[41m\x1b[37m${text}\x1b[0m`;
-const bold = (text: string) => `\x1b[1m${text}\x1b[0m`;
+const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;
+const green_highlight = (text: string): string => `\x1b[42m\x1b[30m${text}\x1b[0m`;
+const red_highlight = (text: string): string => `\x1b[41m\x1b[37m${text}\x1b[0m`;
+const bold = (text: string): string => `\x1b[1m${text}\x1b[0m`;
 
-export const testConfig = async () => {
+export const testConfig = async (): Promise<void> => {
   for (const config of Object.values(CONFIG)) config();
 
   console.warn(yellow('|==================================|'));

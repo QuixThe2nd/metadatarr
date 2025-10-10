@@ -1,5 +1,5 @@
 import z from "zod";
-import Torrent from "./Torrent";
+import type Torrent from "./Torrent";
 import { TorrentSchema } from "./Torrent";
 import type { SomeType } from "zod/v4/core";
 
@@ -45,15 +45,14 @@ export type Selector = z.infer<typeof SelectorSchema>;
 // console.log(stringProperties, numberProperties, booleanProperties);
 // process.exit()
 
-export class SelectorEngine {
-  private static strategies = {
-    PRIORITY_TAG: (torrents: Torrent[], type: Type, prefix: string) => this.numericSort(torrents, type, t => {
-      const priority = Number(t.tags.find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
-      return Number.isNaN(priority) ? 50 : priority;
-    }),
-  }
-
-  static execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
+export const selectorEngine = {
+  // private static strategies = {
+  //   PRIORITY_TAG: (torrents: Torrent[], type: Type, prefix: string) => this.numericSort(torrents, type, t => {
+  //     const priority = Number(t.tags.find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
+  //     return Number.isNaN(priority) ? 50 : priority;
+  //   }),
+  // }
+  execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
     const { key } = query;
     if (isBooleanProperty(key)) return this.booleanQuery(torrents, query.type, t => t[key], filter);
     else if (isStringProperty(query.key) && key === query.key) return this.booleanQuery(torrents, query.type, t => query.includes.some(q => t[key]?.toLowerCase().includes(q.toLowerCase())), filter);
@@ -61,25 +60,21 @@ export class SelectorEngine {
     else if (isNumberProperty(query.key) && key === query.key) {
       const threshold = query.threshold;
       return threshold === undefined
-        ? this.numericSort(torrents, query.type, t => (t[key] ?? 0))
-        : this.booleanQuery(torrents, query.type, t => (t[key] ?? 0) >= threshold, filter);
-    } else throw new Error('Unexpected key???');
-  }
-
-  private static numericSort(torrents: Torrent[], type: Type, getValue: (t: Torrent) => number) {
+        ? this.numericSort(torrents, query.type, t => t[key])
+        : this.booleanQuery(torrents, query.type, t => t[key] >= threshold, filter);
+    } throw new Error('Unexpected key???');
+  },
+  numericSort(torrents: Torrent[], type: Type, getValue: (t: Torrent) => number): Torrent[] {
     const multiplier = type === "ASC" || type === "IS NOT" ? 1 : -1;
     return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
-  }
-
-  private static booleanQuery(torrents: Torrent[], type: Type, getValue: (t: Torrent) => boolean | null, filter: boolean) {
+  },
+  booleanQuery(torrents: Torrent[], type: Type, getValue: (t: Torrent) => boolean | null, filter: boolean): Torrent[] {
     if (filter) {
       const targetValue = type === 'DESC' || type === "IS";
       return torrents.filter(t => getValue(t) === targetValue);
-    } else {
-      const multiplier = type === "ASC" || type === "IS NOT" ? 1 : -1;
-      return [...torrents].sort((a, b) =>  (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier);
     }
-  }
-
-  private static getNumericValue = (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2;
+    const multiplier = type === "ASC" || type === "IS NOT" ? 1 : -1;
+    return [...torrents].sort((a, b) =>  (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier);
+  },
+  getNumericValue: (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2
 }

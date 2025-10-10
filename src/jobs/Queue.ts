@@ -1,16 +1,13 @@
 import { CONFIG } from "../config";
-import Torrent from "../classes/Torrent";
-import Qbittorrent from '../classes/qBittorrent';
+import type Torrent from "../classes/Torrent";
+import type Qbittorrent from '../classes/qBittorrent';
 
 export default class Queue {
   private constructor(private readonly api: Qbittorrent, private readonly torrents: Torrent[], private readonly config = CONFIG.QUEUE()) {}
 
-  static async run(api: Qbittorrent, torrents: Torrent[]) {
-    const queue = new Queue(api, torrents);
-    return await queue.update();
-  }
+  static run = (api: Qbittorrent, torrents: Torrent[]): Promise<number> => new Queue(api, torrents).update();
 
-  async update() {
+  async update(): Promise<number> {
     if (this.config.QUEUE_SIZE_LIMIT) {
       const queuedTorrents = this.torrents.filter(torrent => torrent.state === 'queuedDL');
       const downloadingTorrents = this.torrents.filter(torrent => (torrent.state === 'downloading' || torrent.state === 'forcedDL') && !this.config.EXCLUDE_CATEGORIES.includes(torrent.category ?? ''));
@@ -19,7 +16,7 @@ export default class Queue {
       if (this.config.INCLUDE_MOVING_TORRENTS) downloadingSize += this.torrents.filter(torrent => torrent.state === 'moving').map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);
 
       const preferences = await this.api.getPreferences()
-      if (!preferences) console.error('Failed to fetch preferences');
+      if (preferences === false) console.error('Failed to fetch preferences');
       else {
         let maxActiveDownloads = preferences.max_active_downloads;
 

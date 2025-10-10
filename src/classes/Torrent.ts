@@ -1,5 +1,5 @@
 import z from "zod";
-import Qbittorrent from './qBittorrent';
+import type Qbittorrent from './qBittorrent';
 import { CONFIG } from "../config";
 import { logContext } from "../log";
 
@@ -50,46 +50,46 @@ export class PartialTorrent implements PartialTorrentType {
     Object.assign(this, data);
   }
 
-  static add = (qB: Qbittorrent, data: Buffer) => {
-    logContext('qBittorrent', () => console.log(`Adding Torrent`));
+  static add = (qB: Qbittorrent, data: Buffer): Promise<string | false> => {
+    logContext('qBittorrent', () => { console.log(`Adding Torrent`); });
     const body = new FormData();
     body.append('torrents', new Blob([Uint8Array.from(data)]), 'torrent.torrent');
     return qB.request('/torrents/add', body);
   }
 
-  private request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}) => {
+  private request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
     const { enable, deleteFiles, ...restWithoutProps } = rest;
     const payload = {
       ...restWithoutProps,
-      ...(new URLSearchParams(method.split('?')[1]).get('hash') === null && { ['hash' + (SINGULAR_HASH_ENDPOINTS.includes(method) ? '' : 'es')]: this.hash }),
+      ...(new URLSearchParams(method.split('?')[1]).get('hash') === null && { [`hash${  SINGULAR_HASH_ENDPOINTS.includes(method) ? '' : 'es'}`]: this.hash }),
       ...(typeof enable !== "undefined" && { enable: enable ? 'true' : 'false' }),
       ...(typeof deleteFiles !== "undefined" && { deleteFiles: deleteFiles ? 'true' : 'false' })
     };
 
-    if (Object.keys(payload).length) logContext('qBittorrent', () => console.log(`${this.hash} Calling ${method}`, rest ?? ''));
+    if (Object.keys(payload).length) logContext('qBittorrent', () => { console.log(`${this.hash} Calling ${method}`, Object.keys(rest).length === 0 ? '' : rest); });
     return this.qB.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
 
   public files = async (): Promise<{ name: string }[] | false> => {
     const data = await this.request(`files?hash=${this.hash}`);
-    if (!data) return false;
+    if (data === false) return false;
     return z.array(z.object({ name: z.string() })).parse(JSON.parse(data));
   }
 
-  public start = () => this.request('start');
-  public recheck = () => this.request('recheck');
-  public delete = () => this.request('delete', { deleteFiles: false });
-  public setCategory = (category: string) => this.request('setCategory', { category });
-  public rename = (name: string) => this.request('rename', { name });
-  public renameFile = async (oldPath: string, newPath: string) => {
+  public start = (): Promise<string | false> => this.request('start');
+  public recheck = (): Promise<string | false> => this.request('recheck');
+  public delete = (): Promise<string | false> => this.request('delete', { deleteFiles: false });
+  public setCategory = (category: string): Promise<string | false> => this.request('setCategory', { category });
+  public rename = (name: string): Promise<string | false> => this.request('rename', { name });
+  public renameFile = async (oldPath: string, newPath: string): Promise<string | false> => {
     const result = await this.request('renameFile', { oldPath, newPath });
     if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck();
     return result;
   }
-  public toggleSequentialDownload = () => this.request('toggleSequentialDownload');
-  public setAutoManagement = (enable: boolean) => this.request('setAutoManagement', { enable });
-  public removeTags = (tags: string) => this.request('removeTags', { tags });
-  public addTags = (tags: string) => this.request('addTags', { tags });
+  public toggleSequentialDownload = (): Promise<string | false> => this.request('toggleSequentialDownload');
+  public setAutoManagement = (enable: boolean): Promise<string | false> => this.request('setAutoManagement', { enable });
+  public removeTags = (tags: string): Promise<string | false> => this.request('removeTags', { tags });
+  public addTags = (tags: string): Promise<string | false> => this.request('addTags', { tags });
 }
 
 export default class Torrent extends PartialTorrent implements TorrentType {
