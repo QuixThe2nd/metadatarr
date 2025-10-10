@@ -65,6 +65,11 @@ export class SelectorEngine {
     else if (sortMethod.key === 'PRIORITY_TAG') return this.strategies.PRIORITY_TAG(torrents, sortMethod.direction, sortMethod.prefix);
     else if (sortMethod.key === 'CATEGORIES') return this.strategies.CATEGORIES(torrents, sortMethod.direction, mode, sortMethod.categories);
     else if (sortMethod.key === 'STATES') return this.strategies.STATES(torrents, sortMethod.direction, mode, sortMethod.states);
+    else if (sortMethod.key === 'PROGRESS') return this.strategies.PROGRESS(torrents, sortMethod.direction, mode, sortMethod.threshold);
+    else if (sortMethod.key === 'SIZE') return this.strategies.SIZE(torrents, sortMethod.direction, mode, sortMethod.threshold);
+    else if (sortMethod.key === 'COMPLETED') return this.strategies.COMPLETED(torrents, sortMethod.direction, mode, sortMethod.threshold);
+    else if (sortMethod.key === 'REMAINING') return this.strategies.COMPLETED(torrents, sortMethod.direction, mode, sortMethod.threshold);
+    else if (sortMethod.key === 'SEEDERS') return this.strategies.COMPLETED(torrents, sortMethod.direction, mode, sortMethod.threshold);
     else return this.strategies[sortMethod.key](torrents, sortMethod.direction, mode);
   }
 
