@@ -3,8 +3,6 @@ Like Sonarr for your torrent queue: Intelligent automation for power users manag
 
 Metadatarr is a highly modular Torrent automation tool giving you surgical control over your torrents. It continuously monitors your torrent client and applies rules you define to manage everything automatically.
 
-Automatically & efficiently manages your queue, standardizes torrent names, and recovers metadata. Metadatarr is made for power users with large torrent collections that want fine-grained control over their system.
-
 ## Core Features
 - **Actions**: Automatically performs actions on your torrents based on custom rules IF/THEN rules (e.g. resume stopped torrents if above 95% complete, delete errored ones in the Radarr category, recheck missing files, etc.)
 - **Duplicates**: Find torrents with identical names and only keeps one with off custom rules (e.g. don't delete cross-seeds, prefer deleting private torrents, only delete incomplete torrents, etc.)
@@ -17,6 +15,7 @@ Automatically & efficiently manages your queue, standardizes torrent names, and 
 If you're running Sonarr/Radarr with hundreds of torrents queued, you need Metadatarr to intelligently manage that queue.
 
 It's the automation layer that decides:
+- Runs custom automations/actions defined by you with customizable triggers
 - Which torrents download first (smart prioritization)
 - How many torrents to download at once
 - Standardizes naming across your entire collection
