@@ -87,7 +87,9 @@ export default class Qbittorrent {
   }
 
   public async torrents(): Promise<Torrent[]> {
+    logContext('qBittorrent', () => console.log('Fetching torrents'));
     const response = await this.request('/torrents/info')
+    logContext('qBittorrent', () => console.log('Fetched torrents'));
     if (!response) return [];
     let data: unknown;
     try {
@@ -114,7 +116,7 @@ export default class Qbittorrent {
   }
 
   public topPriority = async (hashes: string[]) => {
-    logContext('qBittorrent', () => console.log(`${hashes[hashes.length-1]} Calling topPrio`));
+    logContext('qBittorrent', () => console.log(`${hashes[hashes.length-1]} Moving to position ${hashes.length}`));
     return await this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
   }
 }
