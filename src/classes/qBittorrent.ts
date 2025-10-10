@@ -112,4 +112,6 @@ export default class Qbittorrent {
     }
     return [];
   }
+
+  public topPriority = (hashes: string[]) => this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
 }

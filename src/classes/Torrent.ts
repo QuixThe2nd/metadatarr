@@ -81,7 +81,6 @@ export class PartialTorrent implements PartialTorrentType {
   public start = () => this.request('start');
   public recheck = () => this.request('recheck');
   public delete = () => this.request('delete', { deleteFiles: false });
-  public topPriority = () => this.request('topPrio');
   public setCategory = (category: string) => this.request('setCategory', { category });
   public rename = (name: string) => this.request('rename', { name });
   public renameFile = async (oldPath: string, newPath: string) => {
