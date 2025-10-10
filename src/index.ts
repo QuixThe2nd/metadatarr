@@ -39,10 +39,13 @@ const runJobs = async (torrents: Torrent[]) => {
     Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
-    console.log('Job Started');
-    const taskChanges = await logContext(name, task);
+    const taskChanges = await logContext(name, async () => {
+      console.log('Job Started');
+      const taskChanges = await task()
+      console.log('Job Finished - Changes:', taskChanges);
+      return taskChanges;
+    });
     changes += taskChanges;
-    console.log('Job Finished - Changes:', taskChanges);
   }
   return changes;
 }
