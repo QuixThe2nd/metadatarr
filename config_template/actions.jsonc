@@ -92,7 +92,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			},
 			{
 				"key": "STATES",
-				"states": ["checkingDL", "checkingUL"],
+				"states": ["checkingDL", "checkingUP"],
 				"direction": "ASC"
 			}
 		],
@@ -127,9 +127,21 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	// Remove Public Torrents
 	{
 		"if": [
+			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
+			{
+				"key": "TAGS",
+				"tags": ["Public Tracker"],
+				"direction": "DESC"
+			},
 			{
 				"key": "PRIVATE",
 				"direction": "ASC"
+			},
+
+			{
+				"key": "STATES",
+				"states": ["stalledUP", "stoppedUP", "uploading"],
+				"direction": "DESC"
 			},
 			{
 				"key": "SEEDERS",
