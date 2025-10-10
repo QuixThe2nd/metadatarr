@@ -31,12 +31,12 @@ if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((hash: string, me
 const runJobs = async (torrents: Torrent[]) => {
   let changes = 0;
   const tasks = {
-    Actions: () => actions(torrents),
+    // Actions: () => actions(torrents),
     Duplicates: () => Duplicates.run(torrents),
-    Sort: () => Sort.run(api, torrents),
+    // Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),
     Naming: () => Naming.run(torrents, originalNames.names),
-    // Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
+    Metadata: () => Metadata.run(torrents, webtorrent, (hash: string, metadata: Buffer, source: string) => saveMetadata.save(hash, metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
     console.log('Job Started');
