@@ -8,7 +8,7 @@ export default class Duplicates {
 
   private constructor(torrents: Torrent[]) {
     if (this.config.DOWNLOADS_ONLY) torrents = torrents.filter(torrent => ["stoppedDL", "stalledDL", "queuedDL", "checkingDL", "downloading", "metaDL", "forcedDL"].includes(torrent.state))
-    if (this.config.IGNORE_TAG) torrents = torrents.filter(torrent => !torrent.tags.split(', ').includes(this.config.IGNORE_TAG))
+    if (this.config.IGNORE_TAG) torrents = torrents.filter(torrent => !torrent.tags.includes(this.config.IGNORE_TAG))
 
     if (this.config.PREFER_UPLOADING) torrents = torrents.sort((a, b) => {
       const AUploading = ["stalledUP", "checkingUP", "queuedUP", "stoppedUP", "uploading", "forcedUP"].includes(a.state);

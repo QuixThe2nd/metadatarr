@@ -1,12 +1,21 @@
 # Metadatarr: The missing arr for torrent management
 Like Sonarr for your torrent queue: Intelligent automation for power users managing large collections.
 
-Intelligent torrent management and automation for qBittorrent. Automatically & efficiently manages your queue, standardizes torrent names, and recovers metadata. Metadatarr is made for power users with large torrent collections that want fine-grained control over their system.
+Metadatarr is a highly modular Torrent automation tool giving you surgical control over your torrents. It continuously monitors your torrent client and applies rules you define to manage everything automatically.
+
+## Core Features
+- **Actions**: Automatically performs actions on your torrents based on custom rules IF/THEN rules (e.g. resume stopped torrents if above 95% complete, delete errored ones in the Radarr category, recheck missing files, etc.)
+- **Duplicates**: Find torrents with identical names and only keeps one with off custom rules (e.g. don't delete cross-seeds, prefer deleting private torrents, only delete incomplete torrents, etc.)
+- **Sort**: Automatically re-orders your torrent queue based off sophisticated custom chained rules (e.g. prefer small torrents BUT de-prioritise public torrents BUT prefer Sonarr torrents BUT prefer torrent names with "S01")
+- **Queue**: Automatically changes download queue size based off a configurable total size limit
+- **Naming**: Parses torrent titles and automatically renames them based off custom naming schemes
+- **Metadata**: Automatically fetches .torrent files for magnet links using external HTTP sources and DHT
 
 ## Overview
 If you're running Sonarr/Radarr with hundreds of torrents queued, you need Metadatarr to intelligently manage that queue.
 
 It's the automation layer that decides:
+- Runs custom automations/actions defined by you with customizable triggers
 - Which torrents download first (smart prioritization)
 - How many torrents to download at once
 - Standardizes naming across your entire collection
@@ -91,58 +100,34 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
-## DOCS TODO:
+## TODO:
+### Docs:
 - demo video showcasing features like sorting
 - before/after photos of torrent names
 
-## TODO:
+### Queries:
 - Tracker selector
+- Abstract ASC/DESC to IS/IS-NOT for match based queries
+- MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
+- Nested sort - Apply sort queries only if matched another query - so we can merge moving, checking, and sort methods
+
+### Actions
 - Add/Remove tags action
-- Rewrite this so it uses the SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
-- Merge moving, checking, and normal sort methods
-- Proper IF object in config. so tag/category based features can instead be generic actions that can be done if a value is true (similar to sort config objects)
-- recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
-- Download shows in order (s01e01 before s01e02 before s02)
-- Delete torrents with completed=0 matching certain strings (so i can delete individual episodes before they download so no HnR and keep only season pack)
+
+### Move from code to config
+- User configurable cleanup rules in Naming.ts
+- Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
+- From Claude:
+```
+The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_MINIMUM_CALLS, PERSISTENT_MOVES - these interact in non-obvious ways. The current implementation works, but explaining when to use each setting is hard. Could this be simplified to "max moves per cycle" and "keep moving until correct position"?
+```
+
+### Metadata
+- Use TVDB to parse episode names
 - Incremental backoff on metadata fetches
+
+### Other:
+- Cleanup Naming.cleanName
+- recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name
-- Sort torrents by seeds/peers - If you're reading this and have an idea, please submit an issue and tell me. Currently stuck here: qBittorrent only polls trackers for active torrents, so we're unable to pull swarm data from queued torrents.
-- Conditional actions: Auto run actions based on custom conditions. Examples:
-```json
-{
-  "condition": "stalled > 7d AND seeds < 2",
-  "action": "move_category",
-  "value": "dead"
-}
-{
-  "condition": "progress = 0% AND added > 24h",
-  "action": "set_priority", 
-  "value": "lowest"
-}
-{
-  "condition": "eta > 30d AND private = false",
-  "action": "pause_until_space"
-}
-{
-  "condition": "ratio > 3.0 AND seeding_time > 168h AND private = false",
-  "action": "remove_torrent"
-}
-{
-  "condition": "progress > 95% AND speed < 100KB/s FOR 2h",
-  "action": "force_reannounce"
-}
-{
-  "condition": "completed AND category = 'tv' AND name_contains 'S01E01'",
-  "action": "set_tag",
-  "value": "priority-high"
-}
-{
-  "condition": "free_space < 500GB",
-  "sort_config": "prefer_smaller_torrents.json"
-}
-{
-  "condition": "download_speed < 50MB/s AND time_of_day = night", 
-  "sort_config": "prefer_large_files.json"
-}
-```

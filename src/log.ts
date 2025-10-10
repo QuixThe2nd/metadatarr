@@ -39,11 +39,11 @@ console.error = function(...args) {
 
 const blue = (text: string) => `\x1b[32m${text}\x1b[0m`;
 
-export const logContext = async <T>(context: string, callback: () => T): Promise<T> => {
+export const logContext = <T>(context: string, callback: () => T): T => {
   console.log = (...args) => originalConsoleLog.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
   console.warn = (...args) => originalConsoleWarn.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
   console.error = (...args) => originalConsoleError.apply(console, [blue(`[${context.toUpperCase()}]`), ...args]);
-  const result = await callback();
+  const result = callback();
   console.log = originalConsoleLog;
   console.warn = originalConsoleWarn;
   console.error = originalConsoleError;

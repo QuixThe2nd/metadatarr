@@ -13,7 +13,7 @@ export default class OriginalNames {
     if (!originalNames.dir.length) return { names: {} };
     await originalNames.scanDirectory();
     fs.watch(originalNames.dir, (_, filename) => {
-      if (filename) originalNames.saveName(originalNames.dir, filename);
+      if (filename) originalNames.saveName(originalNames.dir, filename).catch(console.error);
     });
     return originalNames;
   }
@@ -30,7 +30,7 @@ export default class OriginalNames {
     for (let i = 0; i < files.length; i++) {
       const file = files[i]!;
       if (file in cache) {
-        this.names[cache[file]!.hash!] = cache[file]!.name;
+        this.names[cache[file]!.hash] = cache[file]!.name;
         continue;
       }
       const res = await this.saveName(this.dir, file);
@@ -52,6 +52,7 @@ export default class OriginalNames {
     const filePath = path.join(dir, file);
     const torrent = fs.readFileSync(filePath);
     try {
+      // eslint-disable-next-line
       const metadata = await parseTorrent(torrent);
       this.names[metadata.infoHash!] = metadata.name as string;
       return { name: metadata.name as string, hash: metadata.infoHash! }

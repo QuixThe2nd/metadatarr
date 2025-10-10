@@ -2,9 +2,12 @@ import fs from 'fs';
 import JSONC from 'jsonc-parser';
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
+import Qbittorrent from './classes/qBittorrent';
+import Torrent from './classes/Torrent';
 
 const CoreSchema = z.object({
   JOB_WAIT: z.number(),
+  NO_JOB_WAIT: z.number(),
   DEV_INJECT: z.boolean(),
   DRY_RUN: z.boolean()
 });
@@ -51,12 +54,25 @@ const SortConfigSchema = z.object({
   MOVING_METHODS: z.array(SelectorSchema)
 });
 
-const ActionsSchema = z.array(
-  z.object({ if: z.array(SelectorSchema) }).and(z.union([
-    z.object({ then: z.literal('setAutoManagement'), arg: z.boolean() }),
-    z.object({ then: z.enum(['delete', 'start', 'recheck', 'toggleSequentialDownload']) })
-  ]))
-);
+type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
+
+function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
+  const methods = new Set<string>();
+  for (let proto = obj; proto; proto = Object.getPrototypeOf(proto)) {
+    Object.getOwnPropertyNames(proto).forEach(prop => typeof (obj as any)[prop] === 'function' && prop !== 'constructor' && methods.add(prop));
+  }
+  return [...methods] as MethodNames<T>[];
+}
+const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
+
+const actions = getMethodNames(new Torrent({} as Qbittorrent, {} as Torrent));
+const excludedActions = ['rename', 'renameFile', 'setCategory', 'removeTags', 'addTags', 'setAutoManagement', 'files'] as const;
+const filteredActions = exclude(actions, excludedActions);
+
+const ActionsSchema = z.array(z.object({ if: z.array(SelectorSchema) }).and(z.union([
+  z.object({ then: z.literal('setAutoManagement'), arg: z.boolean() }),
+  z.object({ then: z.enum(filteredActions) })
+])));
 
 const QueueSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number(),

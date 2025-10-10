@@ -1,5 +1,4 @@
 import { CONFIG } from "../config";
-import type Qbittorrent from "../classes/qBittorrent";
 import Torrent from "../classes/Torrent";
 import ptt from "parse-torrent-title";
 
@@ -11,7 +10,7 @@ function cleanString(str: string): string {
   while (start <= end && charSet.has(str.charAt(start))) start++;
   while (end >= start && charSet.has(str.charAt(end))) end--;
   
-  let newString = str.slice(start, end + 1)
+  const newString = str.slice(start, end + 1)
     // Double Spaces
     .replaceAll(/\s{2,}/g, ' ')
     // Spaces inside brackets
@@ -42,8 +41,7 @@ export default class Naming {
 
   static async run(torrents: Torrent[], originalNames: Record<string, string>) {
     const naming = new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames);
-    let changes = await naming.renameAll();
-    return changes;
+    return await naming.renameAll();
   }
 
   private async renameAll() {
@@ -55,12 +53,12 @@ export default class Naming {
   private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
     let changes = 0;
     if (!origName) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.split(', ').includes('!missingOriginalName')) torrent.addTags('!missingOriginalName');
+      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.includes('!missingOriginalName')) await torrent.addTags('!missingOriginalName');
       if (this.config.FORCE_ORIGINAL_NAME) {
         if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
         return 0;
       }
-    } else if (torrent.tags.split(', ').includes('!missingOriginalName')) torrent.removeTags('!missingOriginalName');
+    } else if (torrent.tags.includes('!missingOriginalName')) await torrent.removeTags('!missingOriginalName');
     const { name, other } = this.cleanName(origName ?? torrent.name);
 
     if (other.length) {
@@ -164,7 +162,7 @@ export default class Naming {
       other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
       other = this.removeAlphanumericMatches(key, matches, other)
 
-      matches = this.redundantFlags[key]?.(matches, other) ?? matches;
+      matches = this.redundantFlags[key]?.(matches) ?? matches;
 
       name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
 
@@ -296,29 +294,27 @@ export default class Naming {
     return other.replace(new RegExp(key, 'gi'), '');
   }
 
-  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => (string | number)[]>> = {
-    codec: (matches, other) => {
+  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[]) => (string | number)[]>> = {
+    codec: matches => {
       if (matches.includes('h264') && matches.includes('x264')) {
         matches = matches.filter(match => match !== 'h264');
-        other = other.replace(/h264/i, '');
       } else if (matches.includes('h265') && matches.includes('x265')) {
         matches = matches.filter(match => match !== 'h265');
-        other = other.replace(/h265/i, '');
       }
       return matches
     },
-    audio: (matches, other) => {
+    audio: matches => {
       if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
       return matches
     },
-    color: (matches, other) => {
+    color: matches => {
       if (matches.includes('DV') && matches.includes('HDR')) matches = matches.filter(match => match !== 'HDR');
       return matches
     }
   }
 
   static test(name: string, verbose=true) {
-    // @ts-expect-error:
+    // @ts-expect-error: Just used for tests, no api needed
     const naming = new Naming();
     return { ...naming.cleanName(name, false, verbose), info: ptt.parse(name) };
   }
