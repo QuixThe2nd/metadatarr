@@ -8,12 +8,9 @@ const actions = async (torrents: Torrent[]) => {
   let changes = 0;
 
   for (const action of actions) {
-    const results: Torrent[][] = []
-    for (const selector of action.if) {
-      results.push(SelectorEngine.execute(torrents, selector, 'MATCH'))
-    }
-    const intersection = results.reduce((acc, curr) => acc.filter(item => curr.includes(item)))
-    for (const torrent of intersection) {
+    let selectedTorrents = torrents;
+    for (const selector of action.if) selectedTorrents = SelectorEngine.execute(selectedTorrents, selector, 'MATCH');
+    for (const torrent of selectedTorrents) {
       if (action.then === 'delete') await torrent.delete();
       else if (action.then === 'start') await torrent.start();
       else if (action.then === 'recheck') await torrent.recheck();
