@@ -4,9 +4,9 @@ Automatically execute actions on torrents based off custom rules
 Each array of objects is a set of rules that must all match for an action to be executed.
 Treat the parent array (array of arrays) as an OR condition, and each object under IF as an AND condition.
 
-To specify IS/IS NOT and greater/lesser than conditions, use the "direction" field.
-For example to match a boolean (true/false) field, use "ASC" to delete if false, and "DESC" to delete if true.
-To match a threshold (number) field, use "ASC" to delete if less than the threshold, and "DESC" to delete if greater than the threshold.
+To specify IS/IS NOT and greater/lesser than conditions, use the "type" field.
+For example to match a boolean (true/false) field, use "IS NOT" to delete if false, and "IS" to delete if true.
+To match a threshold (number) field, use "ASC" to delete if greater than the threshold, and "DESC" to delete if lesser than the threshold.
 
 Rules will be executed in order. When chaining many rules together, place the most specific rules first. E.g. if you auto resume torrents then later later delete stopped torrents, place the resume rule first.
 */
@@ -15,61 +15,54 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	// Resume completed torrents that are stopped
 	{
 		"if": [
-			{ "key": "state", "includes": ["stoppedUP"], "direction": "DESC" }
+			{"key": "state", "type": "IS", "includes": ["stoppedUP"]}
 		],
 		"then": "start"
 	},
 	// Resume almost finished torrents that are stopped
 	{
 		"if": [
-			{ "key": "state", "includes": ["stoppedDL"], "direction": "DESC" },
-			{ "key": "progress", "direction": "DESC", "threshold": 0.95 }
+			{"key": "state", "type": "IS", "includes": ["stoppedDL"]},
+			{"key": "progress", "type": "IS NOT", "threshold": 0.95}
 		],
 		"then": "start"
 	},
 	// Recheck missing files
 	{
 		"if": [
-			{ "key": "state", "includes": ["missingFiles"], "direction": "DESC" }
+			{"key": "state", "type": "IS", "includes": ["missingFiles"]}
 		],
 		"then": "recheck"
 	},
 	// Remove errored cross-seed-links
 	{
 		"if": [
-			{ "key": "category", "includes": ["cross-seed-links"], "direction": "DESC" },
-			{ "key": "state", "includes": ["error"], "direction": "DESC" }
+			{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
+			{"key": "state", "type": "IS", "includes": ["error"]}
 		],
 		"then": "delete"
 	},
-	// Recheck errored torrents
-	// {
-	// 	"if": [
-	// 		{ "key": "state", "includes": ["error"], "direction": "DESC" }
-	// 	],
-	// 	"then": "recheck"
-	// },
 	// Remove cross-seed-links that have less than 95% progress
 	{
 		"if": [
-			{ "key": "category", "includes": ["cross-seed-links"], "direction": "DESC" },
-			{ "key": "progress", "direction": "ASC", "threshold": 0.95 },
-			{ "key": "state", "includes": ["checkingDL", "checkingUP"], "direction": "ASC" }
+			{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
+			{"key": "progress", "type": "IS NOT", "threshold": 0.95},
+			{"key": "state", "type": "IS NOT", "includes": ["checkingDL", "checkingUP"]}
 		],
 		"then": "delete"
 	},
 	// Force disable sequential downloads on all torrents
 	{
 		"if": [
-			{ "key": "seq_dl", "direction": "DESC" }
+			{"key": "seq_dl", "type": "IS"}
 		],
 		"then": "toggleSequentialDownload"
 	},
 	// Force enable auto torrent management mode for non cross-seed torrents
 	{
 		"if": [
-			{ "key": "auto_tmm", "direction": "ASC" },
-			{ "key": "tags", "includes": ["cross-seed"], "direction": "ASC" }
+			{"key": "auto_tmm", "type": "IS NOT"},
+			{"key": "tags", "type": "IS NOT", "includes": ["cross-seed"]}
 		],
 		"then": "setAutoManagement",
 		"arg": true
@@ -78,10 +71,10 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	{
 		"if": [
 			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
-			{ "key": "tags", "includes": ["Public Tracker"], "direction": "DESC" },
-			{ "key": "private", "direction": "ASC" },
-			{ "key": "state", "includes": ["stalledUP", "stoppedUP", "uploading"], "direction": "DESC" },
-			{ "key": "num_complete", "direction": "ASC", "threshold": 5 }
+			{"key": "tags", "type": "IS", "includes": ["Public Tracker"]},
+			{"key": "private", "type": "IS NOT"},
+			{"key": "state", "type": "IS", "includes": ["stalledUP", "stoppedUP", "uploading"]},
+			{"key": "num_complete", "type": "IS", "threshold": 5}
 		],
 		"then": "delete"
 	}

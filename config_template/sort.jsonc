@@ -54,20 +54,20 @@
 	Examples:
 	Prioritize season premieres and private trackers:
 	[
-		{"key": "SIZE", "direction": "ASC"},
-		{"key": "NAME_CONTAINS", "direction": "DESC", "searchString": "S01"},
-		{"key": "PRIVATE", "direction": "DESC"}
+		{"key": "SIZE", "type": "ASC"},
+		{"key": "NAME_CONTAINS", "type": "DESC", "searchString": "S01"},
+		{"key": "PRIVATE", "type": "DESC"}
 	]
 	Finish downloads that are closest to completion:
 	[
-		{"key": "amount_left", "direction": "ASC"},
-		{"key": "PROGRESS", "direction": "DESC"}
+		{"key": "amount_left", "type": "ASC"},
+		{"key": "PROGRESS", "type": "DESC"}
 	]
 	Prioritize specific private trackers (Use [qBit Manage](https://github.com/StuffAnThings/qbit_manage) to tag trackers):
 	[
-		{"key": "PRIVATE", "direction": "DESC"},
-		{"key": "TAGS", "direction": "ASC", "tags": ["@MaM", "@TL"]},
-		{"key": "TAGS", "direction": "ASC", "tags": ["@PTP", "@BTN"]}
+		{"key": "PRIVATE", "type": "DESC"},
+		{"key": "TAGS", "type": "ASC", "tags": ["@MaM", "@TL"]},
+		{"key": "TAGS", "type": "ASC", "tags": ["@PTP", "@BTN"]}
 	]
 	*/
 	"METHODS": [
@@ -75,66 +75,66 @@
 		ASC: Smallest first
 		DESC: Largest first
 		*/
-		{"key": "size", "direction": "ASC"},
+		{"key": "size", "type": "ASC"},
 		/* Prefer torrents with the most progress
 		ASC: Least progress first
 		DESC: Most progress first
 		*/
-		{"key": "progress", "direction": "DESC"},
+		{"key": "progress", "type": "DESC"},
 		/* Prefer torrents with the most completed data
 		ASC: Least completed first
 		DESC: Most completed first
 		*/
-		{"key": "completed", "direction": "DESC"},
+		{"key": "completed", "type": "DESC"},
 		/* Prefer torrents closest to completion
 		ASC: Closest to finishing first
 		DESC: Furthest from finishing first - This is useful if you want to prioritise starting new torrents over finishing existing ones
 		*/
-		{"key": "amount_left", "direction": "ASC"},
+		{"key": "amount_left", "type": "ASC"},
 		/* Prefer finishing private torrents
 		ASC: Non-private first
 		DESC: Private first
 		*/
-		{"key": "private", "direction": "DESC"},
+		{"key": "private", "type": "IS"},
 		/* Prefer torrents with specific tags
 		ASC: Without tags first
 		DESC: With tags first
 		When specifying multiple tags, the order of tags does not matter. If you want to prioritise specific tags over others, use multiple sort entries.
 		*/
-		// { "key": "TAGS", "direction": "DESC", "tags": ["@DP"] },
-		// { "key": "TAGS", "direction": "DESC", "tags": ["@MaM"] },
+		// { "key": "TAGS", "type": "DESC", "tags": ["@DP"] },
+		// { "key": "TAGS", "type": "DESC", "tags": ["@MaM"] },
 		/* Prefer finishing torrents whose name contains a specific string
 		ASC: Contains last
 		DESC: Contains first
 		*/
-		{"key": "name", "direction": "DESC", "includes": ["S01"]},
+		{"key": "name", "type": "IS", "includes": ["S01"]},
 		/* Prefer torrents in specific categories
 		ASC: Without categories first
 		DESC: With categories first
 		When specifying multiple categories, the order of categories does not matter. If you want to prioritise specific categories over others, use multiple sort entries.
 		*/
-		{"key": "category", "direction": "DESC", "includes": ["cross-seed-links"]},
+		{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
 		/* Prefer torrents that are almost finished
 		ASC: Almost finished last
 		DESC: Almost finished first
 		Threshold is a float between 0 and 1, representing the progress percentage.
 		*/
-		{"key": "progress", "direction": "DESC", "threshold": 0.1},
-		{"key": "progress", "direction": "DESC", "threshold": 0.99},
+		{"key": "progress", "type": "IS", "threshold": 0.1},
+		{"key": "progress", "type": "IS", "threshold": 0.99},
 		/* Prefer manually prioritised torrents
 		ASC: Priority 1 first
 		DESC: Priority 1 last
 		Untagged torrents are considered priority 50
 		*/
-		// {"key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - "}, // TODO: // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
+		// {"key": "PRIORITY_TAG", "type": "ASC", "prefix": "Priority - "}, // TODO: // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
 		/* Prefer torrents without metadata
 		ASC: Torrents with metadata first
 		DESC: Torrents without metadata first
 		By default, torrents without metadata are de-prioritised as they can't accurately be sorted by size or progress.
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
-		// {"key": "NO_METADATA", "direction": "ASC"}, // TODO:
-		{"key": "state", "direction": "ASC", "includes": ["stoppedDL", "stoppedUP"]}
+		{"key": "state", "type": "IS NOT", "includes": ["stoppedDL", "stoppedUP"]},
+		{"key": "size", "type": "IS NOT", "threshold": 0}
 	],
 	/*
 	Custom sort rules for torrents in a checking state
@@ -142,10 +142,10 @@
 	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
 	*/
 	"CHECKING_METHODS": [
-		{"key": "amount_left", "direction": "ASC"},
-		{"key": "category", "direction": "ASC", "includes": ["cross-seed-links"]},
-		// {"key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - "}, // TODO:
-		{"key": "state", "direction": "DESC", "includes": ["checkingUL"]}
+		{"key": "amount_left", "type": "ASC"},
+		{"key": "category", "type": "IS NOT", "includes": ["cross-seed-links"]},
+		// {"key": "PRIORITY_TAG", "type": "ASC", "prefix": "Priority - "}, // TODO:
+		{"key": "state", "type": "IS", "includes": ["checkingUL"]}
 	],
 	/*
 	Custom sort rules for torrents that are being moved
@@ -153,9 +153,9 @@
 	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
 	*/
 	"MOVING_METHODS": [
-		{"key": "amount_left", "direction": "ASC"},
+		{"key": "amount_left", "type": "ASC"},
 		// We prefer completing existing moves to lower disk fragmentation
-		{"key": "progress", "direction": "DESC"}
-		// { "key": "PRIORITY_TAG", "direction": "ASC", "prefix": "Priority - " } // TODO:
+		{"key": "progress", "type": "DESC"}
+		// { "key": "PRIORITY_TAG", "type": "ASC", "prefix": "Priority - " } // TODO:
 	]
 }

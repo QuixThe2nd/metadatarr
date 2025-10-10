@@ -31,12 +31,12 @@ if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((metadata: Buffer
 const runJobs = async (torrents: Torrent[]) => {
   let changes = 0;
   const tasks = {
-    Actions: () => actions(torrents),
-    Duplicates: () => Duplicates.run(torrents),
+  //   Actions: () => actions(torrents),
+  //   Duplicates: () => Duplicates.run(torrents),
     Sort: () => Sort.run(api, torrents),
-    Queue: () => Queue.run(api, torrents),
-    Naming: () => Naming.run(torrents, originalNames.names),
-    Metadata: () => metadata(torrents, webtorrent, (metadata: Buffer, source: string) => saveMetadata.save(metadata, source))
+    // Queue: () => Queue.run(api, torrents),
+    // Naming: () => Naming.run(torrents, originalNames.names),
+    // Metadata: () => metadata(torrents, webtorrent, (metadata: Buffer, source: string) => saveMetadata.save(metadata, source))
   } as const;
   for (const [name, task] of Object.entries(tasks)) {
     const taskChanges = await logContext(name, async () => {

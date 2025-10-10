@@ -3,9 +3,6 @@ import Torrent from "./Torrent";
 import { TorrentSchema } from "./Torrent";
 import type { SomeType } from "zod/v4/core";
 
-type Direction = "ASC" | "DESC";
-type Mode = 'SORT' | 'MATCH';
-
 type TypedKeysOf<Z extends SomeType, T> = {
   [K in keyof T]: T[K] extends Z ? K :
   T[K] extends z.ZodNullable<Z> ? K :
@@ -32,7 +29,9 @@ const isStringProperty = (key: string): key is typeof stringProperties[number] =
 const isNumberProperty = (key: string): key is typeof numberProperties[number] => numberProperties.includes(key as typeof numberProperties[number]);
 const isArrayProperty = (key: string): key is typeof arrayProperties[number] => arrayProperties.includes(key as typeof arrayProperties[number]);
 
-const BaseSelectorSchema = z.object({ direction: z.enum(["ASC", "DESC"]) });
+const type = z.enum(["ASC", "DESC", "IS", "IS NOT"]);
+type Type = z.infer<typeof type>;
+const BaseSelectorSchema = z.object({ type });
 
 export const SelectorSchema = z.union([
   BaseSelectorSchema.extend({ key: z.enum(numberProperties), threshold: z.number().optional() }),
@@ -48,37 +47,37 @@ export type Selector = z.infer<typeof SelectorSchema>;
 
 export class SelectorEngine {
   private static strategies = {
-    PRIORITY_TAG: (torrents: Torrent[], direction: Direction, prefix: string) => this.numericSort(torrents, direction, t => {
+    PRIORITY_TAG: (torrents: Torrent[], type: Type, prefix: string) => this.numericSort(torrents, type, t => {
       const priority = Number(t.tags.find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
       return Number.isNaN(priority) ? 50 : priority;
     }),
   }
 
-  static execute(torrents: Torrent[], query: Selector, mode: Mode): Torrent[] {
+  static execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
     const { key } = query;
-    if (isBooleanProperty(key)) return this.booleanSort(torrents, query.direction, mode, t => t[key]);
-    else if (isStringProperty(query.key) && key === query.key) return this.booleanSort(torrents, query.direction, mode, t => query.includes.some(q => t.name.toLowerCase().includes(q.toLowerCase())));
-    else if (isArrayProperty(query.key) && key === query.key) return this.booleanSort(torrents, query.direction, mode, t => query.includes.some(q => t[key].includes(q)));
+    if (isBooleanProperty(key)) return this.booleanQuery(torrents, query.type, t => t[key], filter);
+    else if (isStringProperty(query.key) && key === query.key) return this.booleanQuery(torrents, query.type, t => query.includes.some(q => t[key]?.toLowerCase().includes(q.toLowerCase())), filter);
+    else if (isArrayProperty(query.key) && key === query.key) return this.booleanQuery(torrents, query.type, t => query.includes.some(q => t[key].includes(q)), filter);
     else if (isNumberProperty(query.key) && key === query.key) {
       const threshold = query.threshold;
       return threshold === undefined
-        ? this.numericSort(torrents, query.direction, t => t.size)
-        : this.booleanSort(torrents, query.direction, mode, t => t.size >= threshold);
+        ? this.numericSort(torrents, query.type, t => t.size)
+        : this.booleanQuery(torrents, query.type, t => t.size >= threshold, filter);
     } else throw new Error('Unexpected key???');
   }
 
-  private static numericSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => number) {
-    const multiplier = direction === "DESC" ? -1 : 1;
+  private static numericSort(torrents: Torrent[], type: Type, getValue: (t: Torrent) => number) {
+    const multiplier = type === "ASC" || type === "IS NOT" ? 1 : -1;
     return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
   }
 
-  private static booleanSort(torrents: Torrent[], direction: Direction, mode: Mode, getValue: (t: Torrent) => boolean | null) {
-    if (mode === 'MATCH') {
-      const targetValue = direction === 'DESC' ? true : false;
+  private static booleanQuery(torrents: Torrent[], type: Type, getValue: (t: Torrent) => boolean | null, filter: boolean) {
+    if (filter) {
+      const targetValue = type === 'DESC' || type === "IS";
       return torrents.filter(t => getValue(t) === targetValue);
     } else {
-      const multiplier = direction === "DESC" ? -1 : 1;
-      return [...torrents].sort((a, b) => (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier);
+      const multiplier = type === "ASC" || type === "IS NOT" ? 1 : -1;
+      return [...torrents].sort((a, b) =>  (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier);
     }
   }
 

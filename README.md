@@ -127,6 +127,7 @@ The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_M
 - Incremental backoff on metadata fetches
 
 ### Other:
+- Deluge/Transmission/RTorrent support
 - Cleanup Naming.cleanName
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
