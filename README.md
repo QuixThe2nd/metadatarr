@@ -118,16 +118,16 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 ### Move from code to config
 - User configurable cleanup rules in Naming.ts
 - Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
+- From Claude:
+```
+The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_MINIMUM_CALLS, PERSISTENT_MOVES - these interact in non-obvious ways. The current implementation works, but explaining when to use each setting is hard. Could this be simplified to "max moves per cycle" and "keep moving until correct position"?
+```
 
 ### Metadata
 - Use TVDB to parse episode names
 - Incremental backoff on metadata fetches
 
 ### Other:
-- From Claude:
-```
-The sort stepping logic is subtle. RESORT_STEP, RESORT_STEP_CALLS, RESORT_STEP_MINIMUM_CALLS, PERSISTENT_MOVES - these interact in non-obvious ways. The current implementation works, but explaining when to use each setting is hard. Could this be simplified to "max moves per cycle" and "keep moving until correct position"?
-```
 - Cleanup Naming.cleanName
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
