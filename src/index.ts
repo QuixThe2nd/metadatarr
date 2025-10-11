@@ -31,7 +31,7 @@ if (!CONFIG.CORE().DEV_INJECT) await ImportMetadataFiles.start((metadata: Buffer
 const runJobs = async (torrents: Torrent[]): Promise<number> => {
   let changes = 0;
   const tasks = {
-    Actions: () => actions(torrents),
+    // Actions: () => actions(torrents), // TODO: test in dry run mode
     Duplicates: () => Duplicates.run(torrents),
     Sort: () => Sort.run(api, torrents),
     Queue: () => Queue.run(api, torrents),

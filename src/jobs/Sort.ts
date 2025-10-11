@@ -19,6 +19,8 @@ export default class Sort {
         // This is needed to ensure sorts are consistent. Otherwise order could be different every run if 2 torrents have the same priority as defined by sort this.config.
         .sort((a, b) => a.hash.localeCompare(b.hash));
 
+      const startCount = torrents.length;
+
       for (const sort of this.config.METHODS) torrents = selectorEngine.execute(torrents, sort, false);
       let checkingTorrents = torrents.filter(torrent => torrent.state === "checkingUP" || torrent.state === "checkingDL");
       for (const sort of this.config.CHECKING_METHODS) checkingTorrents = selectorEngine.execute(checkingTorrents, sort, false);
@@ -27,6 +29,11 @@ export default class Sort {
       const checkingResumeData = torrents.filter(torrent => torrent.state === "checkingResumeData");
       const activeTorrents = torrents.filter(torrent => torrent.state !== "checkingUP" && torrent.state !== "checkingDL" && torrent.state !== "moving" && torrent.state !== 'checkingResumeData');
       torrents = [...activeTorrents, ...movingTorrents, ...checkingTorrents, ...checkingResumeData];
+
+      if (torrents.length !== startCount) {
+        console.error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
+        process.exit()
+      }
 
       console.log(`Sorting ${torrents.length} torrents`);
 

@@ -15,67 +15,67 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	// Resume completed torrents that are stopped
 	{
 		"if": [
-			{"key": "state", "type": "IS", "includes": ["stoppedUP"]}
+			{"key": "state", "comparator": "==", "includes": ["stoppedUP"]}
 		],
 		"then": "start"
 	},
 	// Resume almost finished torrents that are stopped
 	{
 		"if": [
-			{"key": "state", "type": "IS", "includes": ["stoppedDL"]},
-			{"key": "progress", "type": "IS NOT", "threshold": 0.95}
+			{"key": "state", "comparator": "==", "includes": ["stoppedDL"]},
+			{"key": "progress", "comparator": ">=", "threshold": 0.95}
 		],
 		"then": "start"
 	},
 	// Recheck missing files
 	{
 		"if": [
-			{"key": "state", "type": "IS", "includes": ["missingFiles"]}
+			{"key": "state", "comparator": "==", "includes": ["missingFiles"]}
 		],
 		"then": "recheck"
 	},
-	// // Remove errored cross-seed-links
-	// {
-	// 	"if": [
-	// 		{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
-	// 		{"key": "state", "type": "IS", "includes": ["error"]}
-	// 	],
-	// 	"then": "delete"
-	// },
-	// // Remove cross-seed-links that have less than 95% progress
-	// {
-	// 	"if": [
-	// 		{"key": "category", "type": "IS", "includes": ["cross-seed-links"]},
-	// 		{"key": "progress", "type": "IS NOT", "threshold": 0.95},
-	// 		{"key": "state", "type": "IS NOT", "includes": ["checkingDL", "checkingUP"]}
-	// 	],
-	// 	"then": "delete"
-	// },
+	// Remove errored cross-seed-links
+	{
+		"if": [
+			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+			{"key": "state", "comparator": "==", "includes": ["error"]}
+		],
+		"then": "delete"
+	},
+	// Remove cross-seed-links that have less than 95% progress
+	{
+		"if": [
+			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+			{"key": "progress", "comparator": "<", "threshold": 0.95},
+			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+		],
+		"then": "delete"
+	},
 	// Force disable sequential downloads on all torrents
 	{
 		"if": [
-			{"key": "seq_dl", "type": "IS"}
+			{"key": "seq_dl", "comparator": "=="}
 		],
 		"then": "toggleSequentialDownload"
 	},
 	// Force enable auto torrent management mode for non cross-seed torrents
+	// { // TODO: Fix tag support first
+	// 	"if": [
+	// 		{"key": "auto_tmm", "comparator": "!="},
+	// 		{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
+	// 	],
+	// 	"then": "setAutoManagement",
+	// 	"arg": true
+	// },
+	// Remove Public Torrents
 	{
 		"if": [
-			{"key": "auto_tmm", "type": "IS NOT"},
-			{"key": "tags", "type": "IS NOT", "includes": ["cross-seed"]}
+			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
+			{"key": "tags", "comparator": "==", "includes": ["Public Tracker"]},
+			{"key": "private", "comparator": "!="},
+			{"key": "state", "comparator": "==", "includes": ["stalledUP", "stoppedUP", "uploading"]},
+			{"key": "num_complete", "comparator": ">=", "threshold": 5}
 		],
-		"then": "setAutoManagement",
-		"arg": true
-	},
-	// // Remove Public Torrents
-	// {
-	// 	"if": [
-	// 		// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
-	// 		{"key": "tags", "type": "IS", "includes": ["Public Tracker"]},
-	// 		{"key": "private", "type": "IS NOT"},
-	// 		{"key": "state", "type": "IS", "includes": ["stalledUP", "stoppedUP", "uploading"]},
-	// 		{"key": "num_complete", "type": "IS", "threshold": 5}
-	// 	],
-	// 	"then": "delete"
-	// }
+		"then": "delete"
+	}
 ]
