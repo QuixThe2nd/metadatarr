@@ -19,10 +19,10 @@
 	
 	Set to 0 to disable delay - Will consume more CPU and may cause issues in qBittorrent.
 	*/
-	"MOVE_DELAY": 250,
+	"MOVE_DELAY": 200,
 
 	/* Maximum number of torrents to move each cycle
-	Once this threshold is reached, the sorter will wait for the move delay before running again.
+	Once this threshold is reached, the SORT job will be stopped, and resumed in the next cycle.
 	When managing a large number of torrents, this is particularly useful as it focuses on sorting the first X torrents, then moves onto the next X torrents in the next cycle.
 	The lower this number is, the more you want accurate ordering for earlier torrents.
 	For example, if you have 1000 torrents, and you set this to 10, it will sort the first 10 torrents, then re-check positioning, then sort the next 10 torrents that need to be moved.
@@ -31,20 +31,18 @@
 
 	Set to 0 to disable stepping.
 	*/
-	"RESORT_STEP": 250,
+	"MAX_MOVES_PER_CYCLE": 250,
 
-	/* Minimum API calls to make before stopping when using RESORT_STEP
+	/* Minimum API calls to make before stopping when using MAX_MOVES_PER_CYCLE
 	This ensures that if you have too many redundant moves at the start of your queue, it will still send a minimum number of API calls before stopping.
 	*/
-	"RESORT_STEP_MINIMUM_CALLS": 5,
+	"MIN_API_CALLS_PER_CYCLE": 5,
 
 	/* Maximum number of API calls to make when sorting torrents each cycle
-	Works exactly like RESORT_STEP, but ignores redundant moves in the count.
-	RESORT_STEP and RESORT_STEP_API can work both together or independently.
-
+	Works exactly like MAX_MOVES_PER_CYCLE, but ignores redundant moves in the count.
 	Set to 0 to disable stepping.
 	*/
-	"RESORT_STEP_CALLS": 100,
+	"MAX_API_CALLS_PER_CYCLE": 25,
 
 	/*
 	Sorts are applied in reverse order, with last being highest priority
@@ -145,7 +143,7 @@
 		{"key": "amount_left", "type": "ASC"},
 		{"key": "category", "type": "IS NOT", "includes": ["cross-seed-links"]},
 		// {"key": "PRIORITY_TAG", "type": "ASC", "prefix": "Priority - "}, // TODO:
-		{"key": "state", "type": "IS", "includes": ["checkingUL"]}
+		{"key": "state", "type": "IS", "includes": ["checkingUP"]}
 	],
 	/*
 	Custom sort rules for torrents that are being moved

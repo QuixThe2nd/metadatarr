@@ -23,6 +23,7 @@ export default class Queue {
         let i = downloadingTorrents.length;
         let increaseMaxActiveDownloads = true;
         let decreaseMaxActiveDownloads = true;
+        // TODO: this.config.MINIMUM_SEEDERS
         while (increaseMaxActiveDownloads || decreaseMaxActiveDownloads) {
           const nextTorrent = relatedTorrents[i];
           const lastTorrent = relatedTorrents[i-1];

@@ -45,9 +45,9 @@ export type NamingConfig = z.infer<typeof NamingConfigSchema>;
 const SortConfigSchema = z.object({
   SORT: z.boolean(),
   MOVE_DELAY: z.number().int().nonnegative(),
-  RESORT_STEP: z.number().int().nonnegative(),
-  RESORT_STEP_MINIMUM_CALLS: z.number().int().nonnegative(),
-  RESORT_STEP_CALLS: z.number().int().nonnegative(),
+  MAX_MOVES_PER_CYCLE: z.number().int().nonnegative(),
+  MIN_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
+  MAX_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
   PERSISTENT_MOVES: z.boolean(),
   METHODS: z.array(SelectorSchema),
   CHECKING_METHODS: z.array(SelectorSchema),
@@ -80,7 +80,8 @@ const QueueSchema = z.object({
   INCLUDE_MOVING_TORRENTS: z.boolean(),
   EXCLUDE_CATEGORIES: z.array(z.string()),
   MINIMUM_QUEUE_SIZE: z.number(),
-  MAXIMUM_QUEUE_SIZE: z.number()
+  MAXIMUM_QUEUE_SIZE: z.number(),
+  MINIMUM_SEEDERS: z.number()
 });
 
 const DuplicatesSchema = z.object({

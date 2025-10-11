@@ -53,10 +53,10 @@ export default class Sort {
           }
           moves++;
 
-          if (this.config.RESORT_STEP_CALLS !== 0 && api_moves >= this.config.RESORT_STEP_CALLS) {
+          if (this.config.MAX_API_CALLS_PER_CYCLE !== 0 && api_moves >= this.config.MAX_API_CALLS_PER_CYCLE) {
             console.log(`Stepping sort`);
             break;
-          } else if (this.config.RESORT_STEP !== 0 && moves >= this.config.RESORT_STEP && api_moves >= this.config.RESORT_STEP_MINIMUM_CALLS) {
+          } else if (this.config.MAX_MOVES_PER_CYCLE !== 0 && moves >= this.config.MAX_MOVES_PER_CYCLE && api_moves >= this.config.MIN_API_CALLS_PER_CYCLE) {
             console.log(`Stepping sort`);
             break;
           }
