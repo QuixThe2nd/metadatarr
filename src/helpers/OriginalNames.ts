@@ -13,7 +13,6 @@ export default class OriginalNames {
 
     const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
     for (const {hash, name} of Object.values(cache)) originalNames.names[hash] = name;
-    console.log(originalNames.names)
 
     if (!originalNames.dir.length) return originalNames;
     await originalNames.scanDirectory(cache);
