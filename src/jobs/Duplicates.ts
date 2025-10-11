@@ -1,6 +1,6 @@
-import { CONFIG } from "../config";
 import type Torrent from "../classes/Torrent";
 import { selectorEngine } from "../classes/SelectorEngine";
+import { CONFIG } from "../config";
 
 const downloadStates = ["stalledDL", "checkingDL", "queuedDL", "stoppedDL", "forcedDL", "downloading", "metaDL"];
 

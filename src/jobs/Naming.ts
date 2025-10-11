@@ -1,6 +1,6 @@
-import { CONFIG } from "../config";
 import type Torrent from "../classes/Torrent";
 import ptt from "parse-torrent-title";
+import { CONFIG } from "../config";
 
 function cleanString(str: string): string {
   const charSet = new Set([' ','.','-','_']);

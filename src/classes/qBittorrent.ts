@@ -1,9 +1,9 @@
 import fs from 'fs';
 import z, { ZodError } from "zod";
-import { CONFIG } from "../config";
 import Torrent from './Torrent';
 import { TorrentSchema } from './Torrent';
 import { logContext } from '../log';
+import { CONFIG } from '../config';
 
 const PreferencesSchema = z.object({
   max_active_downloads: z.number()

@@ -8,14 +8,8 @@ const __dirname = path.dirname(__filename);
 const logPath = path.join(__dirname, '../store/logs/metadatarr.log');
 const maxSize = 10 * 1024 * 1024;
 
-function checkLogSize(): void {
-  if (fs.existsSync(logPath)) {
-    const stats = fs.statSync(logPath);
-    if (stats.size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
-  }
-}
+if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
 
-checkLogSize();
 const logFile = fs.createWriteStream(logPath, { flags: 'a' });
 
 const originalConsoleLog = console.log;

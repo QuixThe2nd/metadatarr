@@ -65,7 +65,7 @@ export const selectorEngine = {
   execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
     const startCount = torrents.length;
     torrents = this._execute(torrents, query, filter);
-    if (torrents.length !== startCount) throw new Error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
+    if (!filter && torrents.length !== startCount) throw new Error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
     return torrents;
   },
   _execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {

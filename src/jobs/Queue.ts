@@ -1,6 +1,6 @@
-import { CONFIG } from "../config";
 import type Torrent from "../classes/Torrent";
 import type Qbittorrent from '../classes/qBittorrent';
+import { CONFIG } from "../config";
 
 const GB = 1024*1024*1024;
 

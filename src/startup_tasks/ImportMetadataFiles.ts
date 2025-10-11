@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { CONFIG } from "../config";
+import { CONFIG } from '../config';
 import { saveMetadata } from '../utils/saveMetadata';
 import type { Instance } from 'webtorrent';
 import type Qbittorrent from '../classes/qBittorrent';

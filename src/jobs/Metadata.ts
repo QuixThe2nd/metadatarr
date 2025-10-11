@@ -1,8 +1,10 @@
 import type Torrent from "../classes/Torrent";
-import { CONFIG, type Sources } from '../config';
+import type { MetadataSchema } from '../schemas';
 import type { Instance } from 'webtorrent';
 import { saveMetadata } from "../utils/saveMetadata";
 import type Qbittorrent from "../classes/qBittorrent";
+import type z from "zod";
+import { CONFIG } from "../config";
 
 const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instance): Promise<number> => {
   const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
@@ -11,7 +13,7 @@ const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instan
     webtorrent.add(magnet_uri, { destroyStoreOnDestroy: false }, torrent => saveMetadata(webtorrent, qB, torrent.torrentFile, "WebTorrent"));
   }
 
-  const fetchFromHTTP = async (hash: string, source: Sources[number]): Promise<void> => {
+  const fetchFromHTTP = async (hash: string, source: z.infer<typeof MetadataSchema>['sources'][number]): Promise<void> => {
     const url = new URL(`${source.url[0]}${hash}${source.url[1] ?? ''}`);
     try {
       console.log(hash, `\x1b[34m[${url.hostname}]\x1b[0m Fetching metadata`);

@@ -14,9 +14,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 [
 	// Resume completed torrents that are stopped
 	{
-		"if": [
-			{"key": "state", "comparator": "==", "includes": ["stoppedUP"]}
-		],
+		"if": [{"key": "state", "comparator": "==", "includes": ["stoppedUP"]}],
 		"then": "start"
 	},
 	// Resume almost finished torrents that are stopped
@@ -29,9 +27,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	},
 	// Recheck missing files
 	{
-		"if": [
-			{"key": "state", "comparator": "==", "includes": ["missingFiles"]}
-		],
+		"if": [{"key": "state", "comparator": "==", "includes": ["missingFiles"]}],
 		"then": "recheck"
 	},
 	// Remove errored cross-seed-links
@@ -43,23 +39,21 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "delete"
 	},
 	// Remove cross-seed-links that have less than 95% progress
-	{
-		"if": [
-			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
-			{"key": "progress", "comparator": "<", "threshold": 0.95},
-			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
-		],
-		"then": "delete"
-	},
+	// { // TODO: Broken
+	// 	"if": [
+	// 		{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+	// 		{"key": "progress", "comparator": "<", "threshold": 0.95},
+	// 		{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+	// 	],
+	// 	"then": "delete"
+	// },
 	// Force disable sequential downloads on all torrents
 	{
-		"if": [
-			{"key": "seq_dl", "comparator": "=="}
-		],
+		"if": [{"key": "seq_dl", "comparator": "=="}],
 		"then": "toggleSequentialDownload"
 	},
 	// Force enable auto torrent management mode for non cross-seed torrents
-	// { // TODO: Fix tag support first
+	// { // TODO: Broken
 	// 	"if": [
 	// 		{"key": "auto_tmm", "comparator": "!="},
 	// 		{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
