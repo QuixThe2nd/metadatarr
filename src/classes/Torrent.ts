@@ -1,7 +1,7 @@
 import z from "zod";
 import type Qbittorrent from './qBittorrent';
-import { CONFIG } from "../config";
 import { logContext } from "../log";
+import { CONFIG } from "../config";
 
 export const TorrentSchema = z.object({
   state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "queuedUP", "forcedDL", "forcedUP"]),

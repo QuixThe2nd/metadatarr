@@ -20,12 +20,13 @@ const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEn
   .map(([key]) => key) as TypedKeysOf<T, typeof TorrentSchema.shape>[];
 
 const stringProperties = [...properties(z.ZodString), ...properties(z.ZodEnum)];
-type StringProperty = typeof stringProperties[number];
 const numberProperties = properties(z.ZodNumber);
-type NumberProperty = typeof numberProperties[number];
 const booleanProperties = properties(z.ZodBoolean);
-type BooleanProperty = typeof booleanProperties[number];
 const arrayProperties = properties(z.ZodCodec);
+
+type StringProperty = typeof stringProperties[number];
+type NumberProperty = typeof numberProperties[number];
+type BooleanProperty = typeof booleanProperties[number];
 type ArrayProperty = typeof arrayProperties[number];
 
 const isBooleanProperty = (key: string): key is BooleanProperty => booleanProperties.includes(key as BooleanProperty);
@@ -36,9 +37,9 @@ const isArrayProperty = (key: string): key is ArrayProperty => arrayProperties.i
 const booleanComparators = z.enum(["==", "!="]);
 const booleanSelectorSchema = z.object({ comparator: booleanComparators });
 const numberSortSchema = z.object({ comparator: z.enum(["ASC", "DESC"]) });
-const coreComparators = z.enum([">=", ">", "<", "<="]);
-type Comparators = z.infer<typeof coreComparators> | z.infer<typeof booleanComparators>;
-const coercedBooleanSelectorSchema = z.object({ comparator: z.union([coreComparators, booleanComparators]) });
+const numericComparators = z.enum([">=", ">", "<", "<="]);
+type Comparators = z.infer<typeof numericComparators> | z.infer<typeof booleanComparators>;
+const coercedBooleanSelectorSchema = z.object({ comparator: z.union([numericComparators, booleanComparators]) });
 
 export const SelectorSchema = z.union([
   numberSortSchema.extend({ key: z.enum(numberProperties) }),
@@ -62,6 +63,12 @@ export const selectorEngine = {
     }
   },
   execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
+    const startCount = torrents.length;
+    torrents = this._execute(torrents, query, filter);
+    if (torrents.length !== startCount) throw new Error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
+    return torrents;
+  },
+  _execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
     if (isBooleanProperty(query.key)) return this.processBoolean(torrents, query as Selector & { key: BooleanProperty }, filter);
     else if (isStringProperty(query.key)) return this.processString(torrents, query as Selector & { key: StringProperty }, filter);
     else if (isArrayProperty(query.key)) return this.processArray(torrents, query as Selector & { key: ArrayProperty }, filter);

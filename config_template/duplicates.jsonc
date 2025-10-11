@@ -15,8 +15,5 @@
   "TIE_BREAKERS": [
     { "key": "progress", "comparator": "DESC" },
     { "key": "private", "comparator": "==" }
-  ],
-
-  // HIGHLY RECOMMENDED IF DOWNLOAD_ONLY IS OFF: If enabled, will prefer torrents that are seeding over those that are not
-  "PREFER_UPLOADING": true
+  ]
 }

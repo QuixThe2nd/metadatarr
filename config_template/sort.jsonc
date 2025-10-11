@@ -5,11 +5,6 @@
 	*/
 	"SORT": true,
 
-	/* Check position right after move and keep moving until in correct position
-	Moves will be a lot slower, but ensures higher priority torrents are in the correct position sooner.
-	*/
-	"PERSISTENT_MOVES": false,
-
 	/* Time to wait before sorting each individual torrent
 	Setting too fast may cause race conditions in qBittorrent or even make it unresponsive or crash.
 	
@@ -133,27 +128,5 @@
 		*/
 		{"key": "state", "comparator": "!=", "includes": ["stoppedDL", "stoppedUP"]},
 		{"key": "size", "comparator": "!=", "threshold": 0}
-	],
-	/*
-	Custom sort rules for torrents in a checking state
-	Checking torrents are only sorted amongst themselves
-	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
-	*/
-	"CHECKING_METHODS": [
-		{"key": "amount_left", "comparator": "ASC"},
-		{"key": "category", "comparator": "!=", "includes": ["cross-seed-links"]},
-		// {"key": "PRIORITY_TAG", "comparator": "ASC", "prefix": "Priority - "}, // TODO:
-		{"key": "state", "comparator": "==", "includes": ["checkingUP"]}
-	],
-	/*
-	Custom sort rules for torrents that are being moved
-	Moving torrents are only sorted amongst themselves
-	Rules are applied in conjunction with the main METHODS rules. METHODS are treated as tie breakers.
-	*/
-	"MOVING_METHODS": [
-		{"key": "amount_left", "comparator": "ASC"},
-		// We prefer completing existing moves to lower disk fragmentation
-		{"key": "progress", "comparator": "DESC"}
-		// { "key": "PRIORITY_TAG", "comparator": "ASC", "prefix": "Priority - " } // TODO:
 	]
 }

@@ -48,10 +48,7 @@ const SortConfigSchema = z.object({
   MAX_MOVES_PER_CYCLE: z.number().int().nonnegative(),
   MIN_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
   MAX_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
-  PERSISTENT_MOVES: z.boolean(),
-  METHODS: z.array(SelectorSchema),
-  CHECKING_METHODS: z.array(SelectorSchema),
-  MOVING_METHODS: z.array(SelectorSchema)
+  METHODS: z.array(SelectorSchema)
 });
 
 type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
@@ -87,8 +84,7 @@ const QueueSchema = z.object({
 const DuplicatesSchema = z.object({
   DOWNLOADS_ONLY: z.boolean(),
   TIE_BREAKERS: z.array(SelectorSchema),
-  IGNORE_TAG: z.string(),
-  PREFER_UPLOADING: z.boolean()
+  IGNORE_TAG: z.string()
 });
 
 const MetadataSchema = z.object({
@@ -98,7 +94,7 @@ const MetadataSchema = z.object({
   }))
 });
 
-export type Source = z.infer<typeof MetadataSchema>['sources'];
+export type Sources = z.infer<typeof MetadataSchema>['sources'];
 
 function parseConfigFile<T extends z.ZodObject<any> | z.ZodArray<any>>(filePath: string, schema: T): z.infer<T> {
   const strict = schema instanceof z.ZodObject ? schema.strict() : schema;

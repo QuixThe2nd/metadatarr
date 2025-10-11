@@ -1,10 +1,37 @@
-import type { Instance } from "webtorrent";
-import FetchMetadata from "../helpers/FetchMetadata";
 import type Torrent from "../classes/Torrent";
+import { CONFIG, type Sources } from '../config';
+import type { Instance } from 'webtorrent';
+import { saveMetadata } from "../utils/saveMetadata";
+import type Qbittorrent from "../classes/qBittorrent";
 
-const metadata = async (torrents: Torrent[], webtorrent: Instance, saveMetadata: (metadata: Buffer, source: string) => Promise<void>): Promise<number> => {
+const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instance): Promise<number> => {
+  const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
+    if (await webtorrent.get(hash)) return;
+    console.log(hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
+    webtorrent.add(magnet_uri, { destroyStoreOnDestroy: false }, torrent => saveMetadata(webtorrent, qB, torrent.torrentFile, "WebTorrent"));
+  }
+
+  const fetchFromHTTP = async (hash: string, source: Sources[number]): Promise<void> => {
+    const url = new URL(`${source.url[0]}${hash}${source.url[1] ?? ''}`);
+    try {
+      console.log(hash, `\x1b[34m[${url.hostname}]\x1b[0m Fetching metadata`);
+      const response = await fetch(url);
+      if (response.status === 404) console.warn(hash, `[${url.hostname}] No metadata found`);
+      else if (!response.ok) console.warn(hash, `[${url.hostname}] Failed to fetch metadata - ${response.status} ${response.statusText}`);
+      else if (response.headers.get("content-type")?.startsWith("text/html") ?? false) console.warn(hash, `[${url.hostname}] Invalid response type - ${response.headers.get("content-type")}`);
+      else saveMetadata(webtorrent, qB, Buffer.from(await response.arrayBuffer()), url.hostname).catch(console.error);
+    } catch (e) {
+      console.warn(hash, `[${url.hostname}] An error occurred`, (e as Error).cause);
+    }
+  }
+
+  const { sources } = CONFIG.METADATA();
   for (const torrent of torrents) 
-    if (torrent.size <= 0) await new FetchMetadata(webtorrent, torrent, saveMetadata).state;
+    if (torrent.size <= 0) {
+      console.log(torrent.hash, "Fetching metadata");
+      await fetchWebtorrent(torrent.hash, torrent.magnet_uri);
+      await Promise.all(sources.map(source => fetchFromHTTP(torrent.hash, source)));
+    }
   
   return 0;
 }

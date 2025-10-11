@@ -6,9 +6,7 @@ import type Qbittorrent from './qBittorrent';
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({
     result: z.enum(['INJECTED', 'FAILURE'], "Unexpected result type"),
-    searchee: z.object({
-      infoHash: z.string().min(1, 'InfoHash is required')
-    }),
+    searchee: z.object({ infoHash: z.string().min(1, 'InfoHash is required') }),
     infoHashes: z.array(z.string()).min(1, 'At least one infoHash is required')
   })
 });

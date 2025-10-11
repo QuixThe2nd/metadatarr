@@ -317,3 +317,4 @@ export default class Naming {
     return { ...naming.cleanName(name, false, verbose), info: ptt.parse(name) };
   }
 }
+// TODO: Refactor this
