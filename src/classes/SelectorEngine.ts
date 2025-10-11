@@ -11,9 +11,11 @@ type TypedKeysOf<Z extends SomeType, T> = {
 
 const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEnum | z.ZodCodec>(ctor: new (...args: unknown[]) => T): TypedKeysOf<T, typeof TorrentSchema.shape>[] => Object.entries(TorrentSchema.shape)
   .filter(([, value]) => {
+    const def = value._def;
     return value instanceof ctor
     || (value instanceof z.ZodNullable && value.unwrap() instanceof ctor)
-    || value instanceof z.ZodEnum;
+    || (value instanceof z.ZodEnum && ctor === z.ZodEnum as any)
+    || (def?.typeName === 'ZodPipeline' && def.out && def.out instanceof ctor);
   })
   .map(([key]) => key) as TypedKeysOf<T, typeof TorrentSchema.shape>[];
 
@@ -26,11 +28,12 @@ type StringProperty = typeof stringProperties[number];
 type NumberProperty = typeof numberProperties[number];
 type BooleanProperty = typeof booleanProperties[number];
 type ArrayProperty = typeof arrayProperties[number];
+type Property = BooleanProperty | StringProperty | NumberProperty | ArrayProperty;
 
-const isBooleanProperty = (key: string): key is BooleanProperty => booleanProperties.includes(key as BooleanProperty);
-const isStringProperty = (key: string): key is StringProperty => stringProperties.includes(key as StringProperty);
-const isNumberProperty = (key: string): key is NumberProperty => numberProperties.includes(key as NumberProperty);
-const isArrayProperty = (key: string): key is ArrayProperty => arrayProperties.includes(key as ArrayProperty);
+const isBooleanProperty = (key: Property): key is BooleanProperty => booleanProperties.includes(key as BooleanProperty);
+const isStringProperty = (key: Property): key is StringProperty => stringProperties.includes(key as StringProperty);
+const isNumberProperty = (key: Property): key is NumberProperty => numberProperties.includes(key as NumberProperty);
+const isArrayProperty = (key: Property): key is ArrayProperty => arrayProperties.includes(key as ArrayProperty);
 
 const booleanComparators = z.enum(["==", "!="]);
 const booleanSelectorSchema = z.object({ comparator: booleanComparators });

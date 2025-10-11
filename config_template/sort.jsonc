@@ -120,13 +120,14 @@
 		Untagged torrents are considered priority 50
 		*/
 		// {"key": "PRIORITY_TAG", "comparator": "ASC", "prefix": "Priority - "}, // TODO: // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
+		{"key": "state", "comparator": "!=", "includes": ["stoppedDL", "stoppedUP"]},
 		/* Prefer torrents without metadata
 		ASC: Torrents with metadata first
 		DESC: Torrents without metadata first
 		By default, torrents without metadata are de-prioritised as they can't accurately be sorted by size or progress.
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
-		{"key": "state", "comparator": "!=", "includes": ["stoppedDL", "stoppedUP"]},
-		{"key": "size", "comparator": "!=", "threshold": 0}
+		{"key": "size", "comparator": "!=", "threshold": 0},
+		{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
 	]
 }
