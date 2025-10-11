@@ -1,7 +1,7 @@
 import type { Instance } from 'webtorrent';
 import type Torrent from "../classes/Torrent";
-import { MetadataSchema } from '../schemas';
-import z from 'zod';
+import type { MetadataSchema } from '../schemas';
+import type z from 'zod';
 import { CONFIG } from '../config';
 
 export default class FetchMetadata {

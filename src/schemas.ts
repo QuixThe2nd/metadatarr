@@ -3,11 +3,9 @@ import { SelectorSchema } from './classes/SelectorEngine';
 import type Qbittorrent from './classes/qBittorrent';
 import Torrent from './classes/Torrent';
 
-type Method = () => void;
+type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
 
-type MethodNames<T> = { [K in keyof T]: T[K] extends Method ? K : never }[keyof T];
-
-function getMethodNames<T extends Record<string, Method>>(obj: T): MethodNames<T>[] {
+function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
   const methods = new Set<string>();
   for (let proto: T | null = obj; proto; proto = Object.getPrototypeOf(proto) as T | null) 
   Object.getOwnPropertyNames(proto).forEach(prop => typeof obj[prop] === 'function' && prop !== 'constructor' && methods.add(prop));
