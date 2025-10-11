@@ -1,7 +1,7 @@
 import Naming from '../src/jobs/Naming'
 import Qbittorrent from '../src/classes/qBittorrent'
 
-// console.log(Naming.test('Mad Men S03 br avc-pir8', true));
+// console.log(Naming.test('Am I Racist (2024) - [1080p WEB h264] - SUBSCRiBE', true));
 // process.exit()
 
 const filter = '';

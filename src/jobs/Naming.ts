@@ -225,7 +225,7 @@ export default class Naming {
       return other;
     },
     source: (matches, other) => {
-      if (matches.includes('web-dl')) other = other.replace(/\BWEB\b/, '');
+      if (matches.includes('web-dl')) other = other.replace(/\bWEB\b/, '');
       if (matches.includes('bdrip')) other = other.replace(/BluRayRip/i, '');
       if (matches.includes('bluray')) {
         other = other.replace(/\bBlu-?Ray\b/i, '');
