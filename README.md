@@ -107,16 +107,16 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 
 ### Queries:
 - Tracker selector
-- Abstract ASC/DESC to IS/IS-NOT for match based queries
 - MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
 - Nested sort - Apply sort queries only if matched another query - so we can merge moving, checking, and sort methods
+- Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
 
 ### Actions
 - Add/Remove tags action
 
 ### Move from code to config
 - User configurable cleanup rules in Naming.ts
-- Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY, PREFER_UPLOADING
+- Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY
 
 ### Metadata
 - Use TVDB to parse episode names

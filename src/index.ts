@@ -29,7 +29,7 @@ if (!CONFIG.CORE().DEV_INJECT) await importMetadataFiles(webtorrent, api);
 const runJobs = async (torrents: Torrent[]): Promise<number> => {
   let changes = 0;
   const tasks = {
-    Actions: () => actions(torrents), // TODO: test in dry run mode
+    Actions: () => actions(torrents),
     Duplicates: () => duplicates(torrents),
     Sort: () => sort(api, torrents),
     Queue: () => queue(api, torrents),
