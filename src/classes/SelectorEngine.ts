@@ -9,13 +9,11 @@ type TypedKeysOf<Z extends SomeType, T> = {
   never;
 }[keyof T];
 
-const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEnum<any> | z.ZodCodec<any>>(ctor: new (...args: any[]) => T) => Object.entries(TorrentSchema.shape)
+const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEnum | z.ZodCodec>(ctor: new (...args: unknown[]) => T): TypedKeysOf<T, typeof TorrentSchema.shape>[] => Object.entries(TorrentSchema.shape)
   .filter(([, value]) => {
-    const def = (value as any)._def;
     return value instanceof ctor
     || (value instanceof z.ZodNullable && value.unwrap() instanceof ctor)
-    || (value instanceof z.ZodEnum && ctor === z.ZodEnum as any)
-    || (def?.typeName === 'ZodPipeline' && def.out && def.out instanceof ctor);
+    || value instanceof z.ZodEnum;
   })
   .map(([key]) => key) as TypedKeysOf<T, typeof TorrentSchema.shape>[];
 
