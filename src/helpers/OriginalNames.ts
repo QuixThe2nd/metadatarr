@@ -10,30 +10,29 @@ export default class OriginalNames {
 
   static async start(): Promise<{ names: Record<string, string> }> {
     const originalNames = new OriginalNames();
-    if (!originalNames.dir.length) return { names: {} };
-    await originalNames.scanDirectory();
+
+    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
+    for (const {hash, name} of Object.values(cache)) originalNames.names[hash] = name;
+    console.log(originalNames.names)
+
+    if (!originalNames.dir.length) return originalNames;
+    await originalNames.scanDirectory(cache);
     fs.watch(originalNames.dir, (_, filename) => {
       if (filename !== null) originalNames.saveName(originalNames.dir, filename).catch(console.error);
     });
     return originalNames;
   }
 
-  private async scanDirectory(): Promise<void>{
+  private async scanDirectory(cache: Record<string, { hash: string; name: string }>): Promise<void>{
     console.log('Scanning torrent name directory');
     const files = fs.readdirSync(this.dir)
     const totalFiles = files.length;
     let lastLoggedPercent = 0;
 
-    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
-
     console.log(`Scan: 0% complete (0 of ${totalFiles})`);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file === undefined) continue;
-      if (cache[file]) {
-        this.names[cache[file].hash] = cache[file].name;
-        continue;
-      }
+      if (file === undefined || cache[file]) continue;
       const res = await this.saveName(this.dir, file);
       if (res === false) continue;
       cache[file] = res;
