@@ -12,71 +12,71 @@ Rules will be executed in order. When chaining many rules together, place the mo
 */
 
 [
-	// // Resume completed torrents that are stopped
-	// {
-	// 	"if": [{"key": "state", "comparator": "==", "includes": ["stoppedUP"]}],
-	// 	"then": "start"
-	// },
-	// // Resume almost finished torrents that are stopped
-	// {
-	// 	"if": [
-	// 		{"key": "state", "comparator": "==", "includes": ["stoppedDL"]},
-	// 		{"key": "progress", "comparator": ">=", "threshold": 0.95}
-	// 	],
-	// 	"then": "start"
-	// },
-	// // Recheck missing files
-	// {
-	// 	"if": [{"key": "state", "comparator": "==", "includes": ["missingFiles"]}],
-	// 	"then": "recheck"
-	// },
-	// // Remove errored cross-seed-links
-	// {
-	// 	"if": [
-	// 		{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
-	// 		{"key": "state", "comparator": "==", "includes": ["error"]}
-	// 	],
-	// 	"then": "delete"
-	// },
-	// // Remove cross-seed-links that have less than 95% progress
-	// {
-	// 	"if": [
-	// 		{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
-	// 		{"key": "progress", "comparator": "<", "threshold": 0.95},
-	// 		{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
-	// 	],
-	// 	"then": "delete"
-	// },
-	// // Force disable sequential downloads on all torrents
-	// {
-	// 	"if": [{"key": "seq_dl", "comparator": "=="}],
-	// 	"then": "toggleSequentialDownload"
-	// },
-	// // Force enable auto torrent management mode for non cross-seed torrents
-	// {
-	// 	"if": [
-	// 		{"key": "auto_tmm", "comparator": "!="},
-	// 		{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
-	// 	],
-	// 	"then": "setAutoManagement",
-	// 	"arg": true
-	// },
-	// // Remove Public Torrents
-	// {
-	// 	"if": [
-	// 		{"key": "private", "comparator": "!="},
-	// 		{"key": "state", "comparator": "==", "includes": ["stalledUP", "stoppedUP", "uploading"]}
-	// 	],
-	// 	"then": "delete"
-	// },
-	// // Remove !noHL torrents from freeleech trackers
-	// {
-	// 	"if": [
-	// 		{"key": "tags", "comparator": "==", "includes": ["!noHL"]},
-	// 		{"key": "tags", "comparator": "==", "includes": ["@MLK", "@FNP", "@RUT"]}
-	// 	],
-	// 	"then": "delete"
-	// },
+	// Resume completed torrents that are stopped
+	{
+		"if": [{"key": "state", "comparator": "==", "includes": ["stoppedUP"]}],
+		"then": "start"
+	},
+	// Resume almost finished torrents that are stopped
+	{
+		"if": [
+			{"key": "state", "comparator": "==", "includes": ["stoppedDL"]},
+			{"key": "progress", "comparator": ">=", "threshold": 0.95}
+		],
+		"then": "start"
+	},
+	// Recheck missing files
+	{
+		"if": [{"key": "state", "comparator": "==", "includes": ["missingFiles"]}],
+		"then": "recheck"
+	},
+	// Remove errored cross-seed-links
+	{
+		"if": [
+			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+			{"key": "state", "comparator": "==", "includes": ["error"]}
+		],
+		"then": "delete"
+	},
+	// Remove cross-seed-links that have less than 95% progress
+	{
+		"if": [
+			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+			{"key": "progress", "comparator": "<", "threshold": 0.95},
+			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+		],
+		"then": "delete"
+	},
+	// Force disable sequential downloads on all torrents
+	{
+		"if": [{"key": "seq_dl", "comparator": "=="}],
+		"then": "toggleSequentialDownload"
+	},
+	// Force enable auto torrent management mode for non cross-seed torrents
+	{
+		"if": [
+			{"key": "auto_tmm", "comparator": "!="},
+			{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
+		],
+		"then": "setAutoManagement",
+		"arg": true
+	},
+	// Remove Public Torrents
+	{
+		"if": [
+			{"key": "private", "comparator": "!="},
+			{"key": "state", "comparator": "==", "includes": ["stalledUP", "stoppedUP", "uploading"]}
+		],
+		"then": "delete"
+	},
+	// Remove !noHL torrents from freeleech trackers
+	{
+		"if": [
+			{"key": "tags", "comparator": "==", "includes": ["!noHL"]},
+			{"key": "tags", "comparator": "==", "includes": ["@MLK", "@FNP", "@RUT"]}
+		],
+		"then": "delete"
+	},
 	{
 		"if": [{"key": "tracker", "comparator": "==", "includes": ["blutopia"]}],
 		"then": "addTags",
