@@ -9,7 +9,7 @@ const getTorrentsMoving = (torrents: Torrent[]): Torrent[] => torrents.filter(to
 
 const getTotalSize = (torrents: Torrent[]): number => torrents.map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);
 
-export const queue = async (api: Qbittorrent, torrents: Torrent[]): Promise<number> => {
+export const queue = async (torrents: Torrent[], api: Qbittorrent): Promise<number> => {
   const config = CONFIG.QUEUE();
   if (!config.QUEUE_SIZE_LIMIT) return 0;
 

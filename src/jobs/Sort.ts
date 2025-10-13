@@ -23,7 +23,7 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-export const sort = async (api: Qbittorrent, torrents: Torrent[], config = CONFIG.SORT()): Promise<number> => {
+export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFIG.SORT()): Promise<number> => {
   if (!config.SORT) return 0;
 
   torrents = getInitialTorrents(torrents);

@@ -80,10 +80,10 @@ export default class Qbittorrent {
     return PreferencesSchema.parse(JSON.parse(result))
   }
 
-  public setPreferences = (preferences: Partial<Preferences>): Promise<string | false> => {
+  public setPreferences = async (preferences: Partial<Preferences>): Promise<number> => {
     const fd = new URLSearchParams();
     fd.set('json', JSON.stringify(preferences))
-    return this.request('/app/setPreferences', fd)
+    return await this.request('/app/setPreferences', fd) === false ? 0 : 1;
   }
 
   public async torrents(): Promise<Torrent[]> {
@@ -114,8 +114,8 @@ export default class Qbittorrent {
     }
   }
 
-  public topPriority = (hashes: string[]): Promise<string | false> => {
+  public topPriority = async (hashes: string[]): Promise<number> => {
     logContext('qBittorrent', () => { console.log(`${hashes[hashes.length-1]} Moving to position ${hashes.length}`); });
-    return this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
+    return await this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') })) === false ? 0 : 1;
   }
 }

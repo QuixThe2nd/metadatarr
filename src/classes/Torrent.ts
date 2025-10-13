@@ -78,31 +78,31 @@ export class PartialTorrent implements PartialTorrentType {
     return z.array(z.object({ name: z.string() })).parse(JSON.parse(data));
   }
 
-  public start = (): Promise<string | false> => this.request('start');
-  public recheck = (): Promise<string | false> => this.request('recheck');
-  public delete = (): Promise<string | false> => this.request('delete', { deleteFiles: false });
+  public start = async (): Promise<number> => await this.request('start') === false ? 0 : 1;;
+  public recheck = async (): Promise<number> => await this.request('recheck') === false ? 0 : 1;;
+  public delete = async (): Promise<number> => await this.request('delete', { deleteFiles: false }) === false ? 0 : 1;;
   public setCategory = (category: string): Promise<string | false> => this.request('setCategory', { category });
-  public rename = (name: string): Promise<string | false> => this.request('rename', { name });
+  public rename = async (name: string): Promise<number> => await this.request('rename', { name }) === false ? 0 : 1;;
   public renameFile = async (oldPath: string, newPath: string): Promise<string | false> => {
     const result = await this.request('renameFile', { oldPath, newPath });
     if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck();
     return result;
   }
-  public toggleSequentialDownload = (): Promise<string | false> => this.request('toggleSequentialDownload');
-  public setAutoManagement = (enable: boolean): Promise<string | false> => this.request('setAutoManagement', { enable });
-  public removeTags = (tags: string): Promise<string | false> => {
+  public toggleSequentialDownload = async (): Promise<number> => await this.request('toggleSequentialDownload') === false ? 0 : 1;;
+  public setAutoManagement = async (enable: boolean): Promise<number> => await this.request('setAutoManagement', { enable }) === false ? 0 : 1;;
+  public removeTags = async (tags: string): Promise<number> => {
     const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     const removableTags = splitTags.filter(tag => this.tags?.includes(tag) === true);
-    if (removableTags.length === 0) return Promise.resolve(false);
+    if (removableTags.length === 0) return Promise.resolve(0);
     for (const tag of removableTags) this.tags?.splice(this.tags.indexOf(tag), 1);
-    return this.request('removeTags', { tags: removableTags.join(', ') });
+    return await this.request('removeTags', { tags: removableTags.join(', ') }) === false ? 0 : 1;;
   };
-  public addTags = (tags: string): Promise<string | false> => {
+  public addTags = async (tags: string): Promise<number> => {
     const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     const newTags = splitTags.filter(tag => this.tags?.includes(tag) !== true);
-    if (newTags.length === 0) return Promise.resolve(false);
+    if (newTags.length === 0) return Promise.resolve(0);
     for (const tag of newTags) this.tags?.push(tag);
-    return this.request('addTags', { tags: newTags.join(', ') });
+    return await this.request('addTags', { tags: newTags.join(', ') }) === false ? 0 : 1;;
   }
 }
 

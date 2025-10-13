@@ -26,17 +26,18 @@ await startServer(api);
 
 if (!CONFIG.CORE().DEV_INJECT) await importMetadataFiles(webtorrent, api);
 
+const tasks = (torrents: Torrent[]) => ({
+  Actions: () => actions(torrents),
+  Duplicates: () => duplicates(torrents),
+  Sort: () => sort(torrents, api),
+  Queue: () => queue(torrents, api),
+  Naming: () => Naming.run(torrents, originalNames.names),
+  Metadata: () => metadata(torrents, api, webtorrent)
+}) as const;
+
 const runJobs = async (torrents: Torrent[]): Promise<number> => {
   let changes = 0;
-  const tasks = {
-    Actions: () => actions(torrents),
-    Duplicates: () => duplicates(torrents),
-    Sort: () => sort(api, torrents),
-    Queue: () => queue(api, torrents),
-    Naming: () => Naming.run(torrents, originalNames.names),
-    Metadata: () => metadata(torrents, api, webtorrent)
-  } as const;
-  for (const [name, task] of Object.entries(tasks)) {
+  for (const [name, task] of Object.entries(tasks(torrents))) {
     const taskChanges = await logContext(name, async () => {
       console.log('Job Started');
       const taskChanges = await task()

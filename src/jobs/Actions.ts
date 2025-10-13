@@ -8,9 +8,8 @@ const actions = async (torrents: Torrent[]): Promise<number> => {
     let selectedTorrents = torrents;
     for (const selector of action.if) selectedTorrents = selectorEngine.execute(selectedTorrents, selector, true);
     for (const torrent of selectedTorrents) {
-      if ('arg' in action) await torrent[action.then](action.arg);
-      else await torrent[action.then]();
-      changes++;
+      if ('arg' in action) changes += await torrent[action.then](action.arg);
+      else changes += await torrent[action.then]();
     }
   }
   return changes;
