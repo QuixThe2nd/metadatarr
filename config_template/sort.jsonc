@@ -128,6 +128,14 @@
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
 		{"key": "size", "comparator": "!=", "threshold": 0},
-		{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+		{
+			"key": "state",
+			"comparator": "!=",
+			"includes": ["checkingDL", "checkingUP"],
+			"else": [
+				{"key": "amount_left", "comparator": "ASC"},
+				{"key": "state", "comparator": "==", "includes": ["checkingDL"]}
+			]
+		}
 	]
 }

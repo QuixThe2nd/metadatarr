@@ -42,15 +42,15 @@ const booleanSelectorSchema = z.object({ comparator: booleanComparators });
 const numberSortSchema = z.object({ comparator: orderComparators });
 const coercedBooleanSelectorSchema = z.object({ comparator: z.union([numericComparators, booleanComparators]) });
 
-export const SelectorSchema = z.union([
+const baseSelectorSchema = z.union([
   numberSortSchema.extend({ key: z.enum(numberProperties) }),
   booleanSelectorSchema.extend({ key: z.enum(booleanProperties) }),
   coercedBooleanSelectorSchema.extend({ key: z.enum(numberProperties), threshold: z.number() }),
   coercedBooleanSelectorSchema.extend({ key: z.union([z.enum(stringProperties), z.enum(arrayProperties)]), includes: z.array(z.string().min(1)).min(1) }),
   // BaseSelectorSchema.extend({ key: z.literal("priority_tag"), prefix: z.string().min(1) }),
 ]);
+export const SelectorSchema = baseSelectorSchema.and(z.object({ else: z.array(baseSelectorSchema) }).partial())
 export type Selector = z.infer<typeof SelectorSchema>;
-
 
 const compare = (a: number | boolean, b: number | boolean, comparator: z.infer<typeof numericComparators> | z.infer<typeof booleanComparators>): boolean => {
   switch (comparator) {
@@ -77,11 +77,17 @@ export const selectorEngine = {
     return torrents;
   },
   _execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
-    if (isBooleanProperty(query.key)) return this.processBoolean(torrents, query as Selector & { key: BooleanProperty }, filter);
-    else if (isStringProperty(query.key)) return this.processString(torrents, query as Selector & { key: StringProperty }, filter);
-    else if (isArrayProperty(query.key)) return this.processArray(torrents, query as Selector & { key: ArrayProperty }, filter);
-    else if (isNumberProperty(query.key)) return this.processNumber(torrents, query as Selector & { key: NumberProperty }, filter);
-    throw new Error(`Unexpected key: ${query.key}`);
+    torrents = isBooleanProperty(query.key) ? this.processBoolean(torrents, query as Selector & { key: BooleanProperty }, filter) :
+      isStringProperty(query.key) ? this.processString(torrents, query as Selector & { key: StringProperty }, filter) :
+      isArrayProperty(query.key) ? this.processArray(torrents, query as Selector & { key: ArrayProperty }, filter) :
+      isNumberProperty(query.key) ? this.processNumber(torrents, query as Selector & { key: NumberProperty }, filter) : [];
+
+    if (!query.else || filter) return torrents;
+    const elseQueries = query.else;
+    const matches = this.execute(torrents, query, true);
+    let elseTorrents = torrents.filter(t => !matches.includes(t));
+    for (const elseQuery of elseQueries) elseTorrents = this.execute(elseTorrents, elseQuery, false);
+    return [...matches, ...elseTorrents];
   },
   processBoolean(torrents: Torrent[], query: Selector & { key: BooleanProperty }, filter: boolean): Torrent[] {
     const getValue = (t: Torrent): boolean => query.comparator === '==' ? t[query.key] ?? false : !(t[query.key] ?? false);
