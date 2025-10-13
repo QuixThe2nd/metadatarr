@@ -2,6 +2,7 @@ import fs from 'fs';
 import express from 'express';
 import z from 'zod';
 import type Qbittorrent from './qBittorrent';
+import { runJobs } from '..';
 
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({
@@ -30,11 +31,17 @@ export const startServer = (qB: Qbittorrent): Promise<void> => new Promise(resol
     }
     res.status(200).send();
   });
+  
+  app.post('/api/run-jobs', (_, res) => {
+    console.log('Manual job run triggered')
+    runJobs().catch(console.error);
+    res.status(200).send();
+  });
 
   app.use((_, res) => res.type('html').send(fs.readFileSync('./web/index.html', 'utf8')));
 
-  app.listen(9090, () => {
-    console.log('Server started at http://localhost:9090');
+  app.listen(9191, () => {
+    console.log('Server started at http://localhost:9191');
     resolve();
-  });
+  })
 });

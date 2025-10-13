@@ -5,12 +5,12 @@ const hook = async () => {
   const qB = await Qbittorrent.connect();
   console.log(qB);
 
-  return async (torrents: Torrent[]): Promise<void> => {
+  return async (torrents: Torrent[]): Promise<number> => {
     for (const torrent of torrents) 
       console.log(torrent.tracker)
-    
 
     await new Promise(res => setTimeout(res, 10_000))
+    return 0;
   }
 }
 

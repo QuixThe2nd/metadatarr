@@ -7,5 +7,5 @@ services:
       - ./config:/app/store/config
       - /mnt/external/qBittorrent/Torrents:/torrents
     ports:
-      - 9191:9090
+      - 9191:9191
 networks: {}

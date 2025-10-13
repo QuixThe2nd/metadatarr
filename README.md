@@ -95,7 +95,10 @@ All default configuration files are located at `./store/config_template/`, you m
 The only mandatory config that MUST be set is your qBittorrent endpoint and login credentials at `.qbittorrent_client.jsonc`.
 
 ## Uncross-Seed
-To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9090/api/uncross-seed`.
+To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
+
+## Triggering Jobs
+Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better of setting a much slower frequency of job runs, and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add.
 
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!

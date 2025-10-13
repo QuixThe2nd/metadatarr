@@ -49,7 +49,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 	},
 	// Force disable sequential downloads on all torrents
 	{
-		"if": [{"key": "seq_dl", "comparator": "=="}],
+		"if": [{"key": "seq_dl", "comparator": "!="}],
 		"then": "toggleSequentialDownload"
 	},
 	// Force enable auto torrent management mode for non cross-seed torrents

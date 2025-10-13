@@ -13,6 +13,6 @@ RUN cp -r ./store/config_template/. ./store/config
 
 VOLUME ["/app/store/config"]
 
-EXPOSE 9090
+EXPOSE 9191
 
 CMD ["npx", "tsx", "src/index.ts"]

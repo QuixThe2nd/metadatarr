@@ -15,17 +15,6 @@ import { logContext } from './log';
 import metadata from './jobs/Metadata';
 import actions from './jobs/Actions';
 
-await testConfig();
-
-console.log('Starting WebTorrent');
-const webtorrent = new WebTorrent({ downloadLimit: 1024 });
-console.log('Connecting to qBittorrent');
-const api = await Qbittorrent.connect();
-const originalNames = await OriginalNames.start();
-await startServer(api);
-
-if (!CONFIG.CORE().DEV_INJECT) await importMetadataFiles(webtorrent, api);
-
 const tasks = (torrents: Torrent[]) => ({
   Actions: () => actions(torrents),
   Duplicates: () => duplicates(torrents),
@@ -35,7 +24,16 @@ const tasks = (torrents: Torrent[]) => ({
   Metadata: () => metadata(torrents, api, webtorrent)
 }) as const;
 
-const runJobs = async (torrents: Torrent[]): Promise<number> => {
+let jobsRunning = false;
+export const runJobs = async (): Promise<number> => {
+  if (jobsRunning) return 0;
+  jobsRunning = true;
+  console.log('Jobs Started');
+
+  const torrents = await api.torrents();
+
+  if (inject !== false) return inject(torrents);
+
   let changes = 0;
   for (const [name, task] of Object.entries(tasks(torrents))) {
     const taskChanges = await logContext(name, async () => {
@@ -46,22 +44,23 @@ const runJobs = async (torrents: Torrent[]): Promise<number> => {
     });
     changes += taskChanges;
   }
+
+  console.log('Jobs Finished');
+  jobsRunning = false;
   return changes;
 }
 
+await testConfig();
+
+const api = await Qbittorrent.connect();
+const webtorrent = new WebTorrent({ downloadLimit: 1024 });
+const originalNames = await OriginalNames.start();
+const inject = CONFIG.CORE().DEV_INJECT ? await hook() : false;
+if (inject !== false) await importMetadataFiles(webtorrent, api);
+
+await startServer(api);
+
 for (;;) {
-  const torrents = await api.torrents();
-
-  if (CONFIG.CORE().DEV_INJECT) {
-    const inject = await hook();
-    await inject(torrents);
-    continue;
-  }
-
-  let changes = 0;
-  console.log('Jobs Started')
-  changes += await runJobs(torrents);
-  console.log('Jobs Finished')
-
+  const changes = await runJobs();
   await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 || CONFIG.CORE().DRY_RUN ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
 }
