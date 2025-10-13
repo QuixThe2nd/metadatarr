@@ -106,13 +106,8 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - before/after photos of torrent names
 
 ### Queries:
-- Tracker selector
 - MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
-- Nested sort - Apply sort queries only if matched another query - so we can merge moving, checking, and sort methods
 - Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
-
-### Actions
-- Add/Remove tags action
 
 ### Move from code to config
 - User configurable cleanup rules in Naming.ts

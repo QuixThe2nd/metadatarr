@@ -19,7 +19,8 @@ export const TorrentSchema = z.object({
   seq_dl: z.boolean(),
   auto_tmm: z.boolean(),
   added_on: z.number(),
-  num_complete: z.number()
+  num_complete: z.number(),
+  tracker: z.string()
 });
 type TorrentType = z.infer<typeof TorrentSchema>;
 
@@ -45,6 +46,7 @@ export class PartialTorrent implements PartialTorrentType {
   public readonly auto_tmm: PartialTorrentType['auto_tmm'];
   public readonly added_on: PartialTorrentType['added_on'];
   public readonly num_complete: PartialTorrentType['num_complete'];
+  public readonly tracker: PartialTorrentType['tracker'];
 
   constructor(private readonly qB: Qbittorrent, data: PartialTorrentType) {
     Object.assign(this, data);
@@ -88,8 +90,20 @@ export class PartialTorrent implements PartialTorrentType {
   }
   public toggleSequentialDownload = (): Promise<string | false> => this.request('toggleSequentialDownload');
   public setAutoManagement = (enable: boolean): Promise<string | false> => this.request('setAutoManagement', { enable });
-  public removeTags = (tags: string): Promise<string | false> => this.request('removeTags', { tags });
-  public addTags = (tags: string): Promise<string | false> => this.request('addTags', { tags });
+  public removeTags = (tags: string): Promise<string | false> => {
+    const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    const removableTags = splitTags.filter(tag => this.tags?.includes(tag) === true);
+    if (removableTags.length === 0) return Promise.resolve(false);
+    for (const tag of removableTags) this.tags?.splice(this.tags.indexOf(tag), 1);
+    return this.request('removeTags', { tags: removableTags.join(', ') });
+  };
+  public addTags = (tags: string): Promise<string | false> => {
+    const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    const newTags = splitTags.filter(tag => this.tags?.includes(tag) !== true);
+    if (newTags.length === 0) return Promise.resolve(false);
+    for (const tag of newTags) this.tags?.push(tag);
+    return this.request('addTags', { tags: newTags.join(', ') });
+  }
 }
 
 export default class Torrent extends PartialTorrent implements TorrentType {
@@ -108,6 +122,7 @@ export default class Torrent extends PartialTorrent implements TorrentType {
   declare added_on: TorrentType['added_on'];
   declare auto_tmm: TorrentType['auto_tmm'];
   declare num_complete: TorrentType['num_complete'];
+  declare tracker: TorrentType['tracker'];
 
   constructor(qB: Qbittorrent, data: PartialTorrentType) {
     super(qB, data);

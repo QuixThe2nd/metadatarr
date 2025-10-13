@@ -15,11 +15,11 @@ function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
 const actions = getMethodNames(new Torrent({} as Qbittorrent, {} as Torrent));
-const excludedActions = ['rename', 'renameFile', 'setCategory', 'removeTags', 'addTags', 'setAutoManagement', 'files'] as const;
+const excludedActions = ['setAutoManagement', 'addTags', 'removeTags', 'rename', 'renameFile', 'setCategory', 'files'] as const;
 const filteredActions = exclude(actions, excludedActions);
 
 export const ActionsSchema = z.array(z.object({ if: z.array(SelectorSchema) }).and(z.union([
-  z.object({ then: z.literal('setAutoManagement'), arg: z.boolean() }),
+  z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),
   z.object({ then: z.enum(filteredActions) })
 ])));
 

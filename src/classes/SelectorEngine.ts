@@ -83,10 +83,9 @@ export const selectorEngine = {
       isNumberProperty(query.key) ? this.processNumber(torrents, query as Selector & { key: NumberProperty }, filter) : [];
 
     if (!query.else || filter) return torrents;
-    const elseQueries = query.else;
     const matches = this.execute(torrents, query, true);
     let elseTorrents = torrents.filter(t => !matches.includes(t));
-    for (const elseQuery of elseQueries) elseTorrents = this.execute(elseTorrents, elseQuery, false);
+    for (const elseQuery of query.else) elseTorrents = this.execute(elseTorrents, elseQuery, false);
     return [...matches, ...elseTorrents];
   },
   processBoolean(torrents: Torrent[], query: Selector & { key: BooleanProperty }, filter: boolean): Torrent[] {
