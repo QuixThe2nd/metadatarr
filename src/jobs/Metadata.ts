@@ -10,7 +10,7 @@ const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instan
   const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
     if (await webtorrent.get(hash)) return;
     console.log(hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
-    webtorrent.add(magnet_uri, { destroyStoreOnDestroy: false }, torrent => saveMetadata(webtorrent, qB, torrent.torrentFile, "WebTorrent"));
+    webtorrent.add(magnet_uri, { destroyStoreOnDestroy: false }, torrent => saveMetadata(webtorrent, qB, torrent.torrentFile));
   }
 
   const fetchFromHTTP = async (hash: string, source: z.infer<typeof MetadataSchema>['sources'][number]): Promise<void> => {
@@ -21,7 +21,7 @@ const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instan
       if (response.status === 404) console.warn(hash, `[${url.hostname}] No metadata found`);
       else if (!response.ok) console.warn(hash, `[${url.hostname}] Failed to fetch metadata - ${response.status} ${response.statusText}`);
       else if (response.headers.get("content-type")?.startsWith("text/html") ?? false) console.warn(hash, `[${url.hostname}] Invalid response type - ${response.headers.get("content-type")}`);
-      else saveMetadata(webtorrent, qB, Buffer.from(await response.arrayBuffer()), url.hostname).catch(console.error);
+      else saveMetadata(webtorrent, qB, Buffer.from(await response.arrayBuffer())).catch(console.error);
     } catch (e) {
       console.warn(hash, `[${url.hostname}] An error occurred`, (e as Error).cause);
     }

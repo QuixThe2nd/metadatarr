@@ -36,33 +36,40 @@ const isNumberProperty = (key: Property): key is NumberProperty => numberPropert
 const isArrayProperty = (key: Property): key is ArrayProperty => arrayProperties.includes(key as ArrayProperty);
 
 const booleanComparators = z.enum(["==", "!="]);
-const booleanSelectorSchema = z.object({ comparator: booleanComparators });
-const numberSortSchema = z.object({ comparator: z.enum(["ASC", "DESC"]) });
 const numericComparators = z.enum([">=", ">", "<", "<="]);
-type Comparators = z.infer<typeof numericComparators> | z.infer<typeof booleanComparators>;
+const orderComparators = z.enum(["ASC", "DESC"]);
+const booleanSelectorSchema = z.object({ comparator: booleanComparators });
+const numberSortSchema = z.object({ comparator: orderComparators });
 const coercedBooleanSelectorSchema = z.object({ comparator: z.union([numericComparators, booleanComparators]) });
 
 export const SelectorSchema = z.union([
   numberSortSchema.extend({ key: z.enum(numberProperties) }),
+  booleanSelectorSchema.extend({ key: z.enum(booleanProperties) }),
   coercedBooleanSelectorSchema.extend({ key: z.enum(numberProperties), threshold: z.number() }),
   coercedBooleanSelectorSchema.extend({ key: z.union([z.enum(stringProperties), z.enum(arrayProperties)]), includes: z.array(z.string().min(1)).min(1) }),
-  booleanSelectorSchema.extend({ key: z.enum(booleanProperties) }),
   // BaseSelectorSchema.extend({ key: z.literal("priority_tag"), prefix: z.string().min(1) }),
 ]);
 export type Selector = z.infer<typeof SelectorSchema>;
 
+
+const compare = (a: number | boolean, b: number | boolean, comparator: z.infer<typeof numericComparators> | z.infer<typeof booleanComparators>): boolean => {
+  switch (comparator) {
+    case '>': return a > b;
+    case '>=': return a >= b;
+    case '<': return a < b;
+    case '<=': return a <= b;
+    case '==': return a === b;
+    case '!=': return a !== b;
+    default: throw new Error(`Unknown comparator: ${comparator}`);
+  }
+};
+
+const booleanSort = (torrents: Torrent[], getValue: (t: Torrent) => boolean): Torrent[] => [...torrents].sort((a, b) => {
+  const aValue = getValue(a);
+  return aValue === getValue(b) ? 0 : aValue ? -1 : 1;
+});
+
 export const selectorEngine = {
-  compare(a: number | boolean, b: number | boolean, comparator: Comparators): boolean {
-    switch (comparator) {
-      case '>': return a > b;
-      case '>=': return a >= b;
-      case '<': return a < b;
-      case '<=': return a <= b;
-      case '==': return a === b;
-      case '!=': return a !== b;
-      default: throw new Error(`Unknown comparator: ${comparator}`);
-    }
-  },
   execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
     const startCount = torrents.length;
     torrents = this._execute(torrents, query, filter);
@@ -77,34 +84,23 @@ export const selectorEngine = {
     throw new Error(`Unexpected key: ${query.key}`);
   },
   processBoolean(torrents: Torrent[], query: Selector & { key: BooleanProperty }, filter: boolean): Torrent[] {
-    const getValue = (t: Torrent): boolean => t[query.key] ?? false;
-    if (filter) return torrents.filter(t => this.compare(getValue(t), true, query.comparator))
-    return [...torrents].sort((a, b) => this.compare(getValue(a), getValue(b), query.comparator) ? 1 : -1);
+    const getValue = (t: Torrent): boolean => query.comparator === '==' ? t[query.key] ?? false : !(t[query.key] ?? false);
+    return filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
   },
   processString(torrents: Torrent[], query: Selector & { key: StringProperty }, filter: boolean): Torrent[] {
-    const getValue = (t: Torrent): boolean => this.compare(query.includes.some(q => t[query.key]?.toLowerCase().includes(q.toLowerCase()) ?? false), true, query.comparator);
-    if (filter) return torrents.filter(t => this.compare(getValue(t), true, query.comparator))
-    return [...torrents].sort((a, b) => {
-      const aValue = getValue(a);
-      return (aValue === getValue(b)) ? 0 : aValue ? -1 : 1;
-    });
+    const getValue = (t: Torrent): boolean => compare(query.includes.some(q => t[query.key]?.toLowerCase().includes(q.toLowerCase()) ?? false), true, query.comparator);
+    return filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
   },
   processArray(torrents: Torrent[], query: Selector & { key: ArrayProperty }, filter: boolean): Torrent[] {
-    const getValue = (t: Torrent): boolean => this.compare(query.includes.some(q => t[query.key].includes(q)), true, query.comparator);
-    if (filter) return torrents.filter(t => this.compare(getValue(t), true, query.comparator))
-    return [...torrents].sort((a, b) => this.compare(getValue(a), getValue(b), query.comparator) ? 1 : -1);
+    const getValue = (t: Torrent): boolean => compare(query.includes.some(q => t[query.key].includes(q)), true, query.comparator);
+    return filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
   },
   processNumber(torrents: Torrent[], query: Selector & { key: NumberProperty }, filter: boolean): Torrent[] {
     if ('threshold' in query) {
-      const getValue = (t: Torrent): boolean => this.compare(t[query.key] ?? 0, query.threshold, query.comparator);
-      if (filter) return torrents.filter(t => getValue(t));
-      return [...torrents].sort((a, b) => {
-        const aValue = getValue(a);
-        return (aValue === getValue(b)) ? 0 : aValue ? -1 : 1;
-      });
+      const getValue = (t: Torrent): boolean => compare(t[query.key] ?? 0, query.threshold, query.comparator);
+      return filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
     }
     const getValue = (t: Torrent): number => t[query.key] ?? 0;
-    const multiplier = ['ASC', '<', '<=', '=='].includes(query.comparator) ? 1 : -1;
-    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
+    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * (query.comparator === 'ASC' ? 1 : -1));
   }
 }

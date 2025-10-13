@@ -26,7 +26,7 @@
 
 	Set to 0 to disable stepping.
 	*/
-	"MAX_MOVES_PER_CYCLE": 100,
+	"MAX_MOVES_PER_CYCLE": 500,
 
 	/* Minimum API calls to make before stopping when using MAX_MOVES_PER_CYCLE
 	This ensures that if you have too many redundant moves at the start of your queue, it will still send a minimum number of API calls before stopping.

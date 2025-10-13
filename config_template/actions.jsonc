@@ -39,37 +39,49 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "delete"
 	},
 	// Remove cross-seed-links that have less than 95% progress
-	// { // TODO: Broken
-	// 	"if": [
-	// 		{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
-	// 		{"key": "progress", "comparator": "<", "threshold": 0.95},
-	// 		{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
-	// 	],
-	// 	"then": "delete"
-	// },
+	{
+		"if": [
+			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+			{"key": "progress", "comparator": "<", "threshold": 0.95},
+			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+		],
+		"then": "delete"
+	},
 	// Force disable sequential downloads on all torrents
 	{
 		"if": [{"key": "seq_dl", "comparator": "=="}],
 		"then": "toggleSequentialDownload"
 	},
 	// Force enable auto torrent management mode for non cross-seed torrents
-	// { // TODO: Broken
-	// 	"if": [
-	// 		{"key": "auto_tmm", "comparator": "!="},
-	// 		{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
-	// 	],
-	// 	"then": "setAutoManagement",
-	// 	"arg": true
-	// },
+	{
+		"if": [
+			{"key": "auto_tmm", "comparator": "!="},
+			{"key": "tags", "comparator": "!=", "includes": ["cross-seed"]}
+		],
+		"then": "setAutoManagement",
+		"arg": true
+	},
 	// Remove Public Torrents
 	{
 		"if": [
-			// RuTracker torrents are marked as public and new trackers have "Public Tracker" so we should catch both
-			{"key": "tags", "comparator": "==", "includes": ["Public Tracker"]},
 			{"key": "private", "comparator": "!="},
-			{"key": "state", "comparator": "==", "includes": ["stalledUP", "stoppedUP", "uploading"]},
-			{"key": "num_complete", "comparator": ">=", "threshold": 5}
+			{"key": "state", "comparator": "==", "includes": ["stalledUP", "stoppedUP", "uploading"]}
+		],
+		"then": "delete"
+	},
+	// Remove !noHL torrents from freeleech trackers
+	{
+		"if": [
+			{"key": "tags", "comparator": "==", "includes": ["!noHL"]},
+			{"key": "tags", "comparator": "==", "includes": ["@MLK", "@FNP", "@RUT"]}
 		],
 		"then": "delete"
 	}
+	// { // TODO:
+	// 	"if": [
+	// 		{"key": "trackers", "comparator": "INCLUDES", "includes": ["blutopia"]}
+	// 	],
+	// 	"then": "addTags",
+	// 	"arg": ["@BLU"]
+	// }
 ]

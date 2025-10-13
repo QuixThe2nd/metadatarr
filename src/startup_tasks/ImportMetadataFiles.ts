@@ -8,7 +8,7 @@ const importFile = async (webtorrent: Instance, qB: Qbittorrent, dir: string, fi
   if (!file.endsWith('.torrent')) return;
   const torrentFile = fs.readFileSync(`${dir  }/${  file}`);
   try {
-    await saveMetadata(webtorrent, qB, torrentFile, 'Local');
+    await saveMetadata(webtorrent, qB, torrentFile);
   } catch (e) {
     console.error(e);
   }

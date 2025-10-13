@@ -45,6 +45,5 @@ export const testConfig = async (): Promise<void> => {
   }
   console.warn(yellow('||                                ||'));
   console.warn(yellow('|==================================|'));
-  
-  await new Promise(res => setTimeout(res, 5_000))
+  if (!CONFIG.CORE().DRY_RUN) await new Promise(res => setTimeout(res, 5_000))
 }
