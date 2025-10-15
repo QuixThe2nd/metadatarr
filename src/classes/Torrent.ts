@@ -20,7 +20,8 @@ export const TorrentSchema = z.object({
   auto_tmm: z.boolean(),
   added_on: z.number(),
   num_complete: z.number(),
-  tracker: z.string()
+  tracker: z.string(),
+  eta: z.number()
 });
 type TorrentType = z.infer<typeof TorrentSchema>;
 
@@ -47,6 +48,7 @@ export class PartialTorrent implements PartialTorrentType {
   public readonly added_on: PartialTorrentType['added_on'];
   public readonly num_complete: PartialTorrentType['num_complete'];
   public readonly tracker: PartialTorrentType['tracker'];
+  public readonly eta: PartialTorrentType['eta'];
 
   constructor(private readonly qB: Qbittorrent, data: PartialTorrentType) {
     Object.assign(this, data);
@@ -126,6 +128,7 @@ export default class Torrent extends PartialTorrent implements TorrentType {
   declare auto_tmm: TorrentType['auto_tmm'];
   declare num_complete: TorrentType['num_complete'];
   declare tracker: TorrentType['tracker'];
+  declare eta: TorrentType['eta'];
 
   constructor(qB: Qbittorrent, data: PartialTorrentType) {
     super(qB, data);
