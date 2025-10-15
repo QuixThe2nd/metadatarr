@@ -1,11 +1,14 @@
 import Naming from '../src/jobs/Naming'
 import Qbittorrent from '../src/classes/qBittorrent'
 
-// console.log(Naming.test('Am I Racist (2024) - [1080p WEB h264] - SUBSCRiBE', true));
-// process.exit()
-
+const name = 'Parasite (2019) - [2160p 4k BluRay DV x265] [DDP 7.1 ENG] - Weasley HONE';
 const filter = '';
 const verbose = false;
+
+if (name.length) {
+  console.log(Naming.test(name, true));
+  process.exit()
+}
 
 const qB = await Qbittorrent.connect()
 

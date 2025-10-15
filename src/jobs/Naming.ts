@@ -248,7 +248,7 @@ export default class Naming {
       return other;
     },
     resolution: (matches, other) => {
-      if (matches.includes('4k')) other = other.replace(/\bUHD\b/i, '');
+      if (matches.includes('4k')) other = other.replace(/\b(UHD|2160p)\b/i, '');
       else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
       return other;
     },
@@ -307,6 +307,10 @@ export default class Naming {
     },
     color: matches => {
       if (matches.includes('DV') && matches.includes('HDR')) matches = matches.filter(match => match !== 'HDR');
+      return matches
+    },
+    resolution: matches => {
+      if (matches.includes('2160p') && matches.includes('4k')) matches = matches.filter(match => match !== '2160p');
       return matches
     }
   }
