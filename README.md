@@ -98,7 +98,7 @@ The only mandatory config that MUST be set is your qBittorrent endpoint and logi
 To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
 
 ## Triggering Jobs
-Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better of setting a much slower frequency of job runs, and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add.
+Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better of setting a much slower frequency of job runs, and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add (or complete).
 
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
@@ -109,8 +109,8 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - before/after photos of torrent names
 
 ### Queries:
-- MAYBE: Support SQL syntax in selectors - Basic mapping from SQL -> JSON
 - Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
+- Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
 
 ### Move from code to config
 - User configurable cleanup rules in Naming.ts

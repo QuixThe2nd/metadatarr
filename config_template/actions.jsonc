@@ -43,7 +43,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"if": [
 			{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
 			{"key": "progress", "comparator": "<", "threshold": 0.95},
-			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP"]}
+			{"key": "state", "comparator": "!=", "includes": ["checkingDL", "checkingUP", "checkingResumeData", "moving"]}
 		],
 		"then": "delete"
 	},
@@ -76,6 +76,16 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			{"key": "tags", "comparator": "==", "includes": ["@MLK", "@FNP", "@RUT"]}
 		],
 		"then": "delete"
+	},
+	{
+		"if": [{"key": "state", "comparator": "==", "includes": ["stalledDL"]}],
+		"then": "addTags",
+		"arg": "stalledDL"
+	},
+	{
+		"if": [{"key": "state", "comparator": "!=", "includes": ["stalledDL"]}],
+		"then": "removeTags",
+		"arg": "stalledDL"
 	},
 	{
 		"if": [{"key": "tracker", "comparator": "==", "includes": ["blutopia"]}],
