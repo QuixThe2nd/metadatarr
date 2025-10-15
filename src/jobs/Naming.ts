@@ -85,7 +85,11 @@ export default class Naming {
 
   async renameAllFiles(torrent: Torrent, files: { name: string }[], oldName: string, name: string): Promise<number> {
     let changes = 0;
-    for (const file of files) if (await torrent.renameFile(file.name, file.name.replaceAll(oldName, name)) !== false) changes++;
+    for (const file of files) {
+      const oldFileName = file.name;
+      const newFileName = oldFileName.replaceAll(oldName, name);
+      if (oldFileName !== newFileName && await torrent.renameFile(oldFileName, newFileName) !== false) changes++;
+    }
     return changes;
   }
 
