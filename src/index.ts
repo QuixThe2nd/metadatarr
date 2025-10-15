@@ -45,7 +45,7 @@ export const runJobs = async (): Promise<number> => {
     changes += taskChanges;
   }
 
-  console.log('Jobs Finished');
+  console.log('Jobs Finished - Changes:', changes);
   jobsRunning = false;
   return changes;
 }
