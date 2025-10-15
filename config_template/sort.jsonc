@@ -17,7 +17,7 @@
 	"MOVE_DELAY": 1000,
 
 	/* Maximum number of torrents to move each cycle
-	Once this threshold is reached, the SORT job will be stopped, and resumed in the next cycle.
+	Once this value is reached, the SORT job will be stopped, and resumed in the next cycle.
 	When managing a large number of torrents, this is particularly useful as it focuses on sorting the first X torrents, then moves onto the next X torrents in the next cycle.
 	The lower this number is, the more you want accurate ordering for earlier torrents.
 	For example, if you have 1000 torrents, and you set this to 10, it will sort the first 10 torrents, then re-check positioning, then sort the next 10 torrents that need to be moved.
@@ -100,41 +100,41 @@
 		ASC: Contains last
 		DESC: Contains first
 		*/
-		{"key": "name", "comparator": "==", "includes": ["S01"]},
+		{"key": "name", "comparator": "==", "value": ["S01"]},
 		/* Prefer torrents in specific categories
 		ASC: Without categories first
 		DESC: With categories first
 		When specifying multiple categories, the order of categories does not matter. If you want to prioritise specific categories over others, use multiple sort entries.
 		*/
-		{"key": "category", "comparator": "==", "includes": ["cross-seed-links"]},
+		{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
 		/* Prefer torrents that are almost finished
 		ASC: Almost finished last
 		DESC: Almost finished first
-		Threshold is a float between 0 and 1, representing the progress percentage.
+		value is a float between 0 and 1, representing the progress percentage.
 		*/
-		{"key": "progress", "comparator": ">=", "threshold": 0.1},
-		{"key": "progress", "comparator": ">=", "threshold": 0.99},
+		{"key": "progress", "comparator": ">=", "value": 0.1},
+		{"key": "progress", "comparator": ">=", "value": 0.99},
 		/* Prefer manually prioritised torrents
 		ASC: Priority 1 first
 		DESC: Priority 1 last
 		Untagged torrents are considered priority 50
 		*/
 		// {"key": "PRIORITY_TAG", "comparator": "ASC", "prefix": "Priority - "}, // TODO: // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
-		{"key": "state", "comparator": "!=", "includes": ["stoppedDL", "stoppedUP"]},
+		{"key": "state", "comparator": "!=", "value": ["stoppedDL", "stoppedUP"]},
 		/* Prefer torrents without metadata
 		ASC: Torrents with metadata first
 		DESC: Torrents without metadata first
 		By default, torrents without metadata are de-prioritised as they can't accurately be sorted by size or progress.
 		It is recommended to leave this as-is, and let Metadatarr source torrents instead of qBittorrent.
 		*/
-		{"key": "size", "comparator": "!=", "threshold": 0},
+		{"key": "size", "comparator": "!=", "value": 0},
 		{
 			"key": "state",
 			"comparator": "!=",
-			"includes": ["checkingDL", "checkingUP"],
+			"value": ["checkingDL", "checkingUP"],
 			"else": [
 				{"key": "amount_left", "comparator": "ASC"},
-				{"key": "state", "comparator": "==", "includes": ["checkingDL"]}
+				{"key": "state", "comparator": "==", "value": ["checkingDL"]}
 			]
 		}
 	]
