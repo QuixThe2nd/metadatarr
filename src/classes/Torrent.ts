@@ -82,7 +82,10 @@ export class PartialTorrent implements PartialTorrentType {
   public recheck = async (): Promise<number> => await this.request('recheck') === false ? 0 : 1;;
   public delete = async (): Promise<number> => await this.request('delete', { deleteFiles: false }) === false ? 0 : 1;;
   public setCategory = (category: string): Promise<string | false> => this.request('setCategory', { category });
-  public rename = async (name: string): Promise<number> => await this.request('rename', { name }) === false ? 0 : 1;;
+  public rename = async (name: string): Promise<number> => {
+    if (name === this.name) return 0;
+    return await this.request('rename', { name }) === false ? 0 : 1;
+  }
   public renameFile = async (oldPath: string, newPath: string): Promise<string | false> => {
     const result = await this.request('renameFile', { oldPath, newPath });
     if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck();

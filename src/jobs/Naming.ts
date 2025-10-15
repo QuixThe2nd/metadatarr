@@ -47,75 +47,67 @@ export default class Naming {
     return changes;
   }
 
-  private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
+  private handleMissingName(torrent: Torrent, origName: string | undefined): Promise<number> | number {
+    if (origName !== undefined) return torrent.removeTags('!missingOriginalName');
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) return torrent.addTags('!missingOriginalName');
+    return 0;
+  }
+
+  private async updateParsingTags(torrent: Torrent, hasParsingErrors: boolean): Promise<number> {
     let changes = 0;
-    if (origName === undefined) {
-      if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0 && !torrent.tags.includes('!missingOriginalName')) await torrent.addTags('!missingOriginalName');
-      if (this.config.FORCE_ORIGINAL_NAME) {
-        if (!this.config.TAG_MISSING_ORIGINAL_NAME) console.warn(torrent.name, "Original name not found");
-        return 0;
-      }
-    } else if (torrent.tags.includes('!missingOriginalName')) await torrent.removeTags('!missingOriginalName');
-    const { name, other } = this.cleanName(origName ?? torrent.name);
-
-    if (other.length) {
-      if (this.config.TAG_FAILED_PARSING && !torrent.tags.includes("!renameFailed")) {
-        changes++;
-        await torrent.addTags("!renameFailed");
-      }
-      if (this.config.TAG_SUCCESSFUL_PARSING && torrent.tags.includes("!renamed")) {
-        changes++;
-        await torrent.removeTags('!renamed');
-      }
-      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.name) {
-        changes++;
-        await torrent.rename(origName);
-      }
-      if (this.config.SKIP_IF_UNKNOWN) return changes;
+    if (hasParsingErrors) {
+      if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFailed");
+      if (this.config.TAG_SUCCESSFUL_PARSING) changes += await torrent.removeTags('!renamed');
     } else {
-      if (this.config.TAG_FAILED_PARSING && torrent.tags.includes("!renameFailed")) {
-        changes++;
-        await torrent.removeTags("!renameFailed");
-      }
-      if (this.config.TAG_SUCCESSFUL_PARSING && !torrent.tags.includes("!renamed")) {
-        changes++;
-        await torrent.addTags('!renamed');
-      }
+      if (this.config.TAG_FAILED_PARSING) changes += await torrent.removeTags("!renameFailed");
+      if (this.config.TAG_SUCCESSFUL_PARSING) changes += await torrent.addTags('!renamed');
+    }
+    return changes;
+  }
+
+  private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
+    if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return 0;
+    let changes = await this.handleMissingName(torrent, origName)
+
+    const { name, other } = this.cleanName(origName ?? torrent.name);
+    changes += await this.updateParsingTags(torrent, other.length > 0);
+
+    if (other.length > 0) {
+      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.name) changes += await torrent.rename(origName);
+      if (this.config.SKIP_IF_UNKNOWN) return changes;
     }
 
-    if (torrent.name !== name) {
-      changes++;
-      await torrent.rename(name);
+    changes += await torrent.rename(name);
+    if (this.config.RENAME_FILES) changes += await this.renameFiles(torrent, name);
 
-      if (this.config.RENAME_FILES) {
-        const files = await torrent.files();
-        if (files === false) return changes;
-        const parts = files[0]?.name.split('/');
+    return changes;
+  }
 
-        if (!parts || parts.length <= 1) return changes;
+  async renameAllFiles(torrent: Torrent, files: { name: string }[], oldName: string, name: string): Promise<number> {
+    let changes = 0;
+    for (const file of files) if (await torrent.renameFile(file.name, file.name.replaceAll(oldName, name)) !== false) changes++;
+    return changes;
+  }
 
-        const oldFolder = parts[0];
-        if (oldFolder === undefined) return changes;
-        const { name: newFolder, other: folderOther } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name, other: "" } : this.cleanName(oldFolder);
+  async renameFiles(torrent: Torrent, torrentName: string): Promise<number> {
+    let changes = 0;
+    const files = await torrent.files();
+    if (files === false) return changes;
 
-        if (folderOther.length) {
-          if (this.config.TAG_FAILED_PARSING) {
-            changes++;
-            await torrent.addTags("!renameFolderFailed");
-          }
-          if (this.config.SKIP_IF_UNKNOWN) return changes;
-        }
+    const parts = files[0]?.name.split('/');
+    if (!parts || parts.length <= 1) return changes;
 
-        for (const file of files) {
-          const oldFileName = file.name;
-          const newFileName = file.name.replaceAll(oldFolder, newFolder);
-          if (oldFileName !== newFileName) {
-            changes++;
-            await torrent.renameFile(oldFileName, newFileName);
-          }
-        }
-      }
+    const oldName = parts[0];
+    if (oldName === undefined) return changes;
+    const { name, other } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name: torrentName, other: "" } : this.cleanName(oldName);
+
+    if (other.length > 0) {
+      if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFolderFailed");
+      if (this.config.SKIP_IF_UNKNOWN) return changes;
     }
+
+    changes += await this.renameAllFiles(torrent, files, oldName, name);
+
     return changes;
   }
 
