@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
 import type Qbittorrent from './classes/qBittorrent';
 import Torrent from './classes/Torrent';
+import { stringKeys } from './jobs/Naming';
 
 type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
 
@@ -40,7 +41,11 @@ export const QbittorrentClientSchema = z.object({
 
 export const NamingConfigSchema = z.object({
   SCHEME: z.string(),
-  REPLACE: z.array(z.tuple([z.string(), z.string()])),
+  REPLACE: z.record(z.string(), z.string()),
+  REDUNDANT_FLAGS: z.record(z.enum(stringKeys), z.array(z.object({
+    match: z.array(z.union([z.string(), z.number()])),
+    keep: z.union([z.string(), z.number()])
+  })).optional()),
   FIX_BAD_GROUPS: z.array(z.string()),
   TAG_FAILED_PARSING: z.boolean(),
   TAG_SUCCESSFUL_PARSING: z.boolean(),

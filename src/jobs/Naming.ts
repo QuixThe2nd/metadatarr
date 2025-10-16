@@ -33,10 +33,11 @@ function cleanString(str: string): string {
   return newString === str ? str : cleanString(newString);
 }
 
+export const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
+
 export default class Naming {
   private readonly config = CONFIG.NAMING();
   private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
-  private stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
   static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<number> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
@@ -116,7 +117,7 @@ export default class Naming {
   }
 
   parse(name: string): { name: string, info: ParseTorrentTitle.DefaultParserResult } {
-    for (const [find, replace] of this.config.REPLACE) name = name.replaceAll(new RegExp(find, "gi"), replace);
+    for (const [find, replace] of Object.entries(this.config.REPLACE)) name = name.replaceAll(new RegExp(find, "gi"), replace);
     if (this.config.REMOVE_DOMAINS && this.config.REMOVE_TLDS.length) name = name.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
     for (const group of this.config.FIX_BAD_GROUPS) name = name.replace(new RegExp(`[. ]${group}\\)?$`, "i"), ` - ${group}`);
 
@@ -174,7 +175,7 @@ export default class Naming {
     other = vals2.other;
 
     // Remove unused tags
-    for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
+    for (const key of [...stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
 
     other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ').trim();
     name = cleanString(name.replace('[other]', other)).trim();
@@ -187,7 +188,7 @@ export default class Naming {
     return { name, other, info };
   }
 
-  private removeAlphanumericMatches(key: typeof this.stringKeys[number], matches: (string | number)[], other: string): string {
+  private removeAlphanumericMatches(key: typeof stringKeys[number], matches: (string | number)[], other: string): string {
     for (const match of matches) {
       if (typeof match === 'number' && key !== 'year') continue; // Otherwise values like `5` for season will be replaced
       const pattern = `\\b${String(match).replace(/[^a-zA-Z0-9]/g, '').split('').join('[^a-zA-Z0-9]*')}\\b`;
@@ -196,7 +197,7 @@ export default class Naming {
     return other;
   }
 
-  private readonly formatFlags: Partial<Record<typeof this.stringKeys[number], (value: string | number) => string>> = {
+  private readonly formatFlags: Partial<Record<typeof stringKeys[number], (value: string | number) => string>> = {
     bitdepth: value => `${value}bit`,
     downscaled: value => `DS${String(value).toUpperCase()}`,
     samplerate: value => `${value}kHz`,
@@ -210,7 +211,7 @@ export default class Naming {
     title: value => this.config.FORCE_TITLE_CASE ? String(value).replace(/[ .]\w/g, char => char.toUpperCase()) : String(value)
   };
 
-  private readonly cleanupStringFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
+  private readonly cleanupStringFlags: Partial<Record<typeof stringKeys[number], (matches: (string | number)[], other: string) => string>> = {
     bitdepth: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.-]?bits?)`, 'i'), ''),
     samplerate: (matches, other) => other.replace(new RegExp(`(${matches.join('|')})(?:[\\s.]?kHz)?`, 'i'), ''),
     season: (matches, other) => other.replaceAll(new RegExp(`\\bS(?:eason)?[. ]?(?:${matches.map(num => [String(num), String(num).padStart(2, '0')]).flat().join('|')})(?:[. ]Complete)?`, 'gi'), ''),
@@ -277,19 +278,19 @@ export default class Naming {
     }
   }
 
-  private parseMatches(key: typeof this.stringKeys[number], info: ParseTorrentTitle.DefaultParserResult): (string | number)[] {
+  private parseMatches(key: typeof stringKeys[number], info: ParseTorrentTitle.DefaultParserResult): (string | number)[] {
     if (key !== 'title' && `${key}list` in info) return info[`${key}list`] ?? [];
     return info[key] !== undefined ? [info[key]] : [];
   }
 
   private handleStringFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
-    for (const key of this.stringKeys) {
+    for (const key of stringKeys) {
       if (!(key in info)) continue;
 
       let matches = this.parseMatches(key, info);
 
-      other = this.removeAlphanumericMatches(key, matches, this.cleanupStringFlags[key]?.(matches, other) ?? other)
-      matches = this.redundantFlags[key]?.(matches) ?? matches;
+      other = this.removeAlphanumericMatches(key, matches, this.cleanupStringFlags[key]?.(matches, other) ?? other);
+      matches = this.removeRedundantFlags(key, matches);
       name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
 
       delete info[key];
@@ -297,51 +298,25 @@ export default class Naming {
     return { name, other, info };
   }
 
+  private removeRedundantFlags(key: typeof stringKeys[number], matches: (string | number)[]): (string | number)[] {
+    for (const flags of this.config.REDUNDANT_FLAGS[key] ?? []) {
+      let matched = true;
+      for (const flag of flags.match)
+        if (!matches.includes(flag)) {
+          matched = false;
+          break;
+        }
+      if (matched) matches = [...matches.filter(match => !flags.match.includes(match)), flags.keep];
+    }
+    return matches;
+  }
+
   private handleBooleanFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
     for (const key of this.booleanKeys) {
-      if (info[key] === true) {
-        name = name.replace(`[${key}]`, key.toUpperCase());
-        other = this.cleanupBooleanFlag(key, other);
-      }
+      if (info[key] === true) name = name.replace(`[${key}]`, key.toUpperCase());
       delete info[key];
     }
     return { name, other, info };
-  }
-
-  private cleanupBooleanFlag(key: typeof this.booleanKeys[number], other: string): string {
-    const cleanups = {
-      extended: /extended(?:[\s.](?:cut|edition))?/gi,
-      openmatte: /open(?:[\s.]matte)?/gi,
-      repack: /rerip/i,
-      remastered: /Remaster(?:ed)?/i,
-      theatrical: /Theatrical(?:[. ]Cut)/i
-    } as const;
-
-    if (key in cleanups) other = other.replace(cleanups[key as keyof typeof cleanups], '');
-    return other.replace(new RegExp(key, 'gi'), '');
-  }
-
-  private readonly redundantFlags: Partial<Record<typeof this.stringKeys[number], (matches: (string | number)[]) => (string | number)[]>> = {
-    codec: matches => {
-      if (matches.includes('h264') && matches.includes('x264')) 
-        matches = matches.filter(match => match !== 'h264');
-       else if (matches.includes('h265') && matches.includes('x265')) 
-        matches = matches.filter(match => match !== 'h265');
-      
-      return matches
-    },
-    audio: matches => {
-      if (matches.includes('ddp') && matches.includes('dd')) matches = matches.filter(match => match !== 'dd');
-      return matches
-    },
-    color: matches => {
-      if (matches.includes('DV') && matches.includes('HDR')) matches = matches.filter(match => match !== 'HDR');
-      return matches
-    },
-    resolution: matches => {
-      if (matches.includes('2160p') && matches.includes('4k')) matches = matches.filter(match => match !== '2160p');
-      return matches
-    }
   }
 
   static test(name: string): { name: string; other: string, info: ParseTorrentTitle.DefaultParserResult } {

@@ -23,10 +23,44 @@
 	"SPACING": " ",
 	/* Find and replace strings in the name
   Optionally supports regex
-  Example:
-    ["x265|h265", "HEVC"]
   */
-	"REPLACE": [],
+	"REPLACE": {
+		"rerip": "repack",
+		"Remaster(?:ed)?": "remastered",
+		"Theatrical(?:[. ]Cut)": "theatrical",
+		"open(?:[\\s.]matte)?": "openmatte",
+		"extended(?:[\\s.](?:cut|edition))?": "extended"
+	},
+	"REDUNDANT_FLAGS": {
+		"codec": [
+			{
+				"match": ["h264", "x264"],
+				"keep": "x264"
+			},
+			{
+				"match": ["h265", "x265"],
+				"keep": "x265"
+			}
+		],
+		"audio": [
+			{
+				"match": ["ddp", "dd"],
+				"keep": "ddp"
+			}
+		],
+		"color": [
+			{
+				"match": ["DV", "HDR"],
+				"keep": "DV"
+			}
+		],
+		"resolution": [
+			{
+				"match": ["2160p", "4K"],
+				"keep": "2160p"
+			}
+		]
+	},
 	// Fix common mistakes in group names
 	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo"],
 	// If true, will rename files based on the naming scheme

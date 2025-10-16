@@ -115,7 +115,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Global variables (e.g. system free space)
 
 ### Move from code to config
-- User configurable cleanup rules in Naming.ts
+- make Naming.formatFlags & Naming.cleanupStringFlags configurable in json
 - Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY
 
 ### Metadata
