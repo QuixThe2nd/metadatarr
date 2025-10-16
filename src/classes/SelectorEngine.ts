@@ -41,12 +41,27 @@ const coercedBooleanSelectorSchema = z.object({ comparator: z.union([numericComp
 const baseSelectorSchema = z.union([
   numberSortSchema.extend({ key: z.enum(numberProperties) }),
   booleanSelectorSchema.extend({ key: z.enum(booleanProperties) }),
-  coercedBooleanSelectorSchema.extend({ key: z.enum(numberProperties), value: z.number() }),
-  coercedBooleanSelectorSchema.extend({ key: z.union([z.enum(stringProperties), z.enum(arrayProperties)]), value: z.array(z.string().min(1)).min(1) }),
+  coercedBooleanSelectorSchema.extend({
+    key: z.enum(numberProperties),
+    value: z.number()
+  }),
+  coercedBooleanSelectorSchema.extend({
+    key: z.union([z.enum(stringProperties), z.enum(arrayProperties)]),
+    value: z.array(z.string().min(1)).min(1)
+  }),
   // BaseSelectorSchema.extend({ key: z.literal("priority_tag"), prefix: z.string().min(1) }),
 ]);
-export const SelectorSchema = baseSelectorSchema.and(z.object({ then: z.array(baseSelectorSchema) }).partial()).and(z.object({ else: z.array(baseSelectorSchema) }).partial())
-export type Selector = z.infer<typeof SelectorSchema>;
+
+type Selector = z.infer<typeof baseSelectorSchema> & {
+  then?: Selector[] | undefined;
+  else?: Selector[] | undefined;
+};
+
+export const SelectorSchema: z.ZodType<Selector> = z.lazy(() =>
+  baseSelectorSchema
+    .and(z.object({ then: z.array(SelectorSchema) }).partial())
+    .and(z.object({ else: z.array(SelectorSchema) }).partial())
+);
 
 const compare = (a: number | boolean, b: number | boolean, comparator: z.infer<typeof numericComparators> | z.infer<typeof booleanComparators>): boolean => {
   switch (comparator) {
