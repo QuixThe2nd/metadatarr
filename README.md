@@ -111,6 +111,8 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 ### Queries:
 - Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
 - Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
+- Priority tags
+- Global variables (e.g. system free space)
 
 ### Move from code to config
 - User configurable cleanup rules in Naming.ts
@@ -122,7 +124,6 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 
 ### Other:
 - Deluge/Transmission/RTorrent support
-- Cleanup Naming.cleanName
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name
