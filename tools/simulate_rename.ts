@@ -3,10 +3,9 @@ import Qbittorrent from '../src/classes/qBittorrent'
 
 const name = 'Parasite (2019) - [2160p 4k BluRay DV x265] [DDP 7.1 ENG] - Weasley HONE';
 const filter = '';
-const verbose = false;
 
 if (name.length) {
-  console.log(Naming.test(name, true));
+  console.log(Naming.test(name));
   process.exit()
 }
 
@@ -17,7 +16,7 @@ const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  const { other, ...result } = Naming.test(test, verbose);
+  const { other, ...result } = Naming.test(test);
   if (other.includes(filter)) {
     fails[other] ??= { originalName: test, count: 0, ...result};
     fails[other].count++;
