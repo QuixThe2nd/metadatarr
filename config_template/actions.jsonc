@@ -39,13 +39,14 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "delete"
 	},
 	// Resume errored downloads
-	// { // TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
-	// 	"if": [
-	// 		{"key": "progress", "comparator": "!=", "value": 1},
-	// 		{"key": "state", "comparator": "==", "value": ["error"]}
-	// 	],
-	// 	"then": "start"
-	// },
+	{ // TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
+		"if": [
+			{"key": "progress", "comparator": "!=", "value": 1},
+			{"key": "state", "comparator": "==", "value": ["error"]}
+		],
+		"then": "start",
+		"max": 0.001 // 0.1% chance a single errored download will be restarted each run
+	},
 	// Remove cross-seed-links that have less than 95% progress
 	{
 		"if": [
@@ -84,6 +85,14 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]}
 		],
 		"then": "delete"
+	},
+	// Recheck stalled but completed downloads
+	{
+		"if": [
+			{"key": "state", "comparator": "==", "value": ["stalledDL"]},
+			{"key": "amount_left", "comparator": "==", "value": 0}
+		],
+		"then": "recheck"
 	},
 	{
 		"if": [{"key": "state", "comparator": "==", "value": ["stalledDL"]}],
