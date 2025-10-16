@@ -115,61 +115,63 @@ export default class Naming {
     return changes;
   }
 
-  cleanName(_oldName: string, firstRun = true, troubleshoot = false): { name: string; other: string; info: ReturnType<ParseTorrentTitle.ParseFunction> } {
-    let other = _oldName;
+  parse(name: string): { name: string, info: ParseTorrentTitle.DefaultParserResult } {
+    for (const [find, replace] of this.config.REPLACE) name = name.replaceAll(new RegExp(find, "gi"), replace);
+    if (this.config.REMOVE_DOMAINS && this.config.REMOVE_TLDS.length) name = name.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
+    for (const group of this.config.FIX_BAD_GROUPS) name = name.replace(new RegExp(`[. ]${group}\\)?$`, "i"), ` - ${group}`);
 
-    for (const [find, replace] of this.config.REPLACE) other = other.replaceAll(new RegExp(find, "gi"), replace);
-    for (const group of this.config.FIX_BAD_GROUPS) other = other.replace(new RegExp(`[. ]${group}\\)?$`, "i"), ` - ${group}`);
+    const info = ptt.parse(name);
 
-    if (this.config.REMOVE_DOMAINS && this.config.REMOVE_TLDS.length) other = other.replace(new RegExp(`\\b(?:[a-zA-Z0-9-]+\\.)*[a-zA-Z0-9-]+\\.(${this.config.REMOVE_TLDS.join('|')})\\b`, 'g'), '');
-    const container = ptt.parse(other).container;
-    if (this.config.TRIM_CONTAINER && container !== undefined) other = other.replace(new RegExp(`.${container}$`, 'i'), '');
-    const info = ptt.parse(other);
+    return this.postParse(name, info);
+  }
 
-    let name = this.config.SCHEME;
-
+  postParse(name: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, info: ParseTorrentTitle.DefaultParserResult } {
+    if (this.config.TRIM_CONTAINER && info.container !== undefined) {
+      name = name.replace(new RegExp(`.${info.container}$`, 'i'), '');
+      delete info.container;
+    }
     if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) {
-      other = other.replace(String(info.year), '')
+      name = name.replace(String(info.year), '')
       delete info.year;
     }
 
+    info = this.detectDownscale(info);
+
+    return { name, info };
+  }
+
+  detectDownscale(info: ParseTorrentTitle.DefaultParserResult): ParseTorrentTitle.DefaultParserResult {
     if (info.resolutionlist && info.resolutionlist.length > 1) {
       const resolutions = ['480p', '720p', '1080p', '4k']
       for (let i = 0; i < resolutions.length-1; i++) {
+        const resolution = resolutions[i];
         const nextResolution = resolutions[i+1];
-        if (info.resolutionlist.includes(resolutions[i]) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
-          info.resolution = resolutions[i];
+        if (resolution === undefined) throw new Error('WTF HAPPENED 1');
+        if (nextResolution === undefined) throw new Error('WTF HAPPENED 2');
+        if (info.resolutionlist.includes(resolution) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
+          info.resolution = resolution;
           info.downscaled = nextResolution;
           delete info.resolutionlist;
           break;
         }
       }
     }
+    return info;
+  }
 
-    for (const key of this.stringKeys) {
-      if (!(key in info)) continue;
+  cleanName(oldName: string, firstRun = true): { name: string; other: string; info: ParseTorrentTitle.DefaultParserResult } {
+    let { name: other, info } = this.parse(oldName);
 
-      let matches = key !== 'title' && `${key}list` in info ? info[`${key}list`] : [info[key]];
-      if (troubleshoot) console.log(key, matches);
+    let name = this.config.SCHEME;
+    const vals1 = this.handleStringFlags(name, other, info);
+    info = vals1.info;
+    name = vals1.name;
+    other = vals1.other;
 
-      other = this.cleanupStringFlags[key]?.(matches, other) ?? other;
-      other = this.removeAlphanumericMatches(key, matches, other)
-
-      matches = this.redundantFlags[key]?.(matches) ?? matches;
-
-      name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
-
-      delete info[key];
-      if (troubleshoot) console.log(other, "\n")
-    }
-
-    for (const key of this.booleanKeys) {
-      if (info[key] === true) {
-        name = name.replace(`[${key}]`, key.toUpperCase());
-        other = this.cleanupBooleanFlags(key, other);
-      }
-      delete info[key];
-    }
+    const vals2 = this.handleBooleanFlags(name, other, info);
+    info = vals2.info;
+    name = vals2.name;
+    other = vals2.other;
 
     // Remove unused tags
     for (const key of [...this.stringKeys, ...this.booleanKeys]) name = name.replace(`[${key}]`, '');
@@ -275,7 +277,38 @@ export default class Naming {
     }
   }
 
-  private cleanupBooleanFlags(key: typeof this.booleanKeys[number], other: string): string {
+  private parseMatches(key: typeof this.stringKeys[number], info: ParseTorrentTitle.DefaultParserResult): (string | number)[] {
+    if (key !== 'title' && `${key}list` in info) return info[`${key}list`] ?? [];
+    return info[key] !== undefined ? [info[key]] : [];
+  }
+
+  private handleStringFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
+    for (const key of this.stringKeys) {
+      if (!(key in info)) continue;
+
+      let matches = this.parseMatches(key, info);
+
+      other = this.removeAlphanumericMatches(key, matches, this.cleanupStringFlags[key]?.(matches, other) ?? other)
+      matches = this.redundantFlags[key]?.(matches) ?? matches;
+      name = name.replaceAll(`[${key}]`, matches.map(value => this.formatFlags[key]?.(value) ?? value).join(this.config.SPACING));
+
+      delete info[key];
+    }
+    return { name, other, info };
+  }
+
+  private handleBooleanFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
+    for (const key of this.booleanKeys) {
+      if (info[key] === true) {
+        name = name.replace(`[${key}]`, key.toUpperCase());
+        other = this.cleanupBooleanFlag(key, other);
+      }
+      delete info[key];
+    }
+    return { name, other, info };
+  }
+
+  private cleanupBooleanFlag(key: typeof this.booleanKeys[number], other: string): string {
     const cleanups = {
       extended: /extended(?:[\s.](?:cut|edition))?/gi,
       openmatte: /open(?:[\s.]matte)?/gi,
@@ -311,9 +344,9 @@ export default class Naming {
     }
   }
 
-  static test(name: string, verbose=true): { name: string; other: string, info: ParseTorrentTitle.DefaultParserResult } {
+  static test(name: string): { name: string; other: string, info: ParseTorrentTitle.DefaultParserResult } {
     // @ts-expect-error: Just used for tests, no api needed
     const naming = new Naming();
-    return { ...naming.cleanName(name, false, verbose), info: ptt.parse(name) };
+    return { ...naming.cleanName(name, false), info: ptt.parse(name) };
   }
 }
