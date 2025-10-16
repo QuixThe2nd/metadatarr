@@ -21,7 +21,9 @@ const filteredActions = exclude(actions, excludedActions);
 export const ActionsSchema = z.array(z.object({ if: z.array(SelectorSchema) }).and(z.union([
   z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),
   z.object({ then: z.enum(filteredActions) })
-])));
+])).and(z.object({
+  max: z.number().optional()
+})));
 
 export const CoreSchema = z.object({
   JOB_WAIT: z.number(),
