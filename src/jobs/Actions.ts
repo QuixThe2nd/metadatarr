@@ -2,7 +2,8 @@ import { selectorEngine } from "../classes/SelectorEngine";
 import type Torrent from "../classes/Torrent";
 import { CONFIG } from "../config";
 
-const actions = async (torrents: Torrent[]): Promise<number> => {
+const actions = async (torrents: Torrent[]): Promise<{ changes: number, deletes: string[] }> => {
+  const deletes: string[] = [];
   torrents = torrents.sort(Math.random);
   let changes = 0;
   for (const action of CONFIG.ACTIONS()) {
@@ -13,17 +14,12 @@ const actions = async (torrents: Torrent[]): Promise<number> => {
       if ('max' in action && i === action.max) break;
       const torrent = selectedTorrents[i];
       if (torrent === undefined) throw new Error('wtf happened here');
-      // const lastChanges = changes;
       if ('arg' in action) changes += await torrent[action.then](action.arg);
       else changes += await torrent[action.then]();
-      // if (lastChanges !== changes) console.log(action.if.map(selector => {
-      //   const { key, comparator, ...rest } = selector;
-      //   console.log(key, torrent[key])
-      //   return `${key} ${comparator} ${'includes' in rest ? rest.includes : 'threshold' in rest ? rest.threshold : ''}`;
-      // }).join(' && '))
+      if (action.then === 'delete') deletes.push(torrent.hash);
     }
   }
-  return changes;
+  return { changes, deletes };
 }
 
 export default actions;

@@ -104,26 +104,29 @@ Metadatarr runs automatically on an interval, the more frequently it runs, the b
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
 ## TODO:
-### Docs:
+### Stage 1
+#### Docs:
 - demo video showcasing features like sorting
 - before/after photos of torrent names
 
-### Queries:
-- Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
-- Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
-- Priority tags
-- Global variables (e.g. system free space)
+#### Other:
+- Deluge/Transmission/RTorrent support
 
-### Move from code to config
-- make Naming.formatFlags & Naming.cleanupStringFlags configurable in json
-- Should use SelectorEngine - DuplicatesSchema: IGNORE_TAG, DOWNLOADS_ONLY
-
-### Metadata
+### Stage 2
+#### Metadata
 - Use TVDB to parse episode names
 - Incremental backoff on metadata fetches
 
-### Other:
-- Deluge/Transmission/RTorrent support
+#### Move from code to config
+- make Naming.formatFlags & Naming.cleanupStringFlags configurable in json
+
+#### Queries:
+- Global variables (e.g. system free space)
+- Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
+- Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
+- Priority tags
+
+#### Other:
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name

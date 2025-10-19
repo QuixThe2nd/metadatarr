@@ -9,9 +9,9 @@ const getTorrentsMoving = (torrents: Torrent[]): Torrent[] => torrents.filter(to
 
 const getTotalSize = (torrents: Torrent[]): number => torrents.map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);
 
-export const queue = async (torrents: Torrent[], api: Qbittorrent): Promise<number> => {
+export const queue = async (torrents: Torrent[], api: Qbittorrent): Promise<{ changes: number }> => {
   const config = CONFIG.QUEUE();
-  if (!config.QUEUE_SIZE_LIMIT) return 0;
+  if (!config.QUEUE_SIZE_LIMIT) return { changes: 0 };
 
   torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.category ?? ''));
 
@@ -27,13 +27,13 @@ export const queue = async (torrents: Torrent[], api: Qbittorrent): Promise<numb
   }
 
   const preferences = await api.getPreferences();
-  if (preferences === false) return 0;
+  if (preferences === false) return { changes: 0 };
 
   const maxActiveDownloads = Math.min(config.MAXIMUM_QUEUE_SIZE, Math.max(config.MINIMUM_QUEUE_SIZE, queueSize));
   if (maxActiveDownloads !== preferences.max_active_downloads) {
     console.log(`\x1b[32m[qBittorrent]\x1b[0m Setting maximum active downloads to ${maxActiveDownloads}`);
     await api.setPreferences({ max_active_downloads: maxActiveDownloads });
-    return 1;
+    return { changes: 1 };
   }
-  return 0;
+  return { changes: 0 };
 }

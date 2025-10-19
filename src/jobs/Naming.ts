@@ -40,12 +40,12 @@ export default class Naming {
   private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
-  static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<number> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
+  static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
 
-  private async renameAll(): Promise<number> {
+  private async renameAll(): Promise<{ changes: number }> {
     let changes = 0;
     for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
-    return changes;
+    return { changes };
   }
 
   private handleMissingName(torrent: Torrent, origName: string | undefined): Promise<number> | number {

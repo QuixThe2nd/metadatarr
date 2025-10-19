@@ -15,7 +15,7 @@ import { logContext } from './log';
 import metadata from './jobs/Metadata';
 import actions from './jobs/Actions';
 
-const tasks = (torrents: Torrent[]) => ({
+const tasks = (torrents: Torrent[]): Record<string, () => Promise<{ changes: number; deletes?: string[] }>> => ({
   Actions: () => actions(torrents),
   Duplicates: () => duplicates(torrents),
   Sort: () => sort(torrents, api),
@@ -30,7 +30,7 @@ export const runJobs = async (): Promise<number> => {
   jobsRunning = true;
   console.log('Jobs Started');
 
-  const torrents = await api.torrents();
+  let torrents = await api.torrents();
 
   if (inject !== false) return inject(torrents);
 
@@ -38,9 +38,10 @@ export const runJobs = async (): Promise<number> => {
   for (const [name, task] of Object.entries(tasks(torrents))) {
     const taskChanges = await logContext(name, async () => {
       console.log('Job Started');
-      const taskChanges = await task()
-      console.log('Job Finished - Changes:', taskChanges);
-      return taskChanges;
+      const taskResult = await task()
+      console.log('Job Finished - Changes:', taskResult.changes);
+      if (taskResult.deletes !== undefined) torrents = torrents.filter(t => !taskResult.deletes!.includes(t.hash))
+      return taskResult.changes;
     });
     changes += taskChanges;
   }

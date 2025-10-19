@@ -23,15 +23,15 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFIG.SORT()): Promise<number> => {
-  if (!config.SORT) return 0;
+export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFIG.SORT()): Promise<{ changes: number }> => {
+  if (!config.SORT) return { changes: 0 };
 
   torrents = getInitialTorrents(torrents);
 
   let currentPositions = getCurrentPositions(torrents);
   const desiredPositions = getDesiredPositions(torrents, config.METHODS);
 
-  let moves = 0;
+  let changes = 0;
   let calls = 0;
   for (const [desiredPosition, hash] of desiredPositions.entries()) {
     const currentPosition = currentPositions.indexOf(hash);
@@ -44,11 +44,11 @@ export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFI
       await handleApiCall(api, desiredPositions, desiredPosition, config);
       calls++;
     }
-    moves++;
+    changes++;
 
-    if (limitReached(config, moves, calls)) break;
+    if (limitReached(config, changes, calls)) break;
   }
 
-  console.log(`Sorted ${torrents.length} torrents - Moved: ${moves} - API Calls: ${calls}`);
-  return moves;
+  console.log(`Sorted ${torrents.length} torrents - Moved: ${changes} - API Calls: ${calls}`);
+  return { changes };
 }
