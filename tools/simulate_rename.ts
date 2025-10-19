@@ -1,7 +1,7 @@
 import Naming from '../src/jobs/Naming'
 import Qbittorrent from '../src/classes/qBittorrent'
 
-const name = 'Parasite (2019) - [2160p 4k BluRay DV x265] [DDP 7.1 ENG] - Weasley HONE';
+const name = 'Ratatouille (2007) UHD 2160p BluRay DV HDR10+ HEVC Multi DD 5.1-ĶOCHÂ';
 const filter = '';
 
 if (name.length) {
