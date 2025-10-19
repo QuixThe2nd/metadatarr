@@ -6,7 +6,7 @@ import type Qbittorrent from "../classes/qBittorrent";
 import type z from "zod";
 import { CONFIG } from "../config";
 
-const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instance): Promise<number> => {
+const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instance): Promise<{ changes: number }> => {
   const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
     if (await webtorrent.get(hash)) return;
     console.log(hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
@@ -35,6 +35,6 @@ const metadata = async (torrents: Torrent[], qB: Qbittorrent, webtorrent: Instan
       await Promise.all(sources.map(source => fetchFromHTTP(torrent.hash, source)));
     }
   
-  return 0;
+  return { changes: 0 };
 }
 export default metadata;
