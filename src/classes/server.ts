@@ -1,8 +1,8 @@
 import fs from 'fs';
 import express from 'express';
 import z from 'zod';
-import type Qbittorrent from './qBittorrent';
 import { runJobs } from '..';
+import type Client from '../clients/client';
 
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({
@@ -12,7 +12,7 @@ const UncrossSeedRequestSchema = z.object({
   })
 });
 
-export const startServer = (qB: Qbittorrent): Promise<void> => new Promise(resolve => {
+export const startServer = (qB: Client): Promise<void> => new Promise(resolve => {
   const app = express();
   app.use(express.json());
 

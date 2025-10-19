@@ -16,7 +16,7 @@ function parseConfigFile<T extends z.ZodObject | z.ZodArray>(filePath: string, s
 }
 
 export const CONFIG = {
-  CLIENT: (): z.infer<typeof schemas.QbittorrentClientSchema> => parseConfigFile('.qbittorrent_client.jsonc', schemas.QbittorrentClientSchema),
+  CLIENT: (): z.infer<typeof schemas.ClientSchema> => parseConfigFile('.client.jsonc', schemas.ClientSchema),
   METADATA: (): z.infer<typeof schemas.MetadataSchema> => parseConfigFile('metadata.jsonc', schemas.MetadataSchema),
   SORT: (): z.infer<typeof schemas.SortConfigSchema> => parseConfigFile('sort.jsonc', schemas.SortConfigSchema),
   NAMING: (): z.infer<typeof schemas.NamingConfigSchema> => parseConfigFile('naming.jsonc', schemas.NamingConfigSchema),

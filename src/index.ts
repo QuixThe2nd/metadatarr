@@ -2,7 +2,7 @@ import './log';
 import { CONFIG, testConfig } from './config';
 import WebTorrent from 'webtorrent';
 import { startServer } from './classes/server';
-import Qbittorrent from "./classes/qBittorrent";
+import Client from "./clients/client";
 import OriginalNames from "./startup_tasks/OriginalNames";
 import { importMetadataFiles } from "./startup_tasks/ImportMetadataFiles";
 import Naming from "./jobs/Naming";
@@ -53,7 +53,7 @@ export const runJobs = async (): Promise<number> => {
 
 await testConfig();
 
-const api = await Qbittorrent.connect();
+const api = await Client.connect();
 const webtorrent = new WebTorrent({ downloadLimit: 1024 });
 const originalNames = await OriginalNames.start();
 const inject = CONFIG.CORE().DEV_INJECT ? await hook() : false;

@@ -1,9 +1,9 @@
-import type Qbittorrent from "../classes/qBittorrent";
 import type Torrent from "../classes/Torrent";
 import { selectorEngine } from "../classes/SelectorEngine";
 import { CONFIG } from "../config";
 import type { SortConfigSchema } from "../schemas";
 import type z from "zod";
+import type Client from "../clients/client";
 
 const getInitialTorrents = (torrents: Torrent[]): Torrent[] => torrents
   .filter(torrent => torrent.priority > 0)
@@ -13,8 +13,8 @@ const getInitialTorrents = (torrents: Torrent[]): Torrent[] => torrents
 const getCurrentPositions = (torrents: Torrent[]): string[] => [...torrents].sort((a, b) => a.priority - b.priority).map(t => t.hash);
 const getDesiredPositions = (torrents: Torrent[], methods: z.infer<typeof SortConfigSchema>['METHODS']): string[] => methods.reduce((torrents, sort) => selectorEngine.execute(torrents, sort, false), torrents).map(t => t.hash);
 
-const handleApiCall = async (api: Qbittorrent, desiredPositions: string[], desiredPosition: number, config: z.infer<typeof SortConfigSchema>): Promise<void> => {
-  await api.topPriority(desiredPositions.slice(0, desiredPosition + 1));
+const handleApiCall = async (client: Client, desiredPositions: string[], desiredPosition: number, config: z.infer<typeof SortConfigSchema>): Promise<void> => {
+  await client.topPriority(desiredPositions.slice(0, desiredPosition + 1));
   if (config.MOVE_DELAY > 0) await new Promise(res => setTimeout(res, config.MOVE_DELAY));
 };
 
@@ -23,7 +23,7 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFIG.SORT()): Promise<{ changes: number }> => {
+export const sort = async (torrents: Torrent[], client: Client, config = CONFIG.SORT()): Promise<{ changes: number }> => {
   if (!config.SORT) return { changes: 0 };
 
   torrents = getInitialTorrents(torrents);
@@ -41,7 +41,7 @@ export const sort = async (torrents: Torrent[], api: Qbittorrent, config = CONFI
     currentPositions = currentPositions.toSpliced(currentPosition, 1).toSpliced(desiredPosition, 0, hash);
 
     if (!shouldSkipApiCall) {
-      await handleApiCall(api, desiredPositions, desiredPosition, config);
+      await handleApiCall(client, desiredPositions, desiredPosition, config);
       calls++;
     }
     changes++;

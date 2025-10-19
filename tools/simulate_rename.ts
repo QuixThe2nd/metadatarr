@@ -1,5 +1,5 @@
 import Naming from '../src/jobs/Naming'
-import Qbittorrent from '../src/classes/qBittorrent'
+import Client from '../src/clients/client'
 
 const name = 'Ratatouille (2007) UHD 2160p BluRay DV HDR10+ HEVC Multi DD 5.1-ĶOCHÂ';
 const filter = '';
@@ -9,9 +9,9 @@ if (name.length) {
   process.exit()
 }
 
-const qB = await Qbittorrent.connect()
+const client = await Client.connect()
 
-const torrents = await qB.torrents();
+const torrents = await client.torrents();
 const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}

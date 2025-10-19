@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
-import type Qbittorrent from './classes/qBittorrent';
 import Torrent from './classes/Torrent';
 import { stringKeys } from './jobs/Naming';
+import type Client from './clients/client';
 
 type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
 
@@ -15,7 +15,7 @@ function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
 }
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
-const actions = getMethodNames(new Torrent({} as Qbittorrent, {} as Torrent));
+const actions = getMethodNames(new Torrent({} as Client, {} as Torrent));
 const excludedActions = ['setAutoManagement', 'addTags', 'removeTags', 'rename', 'renameFile', 'setCategory', 'files'] as const;
 const filteredActions = exclude(actions, excludedActions);
 
@@ -33,10 +33,11 @@ export const CoreSchema = z.object({
   DRY_RUN: z.boolean()
 });
 
-export const QbittorrentClientSchema = z.object({
+export const ClientSchema = z.object({
   ENDPOINT: z.url(),
   USERNAME: z.string().min(1),
-  PASSWORD: z.string().min(1)
+  PASSWORD: z.string().min(1),
+  TYPE: z.enum(["qbittorrent", "deluge"])
 });
 
 export const NamingConfigSchema = z.object({

@@ -1,7 +1,7 @@
 import z from "zod";
-import type Qbittorrent from './qBittorrent';
 import { logContext } from "../log";
 import { CONFIG } from "../config";
+import type Client from "../clients/client";
 
 export const TorrentSchema = z.object({
   state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "queuedUP", "forcedDL", "forcedUP"]),
@@ -23,7 +23,7 @@ export const TorrentSchema = z.object({
   tracker: z.string(),
   eta: z.number()
 });
-type TorrentType = z.infer<typeof TorrentSchema>;
+export type TorrentType = z.infer<typeof TorrentSchema>;
 
 type Undefinable<T> = { [P in keyof T]: T[P] | undefined };
 type PartialTorrentType = Undefinable<TorrentType> & { hash: string }
@@ -50,15 +50,8 @@ export class PartialTorrent implements PartialTorrentType {
   public readonly tracker: PartialTorrentType['tracker'];
   public readonly eta: PartialTorrentType['eta'];
 
-  constructor(private readonly qB: Qbittorrent, data: PartialTorrentType) {
+  constructor(private readonly client: Client, data: PartialTorrentType) {
     Object.assign(this, data);
-  }
-
-  static add = (qB: Qbittorrent, data: Buffer): Promise<string | false> => {
-    logContext('qBittorrent', () => { console.log(`Adding Torrent`); });
-    const body = new FormData();
-    body.append('torrents', new Blob([Uint8Array.from(data)]), 'torrent.torrent');
-    return qB.request('/torrents/add', body);
   }
 
   private request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
@@ -71,7 +64,7 @@ export class PartialTorrent implements PartialTorrentType {
     };
 
     if (Object.keys(payload).length) logContext('qBittorrent', () => { console.log(`${this.hash} Calling ${method}`, Object.keys(rest).length === 0 ? '' : rest); });
-    return this.qB.request(`/torrents/${method}`, new URLSearchParams(payload));
+    return this.client.request(`/torrents/${method}`, new URLSearchParams(payload));
   }
 
   public files = async (): Promise<{ name: string }[] | false> => {
@@ -130,8 +123,8 @@ export default class Torrent extends PartialTorrent implements TorrentType {
   declare tracker: TorrentType['tracker'];
   declare eta: TorrentType['eta'];
 
-  constructor(qB: Qbittorrent, data: PartialTorrentType) {
-    super(qB, data);
+  constructor(client: Client, data: PartialTorrentType) {
+    super(client, data);
     Object.assign(this, data);
   }
 }

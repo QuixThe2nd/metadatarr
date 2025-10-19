@@ -1,4 +1,4 @@
-import Qbittorrent from "../src/classes/qBittorrent";
+import Qbittorrent from "../src/clients/qBittorrent";
 import type Torrent from "../src/classes/Torrent";
 
 const hook = async () => {

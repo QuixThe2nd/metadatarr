@@ -1,14 +1,11 @@
 import fs from 'fs';
 import z, { ZodError } from "zod";
-import Torrent from './Torrent';
-import { TorrentSchema } from './Torrent';
+import type { TorrentType } from '../classes/Torrent';
+import { TorrentSchema } from '../classes/Torrent';
 import { logContext } from '../log';
 import { CONFIG } from '../config';
 
-const PreferencesSchema = z.object({
-  max_active_downloads: z.number()
-});
-type Preferences = z.infer<typeof PreferencesSchema>;
+const PreferencesSchema = z.object({ max_active_downloads: z.number() });
 
 export default class Qbittorrent {
   private constructor(private cookie: string | Promise<string>) {}
@@ -74,19 +71,19 @@ export default class Qbittorrent {
     }
   }
 
-  public getPreferences = async (): Promise<Preferences | false> => {
+  public getMaxActiveDownloads = async (): Promise<number | false> => {
     const result = await this.request('/app/preferences');
     if (result === false) return false;
-    return PreferencesSchema.parse(JSON.parse(result))
+    return PreferencesSchema.parse(JSON.parse(result)).max_active_downloads
   }
 
-  public setPreferences = async (preferences: Partial<Preferences>): Promise<number> => {
+  public setMaxActiveDownloads = async (max_active_downloads: number): Promise<number> => {
     const fd = new URLSearchParams();
-    fd.set('json', JSON.stringify(preferences))
+    fd.set('json', JSON.stringify({ max_active_downloads }))
     return await this.request('/app/setPreferences', fd) === false ? 0 : 1;
   }
 
-  public async torrents(): Promise<Torrent[]> {
+  public async torrents(): Promise<TorrentType[]> {
     logContext('qBittorrent', () => { console.log('Fetching torrents'); });
     const response = await this.request('/torrents/info')
     logContext('qBittorrent', () => { console.log('Fetched torrents'); });
@@ -98,7 +95,7 @@ export default class Qbittorrent {
       // process.exit()
       const torrents = z.array(TorrentSchema).parse(data);
       logContext('qBittorrent', () => { console.log(`Fetched ${torrents.length} torrents`); });
-      return torrents.sort((a, b) => a.priority - b.priority).map(t => new Torrent(this, t));
+      return torrents.sort((a, b) => a.priority - b.priority);
     } catch (e) {
         console.error(e);
         if (e instanceof ZodError) {
@@ -114,8 +111,11 @@ export default class Qbittorrent {
     }
   }
 
-  public topPriority = async (hashes: string[]): Promise<number> => {
-    logContext('qBittorrent', () => { console.log(`${hashes[hashes.length-1]} Moving to position ${hashes.length}`); });
-    return await this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') })) === false ? 0 : 1;
+  public topPriority = (hashes: string[]): Promise<string | false> => this.request('/torrents/topPrio', new URLSearchParams({ hashes: hashes.join('|') }));
+
+  public add = (data: Buffer): Promise<string | false> => {
+    const body = new FormData();
+    body.append('torrents', new Blob([Uint8Array.from(data)]), 'torrent.torrent');
+    return this.request('/torrents/add', body);
   }
 }
