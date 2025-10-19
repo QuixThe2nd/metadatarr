@@ -85,9 +85,8 @@ export const QueueSchema = z.object({
 });
 
 export const DuplicatesSchema = z.object({
-  DOWNLOADS_ONLY: z.boolean(),
   TIE_BREAKERS: z.array(SelectorSchema),
-  IGNORE_TAG: z.string()
+  FILTERS: z.array(SelectorSchema)
 });
 
 export const MetadataSchema = z.object({
