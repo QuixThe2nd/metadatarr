@@ -33,7 +33,7 @@ export const startServer = (qB: Qbittorrent): Promise<void> => new Promise(resol
   });
   
   app.post('/api/run-jobs', (_, res) => {
-    console.log('Manual job run triggered')
+    console.log('Job run manually requested')
     runJobs().catch(console.error);
     res.status(200).send();
   });
