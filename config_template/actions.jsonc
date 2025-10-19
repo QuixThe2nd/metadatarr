@@ -39,7 +39,8 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"then": "delete"
 	},
 	// Resume errored downloads
-	{ // TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
+	{
+		// TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
 		"if": [
 			{"key": "progress", "comparator": "!=", "value": 1},
 			{"key": "state", "comparator": "==", "value": ["error"]}
@@ -103,6 +104,20 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		"if": [{"key": "state", "comparator": "!=", "value": ["stalledDL"]}],
 		"then": "removeTags",
 		"arg": "stalledDL"
+	},
+	{
+		"if": [
+			{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK"]},
+			{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
+		],
+		"then": "start"
+	},
+	{
+		"if": [
+			{"key": "private", "comparator": "!="},
+			{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
+		],
+		"then": "start"
 	},
 	{
 		"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
