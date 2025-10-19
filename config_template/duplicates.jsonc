@@ -1,11 +1,5 @@
 // Remove duplicate torrents based on name
 {
-  // Remove only duplicates that are not completed
-  "DOWNLOADS_ONLY": false,
-
-  // Ignore torrents with this tag
-  "IGNORE_TAG": "cross-seed",
-
   /* How to decide which to keep
   Rules are applied in reverse order until a difference is found.
   They work exactly the same as sorting rules, with the first result being kept.
@@ -15,5 +9,11 @@
   "TIE_BREAKERS": [
     { "key": "progress", "comparator": "DESC" },
     { "key": "private", "comparator": "==" }
+  ],
+  "FILTERS": [
+    // Remove only torrents that are currently downloading or not completed
+    {"key": "state", "comparator": "==", "value": ["stalledDL", "checkingDL", "queuedDL", "stoppedDL", "forcedDL", "downloading", "metaDL"]},
+    // Don't remove cross-seed torrents
+    {"key": "tags", "comparator": "!=", "value": ["cross-seed"]}
   ]
 }

@@ -2,22 +2,21 @@ import type Torrent from "../classes/Torrent";
 import { selectorEngine } from "../classes/SelectorEngine";
 import { CONFIG } from "../config";
 
-const downloadStates = ["stalledDL", "checkingDL", "queuedDL", "stoppedDL", "forcedDL", "downloading", "metaDL"];
-
-export const duplicates = async (torrents: Torrent[]): Promise<number> => {
+export const duplicates = async (torrents: Torrent[]): Promise<{ changes: number, deletes: string[] }> => {
   const config = CONFIG.DUPLICATES();
-  if (config.DOWNLOADS_ONLY) torrents = torrents.filter(torrent => downloadStates.includes(torrent.state));
-  if (config.IGNORE_TAG) torrents = torrents.filter(torrent => !torrent.tags.includes(config.IGNORE_TAG));
+  for (const filter of config.FILTERS) torrents = selectorEngine.execute(torrents, filter, true);
   for (const sort of config.TIE_BREAKERS) torrents = selectorEngine.execute(torrents, sort, false);
 
+  const deletes: string[] = [];
   const keptTorrents = new Map<string, Torrent>();
   let changes = 0;
   for (const torrent of torrents) 
     if (!keptTorrents.has(torrent.name)) keptTorrents.set(torrent.name, torrent);
     else {
+      deletes.push(torrent.hash);
       await torrent.delete();
       changes++;
     }
   
-  return changes;
+  return { changes, deletes };
 }
