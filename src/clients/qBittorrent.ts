@@ -49,7 +49,6 @@ export default class Qbittorrent {
       console.log('[DRY RUN] Not executing', path)
       return '';
     }
-    // console.log(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { method: body ? 'POST' : undefined, body, headers: { Cookie: await this.cookie } })
     try {
       const response = await fetch(`${CONFIG.CLIENT().ENDPOINT}/api/v2${path}`, { ...(body && { method: 'POST', body }), headers: { Cookie: await this.cookie } });
       if (response.status === 403) {
@@ -91,8 +90,6 @@ export default class Qbittorrent {
     let data: unknown;
     try {
       data = JSON.parse(response);
-      // console.log(data[0])
-      // process.exit()
       const torrents = z.array(TorrentSchema).parse(data);
       logContext('qBittorrent', () => { console.log(`Fetched ${torrents.length} torrents`); });
       return torrents.sort((a, b) => a.priority - b.priority);
