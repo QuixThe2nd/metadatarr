@@ -9,8 +9,6 @@ RUN git clone https://github.com/QuixThe2nd/parse-torrent-title ../parse-torrent
 
 RUN npm install
 
-RUN cp -r ./store/config_template/. ./store/config
-
 VOLUME ["/app/store/config"]
 
 EXPOSE 9191
