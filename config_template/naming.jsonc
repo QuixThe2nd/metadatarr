@@ -1,4 +1,5 @@
 {
+	"RENAME": true,
 	/*
 	Naming scheme for renaming torrents.
 	Only applicable tags are applied. This means the same config can apply to all media types (e.g. movies without episodes work fine with `[episode]` defined).
@@ -18,7 +19,7 @@
 	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
 	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
 	*/
-	"SCHEME": "[title] ([year]) [season][episode] - [extras] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
+	"SCHEME": "[title] ([year]) [season][episode] - [extras] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group].[container]",
 	// Separator between different fields
 	"SPACING": " ",
 	/* Find and replace strings in the name
@@ -80,7 +81,7 @@
 	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"
 	"NO_YEAR_IN_SEASONS": true,
 	// If true, will recheck the torrent after renaming
-	"RECHECK_ON_RENAME": true,
+	"RECHECK_ON_RENAME": false,
 	// If true, will force the first letter of each word to be capitalized
 	"FORCE_TITLE_CASE": true,
 	// Renames the directory to match the torrent name
@@ -100,3 +101,4 @@
 	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
 	"RESET_ON_FAIL": true
 }
+// TODO: config to disable rename

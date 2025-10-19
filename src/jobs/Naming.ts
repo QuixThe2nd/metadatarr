@@ -43,6 +43,7 @@ export default class Naming {
   static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
 
   private async renameAll(): Promise<{ changes: number }> {
+    if (!this.config.RENAME) return { changes: 0 };
     let changes = 0;
     for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
     return { changes };

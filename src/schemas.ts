@@ -41,6 +41,7 @@ export const ClientSchema = z.object({
 });
 
 export const NamingConfigSchema = z.object({
+  RENAME: z.boolean(),
   SCHEME: z.string(),
   REPLACE: z.record(z.string(), z.string()),
   REDUNDANT_FLAGS: z.record(z.enum(stringKeys), z.array(z.object({
