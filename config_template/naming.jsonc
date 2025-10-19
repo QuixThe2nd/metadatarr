@@ -1,5 +1,5 @@
 {
-	"RENAME": true,
+	"ENABLED": true,
 	/*
 	Naming scheme for renaming torrents.
 	Only applicable tags are applied. This means the same config can apply to all media types (e.g. movies without episodes work fine with `[episode]` defined).
@@ -101,4 +101,3 @@
 	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
 	"RESET_ON_FAIL": true
 }
-// TODO: config to disable rename

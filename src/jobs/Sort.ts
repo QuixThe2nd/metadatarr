@@ -24,7 +24,7 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
 )
 
 export const sort = async (torrents: Torrent[], client: Client, config = CONFIG.SORT()): Promise<{ changes: number }> => {
-  if (!config.SORT) return { changes: 0 };
+  if (!config.ENABLED) return { changes: 0 };
 
   torrents = getInitialTorrents(torrents);
 

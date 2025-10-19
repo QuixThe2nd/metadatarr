@@ -43,7 +43,7 @@ export const ClientSchema = z.object({
 });
 
 export const NamingConfigSchema = z.object({
-  RENAME: z.boolean(),
+  ENABLED: z.boolean(),
   SCHEME: z.string(),
   REPLACE: z.record(z.string(), z.string()),
   REDUNDANT_FLAGS: z.record(z.enum(stringKeys), z.array(z.object({
@@ -70,7 +70,7 @@ export const NamingConfigSchema = z.object({
 });
 
 export const SortConfigSchema = z.object({
-  SORT: z.boolean(),
+  ENABLED: z.boolean(),
   MOVE_DELAY: z.number().int().nonnegative(),
   MAX_MOVES_PER_CYCLE: z.number().int().nonnegative(),
   MIN_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
@@ -89,6 +89,7 @@ export const QueueSchema = z.object({
 });
 
 export const DuplicatesSchema = z.object({
+  ENABLED: z.boolean(),
   TIE_BREAKERS: z.array(SelectorSchema),
   FILTERS: z.array(SelectorSchema)
 });

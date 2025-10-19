@@ -25,4 +25,3 @@
 	// Minimum number of seeders available (ignoring size limit)
 	"MINIMUM_SEEDERS": 100
 }
-// TODO: config to disable queue

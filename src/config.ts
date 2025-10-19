@@ -32,7 +32,10 @@ const red_highlight = (text: string): string => `\x1b[41m\x1b[37m${text}\x1b[0m`
 const bold = (text: string): string => `\x1b[1m${text}\x1b[0m`;
 
 export const testConfig = async (): Promise<void> => {
-  for (const config of Object.values(CONFIG)) config();
+  for (const [config, parse] of Object.entries(CONFIG)) {
+    console.log(`Validating config: ${config}`)
+    parse();
+  }
 
   console.warn(yellow('|==================================|'));
   console.warn(yellow('||                                ||'));

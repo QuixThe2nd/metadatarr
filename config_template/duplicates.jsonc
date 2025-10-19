@@ -1,5 +1,6 @@
 // Remove duplicate torrents based on name
 {
+  "ENABLED": true,
   /* How to decide which to keep
   Rules are applied in reverse order until a difference is found.
   They work exactly the same as sorting rules, with the first result being kept.
@@ -17,5 +18,3 @@
     {"key": "tags", "comparator": "!=", "value": ["cross-seed"]}
   ]
 }
-
-// TODO: config to disable duplicate matching

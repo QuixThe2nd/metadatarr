@@ -4,6 +4,7 @@ import { CONFIG } from "../config";
 
 export const duplicates = async (torrents: Torrent[]): Promise<{ changes: number, deletes: string[] }> => {
   const config = CONFIG.DUPLICATES();
+  if (!config.ENABLED) return { changes: 0, deletes: [] }
   for (const filter of config.FILTERS) torrents = selectorEngine.execute(torrents, filter, true);
   for (const sort of config.TIE_BREAKERS) torrents = selectorEngine.execute(torrents, sort, false);
 

@@ -3,7 +3,7 @@
 	Sorting is useful when many torrents are active at the same stage. For example when many torrents are downloading or in a checking state.
 	If prioritising active downloads, ensure torrent queuing is enabled in qbittorrent, otherwise these settings will have no effect.
 	*/
-	"SORT": true,
+	"ENABLED": true,
 
 	/* Time to wait before sorting each individual torrent
 	Setting too fast may cause race conditions in qBittorrent or even make it unresponsive or crash.
