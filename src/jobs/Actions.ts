@@ -6,7 +6,7 @@ const actions = async (torrents: Torrent[]): Promise<{ changes: number, deletes:
   const deletes: string[] = [];
   torrents = torrents.sort(Math.random);
   let changes = 0;
-  for (const action of CONFIG.ACTIONS()) {
+  for (const action of CONFIG.ACTIONS().ACTIONS) {
     if ('max' in action && action.max < 1) action.max = action.max > Math.random() ? 1 : 0;
     let selectedTorrents = torrents;
     for (const selector of action.if) selectedTorrents = selectorEngine.execute(selectedTorrents, selector, true);

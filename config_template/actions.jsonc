@@ -11,292 +11,294 @@ To match a value (number) field, use "ASC" to delete if greater than the value, 
 Rules will be executed in order. When chaining many rules together, place the most specific rules first. E.g. if you auto resume torrents then later later delete stopped torrents, place the resume rule first.
 */
 
-[
-	// Resume completed torrents that are stopped
-	{
-		"if": [{"key": "state", "comparator": "==", "value": ["stoppedUP"]}],
-		"then": "start"
-	},
-	// Resume almost finished torrents that are stopped
-	{
-		"if": [
-			{"key": "state", "comparator": "==", "value": ["stoppedDL"]},
-			{"key": "progress", "comparator": ">=", "value": 0.95}
-		],
-		"then": "start"
-	},
-	// Recheck missing files
-	{
-		"if": [{"key": "state", "comparator": "==", "value": ["missingFiles"]}],
-		"then": "recheck"
-	},
-	// Remove errored cross-seed-links
-	{
-		"if": [
-			{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
-			{"key": "state", "comparator": "==", "value": ["error"]}
-		],
-		"then": "delete"
-	},
-	// Resume errored downloads
-	{
-		// TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
-		"if": [
-			{"key": "progress", "comparator": "!=", "value": 1},
-			{"key": "state", "comparator": "==", "value": ["error"]}
-		],
-		"then": "start",
-		"max": 0.001 // 0.1% chance a single errored download will be restarted each run
-	},
-	// Remove cross-seed-links that have less than 95% progress
-	{
-		"if": [
-			{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
-			{"key": "progress", "comparator": "<", "value": 0.95},
-			{"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving"]}
-		],
-		"then": "delete"
-	},
-	// Force disable sequential downloads on all torrents
-	{
-		"if": [{"key": "seq_dl", "comparator": "!="}],
-		"then": "toggleSequentialDownload"
-	},
-	// Force enable auto torrent management mode for non cross-seed torrents
-	{
-		"if": [
-			{"key": "auto_tmm", "comparator": "!="},
-			{"key": "tags", "comparator": "!=", "value": ["cross-seed"]}
-		],
-		"then": "setAutoManagement",
-		"arg": true
-	},
-	// Remove Public Torrents
-	{
-		"if": [
-			{"key": "private", "comparator": "!="},
-			{"key": "state", "comparator": "==", "value": ["stalledUP", "stoppedUP", "uploading"]}
-		],
-		"then": "delete"
-	},
-	// Remove !noHL torrents from freeleech trackers
-	{
-		"if": [
-			{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-			{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]}
-		],
-		"then": "delete"
-	},
-	// Recheck stalled but completed downloads
-	{
-		"if": [
-			{"key": "state", "comparator": "==", "value": ["stalledDL"]},
-			{"key": "amount_left", "comparator": "==", "value": 0}
-		],
-		"then": "recheck"
-	},
-	{
-		"if": [{"key": "state", "comparator": "==", "value": ["stalledDL"]}],
-		"then": "addTags",
-		"arg": "stalledDL"
-	},
-	{
-		"if": [{"key": "state", "comparator": "!=", "value": ["stalledDL"]}],
-		"then": "removeTags",
-		"arg": "stalledDL"
-	},
-	{
-		"if": [
-			{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK"]},
-			{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
-		],
-		"then": "start"
-	},
-	{
-		"if": [
-			{"key": "private", "comparator": "!="},
-			{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
-		],
-		"then": "start"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
-		"then": "addTags",
-		"arg": "@BLU,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["seedpool"]}],
-		"then": "addTags",
-		"arg": "@SP,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["torrentleech"]}],
-		"then": "addTags",
-		"arg": "@TL,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["tleechreload"]}],
-		"then": "addTags",
-		"arg": "@TL,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["myanonamouse"]}],
-		"then": "addTags",
-		"arg": "@MaM,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["digitalcore"]}],
-		"then": "addTags",
-		"arg": "@DCC,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["stackoverflow.tech"]}],
-		"then": "addTags",
-		"arg": "@IPT,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["empirehost.me"]}],
-		"then": "addTags",
-		"arg": "@IPT,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["bgp.technology"]}],
-		"then": "addTags",
-		"arg": "@IPT,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["shareisland"]}],
-		"then": "addTags",
-		"arg": "@SHR,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["scenetime"]}],
-		"then": "addTags",
-		"arg": "@ST,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["darkpeers"]}],
-		"then": "addTags",
-		"arg": "@DP,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["yu-scene"]}],
-		"then": "addTags",
-		"arg": "@YS,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["speedapp"]}],
-		"then": "addTags",
-		"arg": "@SA,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["privatehd"]}],
-		"then": "addTags",
-		"arg": "@PHD,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["jumbohostpro"]}],
-		"then": "addTags",
-		"arg": "@TTi,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["connecting.center"]}],
-		"then": "addTags",
-		"arg": "@TTi,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["sktorrent"]}],
-		"then": "addTags",
-		"arg": "@SKT,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["ptfiles"]}],
-		"then": "addTags",
-		"arg": "@PTF,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["milkie"]}],
-		"then": "addTags",
-		"arg": "@MLK,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["filelist"]}],
-		"then": "addTags",
-		"arg": "@FL,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["thefl"]}],
-		"then": "addTags",
-		"arg": "@FL,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["fearnopeer"]}],
-		"then": "addTags",
-		"arg": "@FNP,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["yoinked"]}],
-		"then": "addTags",
-		"arg": "@YNK,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["hd-space"]}],
-		"then": "addTags",
-		"arg": "@HDS,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["rastastugan"]}],
-		"then": "addTags",
-		"arg": "@RAS,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["retroflix"]}],
-		"then": "addTags",
-		"arg": "@RF,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["upload.cx"]}],
-		"then": "addTags",
-		"arg": "@ULCX,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["capybarabr"]}],
-		"then": "addTags",
-		"arg": "@CBR,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["reelflix"]}],
-		"then": "addTags",
-		"arg": "@RFX,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["lst.gg"]}],
-		"then": "addTags",
-		"arg": "@LST,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["t-ru.org"]}],
-		"then": "addTags",
-		"arg": "@RUT,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
-		"then": "addTags",
-		"arg": "@BLU,Private Tracker"
-	},
-	{
-		"if": [{"key": "tracker", "comparator": "==", "value": ["aither"]}],
-		"then": "addTags",
-		"arg": "@ATH,Private Tracker"
-	},
-	{
-		"if": [{"key": "tags", "comparator": "!=", "value": ["Private Tracker"]}],
-		"then": "addTags",
-		"arg": "Public Tracker"
-	},
-	{
-		"if": [{"key": "tags", "comparator": "==", "value": ["Private Tracker"]}],
-		"then": "removeTags",
-		"arg": "Public Tracker"
-	}
-]
+{
+	"ACTIONS": [
+		// Resume completed torrents that are stopped
+		{
+			"if": [{"key": "state", "comparator": "==", "value": ["stoppedUP"]}],
+			"then": "start"
+		},
+		// Resume almost finished torrents that are stopped
+		{
+			"if": [
+				{"key": "state", "comparator": "==", "value": ["stoppedDL"]},
+				{"key": "progress", "comparator": ">=", "value": 0.95}
+			],
+			"then": "start"
+		},
+		// Recheck missing files
+		{
+			"if": [{"key": "state", "comparator": "==", "value": ["missingFiles"]}],
+			"then": "recheck"
+		},
+		// Remove errored cross-seed-links
+		{
+			"if": [
+				{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
+				{"key": "state", "comparator": "==", "value": ["error"]}
+			],
+			"then": "delete"
+		},
+		// Resume errored downloads
+		{
+			// TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
+			"if": [
+				{"key": "progress", "comparator": "!=", "value": 1},
+				{"key": "state", "comparator": "==", "value": ["error"]}
+			],
+			"then": "start",
+			"max": 0.001 // 0.1% chance a single errored download will be restarted each run
+		},
+		// Remove cross-seed-links that have less than 95% progress
+		{
+			"if": [
+				{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
+				{"key": "progress", "comparator": "<", "value": 0.95},
+				{"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving"]}
+			],
+			"then": "delete"
+		},
+		// Force disable sequential downloads on all torrents
+		{
+			"if": [{"key": "seq_dl", "comparator": "!="}],
+			"then": "toggleSequentialDownload"
+		},
+		// Force enable auto torrent management mode for non cross-seed torrents
+		{
+			"if": [
+				{"key": "auto_tmm", "comparator": "!="},
+				{"key": "tags", "comparator": "!=", "value": ["cross-seed"]}
+			],
+			"then": "setAutoManagement",
+			"arg": true
+		},
+		// Remove Public Torrents
+		{
+			"if": [
+				{"key": "private", "comparator": "!="},
+				{"key": "state", "comparator": "==", "value": ["stalledUP", "stoppedUP", "uploading"]}
+			],
+			"then": "delete"
+		},
+		// Remove !noHL torrents from freeleech trackers
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]}
+			],
+			"then": "delete"
+		},
+		// Recheck stalled but completed downloads
+		{
+			"if": [
+				{"key": "state", "comparator": "==", "value": ["stalledDL"]},
+				{"key": "amount_left", "comparator": "==", "value": 0}
+			],
+			"then": "recheck"
+		},
+		{
+			"if": [{"key": "state", "comparator": "==", "value": ["stalledDL"]}],
+			"then": "addTags",
+			"arg": "stalledDL"
+		},
+		{
+			"if": [{"key": "state", "comparator": "!=", "value": ["stalledDL"]}],
+			"then": "removeTags",
+			"arg": "stalledDL"
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK"]},
+				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
+			],
+			"then": "start"
+		},
+		{
+			"if": [
+				{"key": "private", "comparator": "!="},
+				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
+			],
+			"then": "start"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
+			"then": "addTags",
+			"arg": "@BLU,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["seedpool"]}],
+			"then": "addTags",
+			"arg": "@SP,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["torrentleech"]}],
+			"then": "addTags",
+			"arg": "@TL,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["tleechreload"]}],
+			"then": "addTags",
+			"arg": "@TL,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["myanonamouse"]}],
+			"then": "addTags",
+			"arg": "@MaM,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["digitalcore"]}],
+			"then": "addTags",
+			"arg": "@DCC,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["stackoverflow.tech"]}],
+			"then": "addTags",
+			"arg": "@IPT,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["empirehost.me"]}],
+			"then": "addTags",
+			"arg": "@IPT,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["bgp.technology"]}],
+			"then": "addTags",
+			"arg": "@IPT,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["shareisland"]}],
+			"then": "addTags",
+			"arg": "@SHR,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["scenetime"]}],
+			"then": "addTags",
+			"arg": "@ST,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["darkpeers"]}],
+			"then": "addTags",
+			"arg": "@DP,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["yu-scene"]}],
+			"then": "addTags",
+			"arg": "@YS,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["speedapp"]}],
+			"then": "addTags",
+			"arg": "@SA,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["privatehd"]}],
+			"then": "addTags",
+			"arg": "@PHD,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["jumbohostpro"]}],
+			"then": "addTags",
+			"arg": "@TTi,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["connecting.center"]}],
+			"then": "addTags",
+			"arg": "@TTi,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["sktorrent"]}],
+			"then": "addTags",
+			"arg": "@SKT,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["ptfiles"]}],
+			"then": "addTags",
+			"arg": "@PTF,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["milkie"]}],
+			"then": "addTags",
+			"arg": "@MLK,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["filelist"]}],
+			"then": "addTags",
+			"arg": "@FL,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["thefl"]}],
+			"then": "addTags",
+			"arg": "@FL,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["fearnopeer"]}],
+			"then": "addTags",
+			"arg": "@FNP,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["yoinked"]}],
+			"then": "addTags",
+			"arg": "@YNK,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["hd-space"]}],
+			"then": "addTags",
+			"arg": "@HDS,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["rastastugan"]}],
+			"then": "addTags",
+			"arg": "@RAS,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["retroflix"]}],
+			"then": "addTags",
+			"arg": "@RF,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["upload.cx"]}],
+			"then": "addTags",
+			"arg": "@ULCX,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["capybarabr"]}],
+			"then": "addTags",
+			"arg": "@CBR,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["reelflix"]}],
+			"then": "addTags",
+			"arg": "@RFX,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["lst.gg"]}],
+			"then": "addTags",
+			"arg": "@LST,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["t-ru.org"]}],
+			"then": "addTags",
+			"arg": "@RUT,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
+			"then": "addTags",
+			"arg": "@BLU,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["aither"]}],
+			"then": "addTags",
+			"arg": "@ATH,Private Tracker"
+		},
+		{
+			"if": [{"key": "tags", "comparator": "!=", "value": ["Private Tracker"]}],
+			"then": "addTags",
+			"arg": "Public Tracker"
+		},
+		{
+			"if": [{"key": "tags", "comparator": "==", "value": ["Private Tracker"]}],
+			"then": "removeTags",
+			"arg": "Public Tracker"
+		}
+	]
+}
