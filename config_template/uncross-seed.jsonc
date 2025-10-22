@@ -1,0 +1,7 @@
+{
+	// If cross-seed finds a torrent, the original torrent will be deleted if any of these rules match.
+	"FILTERS": [
+    {"key": "private", "comparator": "!="},
+    {"key": "tags", "comparator": "==", "value": ["@FNP", "@MLK", "@RUT"]}
+  ]
+}

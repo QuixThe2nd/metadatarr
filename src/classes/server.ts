@@ -3,6 +3,8 @@ import express from 'express';
 import z from 'zod';
 import { runJobs } from '..';
 import type Client from '../clients/client';
+import { CONFIG } from '../config';
+import { selectorEngine } from './SelectorEngine';
 
 const UncrossSeedRequestSchema = z.object({
   extra: z.object({
@@ -20,11 +22,12 @@ export const startServer = (qB: Client): Promise<void> => new Promise(resolve =>
     const validatedData = UncrossSeedRequestSchema.parse(req.body);
     const payload = validatedData.extra;
     if (payload.result === 'INJECTED') {
-      const oldTorrent = (await qB.torrents()).find(torrent => torrent.hash === payload.searchee.infoHash);
-      const newTorrent = (await qB.torrents()).find(torrent => torrent.hash === payload.infoHashes[0]);
-      if (oldTorrent && !(oldTorrent.private ?? false)) {
-        console.log("\x1b[32m[Cross-Seed]\x1b[0m Replacing public torrent");
+      const torrents = await qB.torrents();
+      const oldTorrent = torrents.find(t => t.hash === payload.searchee.infoHash);
+      if (oldTorrent && CONFIG.UNCROSS_SEED().FILTERS.some(f => selectorEngine.execute([oldTorrent], f, true).length !== 0)) {
+        console.log("\x1b[32m[Cross-Seed]\x1b[0m Uncross-Seeding torrent");
         await oldTorrent.delete();
+        const newTorrent = torrents.find(t => t.hash === payload.infoHashes[0]);
         if (oldTorrent.category !== null && payload.infoHashes.length !== 0) await newTorrent?.setCategory(oldTorrent.category);
         await newTorrent?.addTags('uncross-seed');
       }
