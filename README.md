@@ -111,6 +111,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 
 #### Other:
 - Deluge/Transmission/RTorrent support
+- Create docker container
 
 ### Stage 2
 #### Metadata
