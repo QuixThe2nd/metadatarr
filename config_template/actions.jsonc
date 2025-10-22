@@ -47,16 +47,16 @@ Rules will be executed in order. When chaining many rules together, place the mo
 				{"key": "state", "comparator": "==", "value": ["error"]}
 			],
 			"then": "start",
-			"max": 0.001 // 0.1% chance a single errored download will be restarted each run
+			"max": 0.01 // 1% chance a single errored download will be restarted each run
 		},
 		// Remove cross-seed-links that have less than 95% progress
 		{
 			"if": [
 				{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
 				{"key": "progress", "comparator": "<", "value": 0.95},
-				{"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving"]}
+				{"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving", "stoppedDL"]}
 			],
-			"then": "delete"
+			"then": "stop"
 		},
 		// Force disable sequential downloads on all torrents
 		{
@@ -76,7 +76,8 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		{
 			"if": [
 				{"key": "private", "comparator": "!="},
-				{"key": "state", "comparator": "==", "value": ["stalledUP", "stoppedUP", "uploading"]}
+				{"key": "ratio", "comparator": ">=", "value": 2.0},
+				{"key": "state", "comparator": "==", "value": ["stoppedUP", "stalledUP", "uploading"]}
 			],
 			"then": "delete"
 		},
@@ -108,7 +109,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		},
 		{
 			"if": [
-				{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK"]},
+				{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK", "@RUT"]},
 				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
 			],
 			"then": "start"
@@ -229,6 +230,11 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"if": [{"key": "tracker", "comparator": "==", "value": ["thefl"]}],
 			"then": "addTags",
 			"arg": "@FL,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["brokenstones"]}],
+			"then": "addTags",
+			"arg": "@BS,Private Tracker"
 		},
 		{
 			"if": [{"key": "tracker", "comparator": "==", "value": ["fearnopeer"]}],

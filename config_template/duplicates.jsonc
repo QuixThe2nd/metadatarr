@@ -13,7 +13,7 @@
   ],
   "FILTERS": [
     // Remove only torrents that are currently downloading or not completed
-    {"key": "state", "comparator": "==", "value": ["stalledDL", "checkingDL", "queuedDL", "stoppedDL", "forcedDL", "downloading", "metaDL"]},
+    {"key": "state", "comparator": "==", "value": ["stalledDL", "checkingDL", "queuedDL", "stoppedDL", "forcedDL", "downloading", "metaDL", "forcedMetaDL"]},
     // Don't remove cross-seed torrents
     {"key": "tags", "comparator": "!=", "value": ["cross-seed"]}
   ]
