@@ -1,6 +1,9 @@
 import type Torrent from "../classes/Torrent";
 import ptt from "parse-torrent-title";
 import { CONFIG } from "../config";
+import fs from 'fs';
+import z from 'zod';
+import { version as pttVersion } from 'parse-torrent-title/package.json';
 
 function cleanString(str: string): string {
   const charSet = new Set([' ','.','-','_']);
@@ -33,11 +36,27 @@ function cleanString(str: string): string {
   return newString === str ? str : cleanString(newString);
 }
 
+const CacheSchema = z.object({
+  pttVersion: z.string(),
+  namingSchema: z.string(),
+  names: z.record(z.string(), z.object({
+    name: z.string(),
+    other: z.string()
+  }))
+});
+
 export const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
 export default class Naming {
   private readonly config = CONFIG.NAMING();
-  private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){}
+  private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, namingSchema: this.config.SCHEME, names: {} };
+
+  private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){
+    if (fs.existsSync('./store/naming_cache.json')) {
+      const cache = CacheSchema.parse(JSON.parse(fs.readFileSync('./store/naming_cache.json').toString()));
+      if (cache.pttVersion === pttVersion && cache.namingSchema === this.config.SCHEME) this.cache = cache;
+    }
+  }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
 
   static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
@@ -46,6 +65,7 @@ export default class Naming {
     if (!this.config.ENABLED) return { changes: 0 };
     let changes = 0;
     for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
+    fs.writeFileSync('./store/naming_cache.json', JSON.stringify(this.cache));
     return { changes };
   }
 
@@ -67,11 +87,18 @@ export default class Naming {
     return changes;
   }
 
+  private parseName = (name: string): { name: string, other: string } => {
+    if (this.cache.names[name]) return this.cache.names[name];
+    const results = this.cleanName(name);
+    this.cache.names[name] = results;
+    return results;
+  }
+
   private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
     if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return 0;
     let changes = await this.handleMissingName(torrent, origName)
 
-    const { name, other } = this.cleanName(origName ?? torrent.name);
+    const { name, other } = this.parseName(origName ?? torrent.name);
     changes += await this.updateParsingTags(torrent, other.length > 0);
 
     if (other.length > 0) {
