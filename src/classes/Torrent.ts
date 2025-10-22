@@ -4,7 +4,7 @@ import { CONFIG } from "../config";
 import type Client from "../clients/client";
 
 export const TorrentSchema = z.object({
-  state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "queuedUP", "forcedDL", "forcedUP"]),
+  state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "forcedMetaDL", "queuedUP", "forcedDL", "forcedUP"]),
   hash: z.string().nonempty(),
   magnet_uri: z.string(),
   name: z.string(),
@@ -21,7 +21,10 @@ export const TorrentSchema = z.object({
   added_on: z.number(),
   num_complete: z.number(),
   tracker: z.string(),
-  eta: z.number()
+  eta: z.number(),
+  ratio: z.number(),
+  uploaded: z.number(),
+  downloaded: z.number()
 });
 export type TorrentType = z.infer<typeof TorrentSchema>;
 
@@ -49,6 +52,9 @@ export class PartialTorrent implements PartialTorrentType {
   public readonly num_complete: PartialTorrentType['num_complete'];
   public readonly tracker: PartialTorrentType['tracker'];
   public readonly eta: PartialTorrentType['eta'];
+  declare readonly ratio: PartialTorrentType['ratio'];
+  declare readonly uploaded: PartialTorrentType['uploaded'];
+  declare readonly downloaded: PartialTorrentType['downloaded'];
 
   constructor(private readonly client: Client, data: PartialTorrentType) {
     Object.assign(this, data);
@@ -73,12 +79,23 @@ export class PartialTorrent implements PartialTorrentType {
     return z.array(z.object({ name: z.string() })).parse(JSON.parse(data));
   }
 
-  public start = async (): Promise<number> => await this.request('start') === false ? 0 : 1;;
-  public recheck = async (): Promise<number> => await this.request('recheck') === false ? 0 : 1;;
+  public start = async (): Promise<number> => await this.request('start') === false ? 0 : 1;
+  public stop = async (): Promise<number> => {
+    this.state = this.progress === 1 ? 'stoppedUP' : 'stoppedDL';
+    return await this.request('stop') === false ? 0 : 1;
+  }
+  public recheck = async (): Promise<number> => {
+    this.state = this.progress === 1 ? 'checkingUP' : 'checkingDL';
+    return await this.request('recheck') === false ? 0 : 1;
+  }
   public delete = async (): Promise<number> => await this.request('delete', { deleteFiles: false }) === false ? 0 : 1;;
-  public setCategory = (category: string): Promise<string | false> => this.request('setCategory', { category });
+  public setCategory = async (category: string): Promise<string | false> => {
+    this.category = category;
+    return await this.request('setCategory', { category });
+  }
   public rename = async (name: string): Promise<number> => {
     if (name === this.name) return 0;
+    this.name = name;
     return await this.request('rename', { name }) === false ? 0 : 1;
   }
   public renameFile = async (oldPath: string, newPath: string): Promise<string | false> => {
@@ -86,8 +103,14 @@ export class PartialTorrent implements PartialTorrentType {
     if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await this.recheck();
     return result;
   }
-  public toggleSequentialDownload = async (): Promise<number> => await this.request('toggleSequentialDownload') === false ? 0 : 1;;
-  public setAutoManagement = async (enable: boolean): Promise<number> => await this.request('setAutoManagement', { enable }) === false ? 0 : 1;;
+  public toggleSequentialDownload = async (): Promise<number> => {
+    this.seq_dl = !this.seq_dl;
+    return await this.request('toggleSequentialDownload') === false ? 0 : 1;
+  }
+  public setAutoManagement = async (enable: boolean): Promise<number> => {
+    this.auto_tmm = enable;
+    return await this.request('setAutoManagement', { enable }) === false ? 0 : 1;
+  }
   public removeTags = async (tags: string): Promise<number> => {
     const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     const removableTags = splitTags.filter(tag => this.tags?.includes(tag) === true);
@@ -105,23 +128,26 @@ export class PartialTorrent implements PartialTorrentType {
 }
 
 export default class Torrent extends PartialTorrent implements TorrentType {
-  declare state: TorrentType['state'];
-  declare magnet_uri: TorrentType['magnet_uri'];
-  declare name: TorrentType['name'];
-  declare size: TorrentType['size'];
-  declare priority: TorrentType['priority'];
-  declare category: TorrentType['category'];
-  declare tags: TorrentType['tags'];
-  declare completed: TorrentType['completed'];
-  declare progress: TorrentType['progress'];
-  declare private: TorrentType['private'];
-  declare amount_left: TorrentType['amount_left'];
-  declare seq_dl: TorrentType['seq_dl'];
-  declare added_on: TorrentType['added_on'];
-  declare auto_tmm: TorrentType['auto_tmm'];
-  declare num_complete: TorrentType['num_complete'];
-  declare tracker: TorrentType['tracker'];
-  declare eta: TorrentType['eta'];
+  declare readonly state: TorrentType['state'];
+  declare readonly magnet_uri: TorrentType['magnet_uri'];
+  declare readonly name: TorrentType['name'];
+  declare readonly size: TorrentType['size'];
+  declare readonly priority: TorrentType['priority'];
+  declare readonly category: TorrentType['category'];
+  declare readonly tags: TorrentType['tags'];
+  declare readonly completed: TorrentType['completed'];
+  declare readonly progress: TorrentType['progress'];
+  declare readonly private: TorrentType['private'];
+  declare readonly amount_left: TorrentType['amount_left'];
+  declare readonly seq_dl: TorrentType['seq_dl'];
+  declare readonly added_on: TorrentType['added_on'];
+  declare readonly auto_tmm: TorrentType['auto_tmm'];
+  declare readonly num_complete: TorrentType['num_complete'];
+  declare readonly tracker: TorrentType['tracker'];
+  declare readonly eta: TorrentType['eta'];
+  declare readonly ratio: TorrentType['ratio'];
+  declare readonly uploaded: TorrentType['uploaded'];
+  declare readonly downloaded: TorrentType['downloaded'];
 
   constructor(client: Client, data: PartialTorrentType) {
     super(client, data);
