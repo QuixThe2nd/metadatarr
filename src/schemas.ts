@@ -19,13 +19,17 @@ const actions = getMethodNames(new Torrent({} as Client, {} as Torrent));
 const excludedActions = ['setAutoManagement', 'addTags', 'removeTags', 'rename', 'renameFile', 'setCategory', 'files'] as const;
 const filteredActions = exclude(actions, excludedActions);
 
+const ActionSchema = z.object({ if: z.array(SelectorSchema) }).and(z.union([
+  z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),
+  z.object({ then: z.enum(filteredActions) })
+])).and(z.object({
+  max: z.number().optional()
+}));
+
+export type Action = z.infer<typeof ActionSchema>;
+
 export const ActionsSchema = z.object({
-  ACTIONS: z.array(z.object({ if: z.array(SelectorSchema) }).and(z.union([
-    z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),
-    z.object({ then: z.enum(filteredActions) })
-  ])).and(z.object({
-    max: z.number().optional()
-  })))
+  ACTIONS: z.array(ActionSchema)
 });
 
 export const CoreSchema = z.object({
@@ -99,4 +103,8 @@ export const MetadataSchema = z.object({
   sources: z.array(z.object({
     url: z.tuple([z.url(), z.union([z.string(), z.void()])])
   }))
+});
+
+export const UncrossSeedSchema = z.object({
+  FILTERS: z.array(SelectorSchema)
 });
