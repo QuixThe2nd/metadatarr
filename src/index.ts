@@ -7,21 +7,23 @@ import OriginalNames from "./startup_tasks/OriginalNames";
 import { importMetadataFiles } from "./startup_tasks/ImportMetadataFiles";
 import Naming from "./jobs/Naming";
 import { sort } from "./jobs/Sort";
-import { duplicates } from "./jobs/Duplicates";
+import { Duplicates } from "./jobs/Duplicates";
 import { queue } from './jobs/Queue';
 import hook from '../tools/inject';
 import type Torrent from './classes/Torrent';
 import { logContext } from './log';
 import metadata from './jobs/Metadata';
-import actions from './jobs/Actions';
+import Actions from './jobs/Actions';
+import { Stats } from './jobs/Stats';
 
 const tasks = {
-  Actions: (torrents: Torrent[]) => actions(torrents),
-  Duplicates: (torrents: Torrent[]) => duplicates(torrents),
+  Actions,
+  Duplicates,
   Sort: (torrents: Torrent[]) => sort(torrents, api),
   Queue: (torrents: Torrent[]) => queue(torrents, api),
   Naming: (torrents: Torrent[]) => Naming.run(torrents, originalNames.names),
-  Metadata: (torrents: Torrent[]) => metadata(torrents, api, webtorrent)
+  Metadata: (torrents: Torrent[]) => metadata(torrents, api, webtorrent),
+  Stats,
 } as const;
 
 let jobsRunning = false;
