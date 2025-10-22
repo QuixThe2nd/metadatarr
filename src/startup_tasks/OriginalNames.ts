@@ -50,6 +50,7 @@ export default class OriginalNames {
     if (!file.endsWith('.torrent')) return false;
     const filePath = path.join(dir, file);
     const torrent = fs.readFileSync(filePath);
+    if (torrent.length === 0) return false;
     try {
       // eslint-disable-next-line
       const metadata = await parseTorrent(torrent);
