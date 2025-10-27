@@ -346,7 +346,6 @@ export default class Naming {
 
   private handleBooleanFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
     for (const key of this.booleanKeys) {
-      console.log(key)
       if (info[key] === true) {
         name = name.replace(`[${key}]`, key.toUpperCase());
         other = other.replace(new RegExp(key, 'i'), '');
