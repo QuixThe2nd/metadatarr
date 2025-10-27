@@ -1,7 +1,7 @@
 import Naming from '../src/jobs/Naming'
 import Client from '../src/clients/client'
 
-const name = ''; // Top Gun 1986 2160p PMTP WEB-DL DDPA 5 1 DV HDR H 265-PiRaTeS
+const name = '';
 const filter = '';
 
 if (name.length) {

@@ -62,7 +62,7 @@ export default class Naming {
       if (cache.pttVersion === pttVersion && cache.parserVersion === PARSER_VERSION && cache.namingSchema === this.config.SCHEME) this.cache = cache;
     }
   }
-  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
+  private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras', 'retail'] as const;
 
   static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
 
@@ -263,7 +263,7 @@ export default class Naming {
       return other;
     },
     color: (matches, other) => {
-      if (matches.includes('HDR10+')) other = other.replace(/\bHDR10(?:\+|plus)[\b\s]/i, '')
+      if (matches.includes('HDR10+')) other = other.replace(/\bHDR10(?:\+|plus)[\b\s.]/i, '')
       if (matches.includes('HDR')) other = other.replace(/\bHDR(?:10)?\b/i, '');
       if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
       return other;
