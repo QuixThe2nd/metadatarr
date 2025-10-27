@@ -1,9 +1,12 @@
 import type Torrent from "../classes/Torrent";
 import ptt from 'parse-torrent-title';
 
-const parse = (torrents: Torrent[]) => {
-  const trackers: Record<string, { ul: number; dl: number, torrents: number }> = {};
-  const releases: Record<string, number> = {};
+type Trackers = Record<string, { ul: number; dl: number, torrents: number }>;
+type Releases = Record<string, number>;
+
+const parse = (torrents: Torrent[]): { trackers: Trackers; releases: Releases } => {
+  const trackers: Trackers = {};
+  const releases: Releases = {};
   for (const torrent of torrents) {
     if (releases[torrent.name]) releases[torrent.name]++;
     else releases[torrent.name] = 1;
