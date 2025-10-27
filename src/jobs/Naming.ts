@@ -4,6 +4,12 @@ import { CONFIG } from "../config";
 import fs from 'fs';
 import z from 'zod';
 import { version as pttVersion } from 'parse-torrent-title/package.json';
+import { stringKeys } from "../schemas";
+
+/* -------------------------------------------------
+ BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
+------------------------------------------------- */
+const PARSER_VERSION = 2;
 
 function cleanString(str: string): string {
   const charSet = new Set([' ','.','-','_']);
@@ -37,6 +43,7 @@ function cleanString(str: string): string {
 }
 
 const CacheSchema = z.object({
+  parserVersion: z.number(),
   pttVersion: z.string(),
   namingSchema: z.string(),
   names: z.record(z.string(), z.object({
@@ -45,16 +52,14 @@ const CacheSchema = z.object({
   }))
 });
 
-export const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
-
 export default class Naming {
   private readonly config = CONFIG.NAMING();
-  private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, namingSchema: this.config.SCHEME, names: {} };
+  private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, parserVersion: PARSER_VERSION, namingSchema: this.config.SCHEME, names: {} };
 
   private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){
     if (fs.existsSync('./store/naming_cache.json')) {
       const cache = CacheSchema.parse(JSON.parse(fs.readFileSync('./store/naming_cache.json').toString()));
-      if (cache.pttVersion === pttVersion && cache.namingSchema === this.config.SCHEME) this.cache = cache;
+      if (cache.pttVersion === pttVersion && cache.parserVersion === PARSER_VERSION && cache.namingSchema === this.config.SCHEME) this.cache = cache;
     }
   }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras'] as const;
@@ -70,8 +75,8 @@ export default class Naming {
   }
 
   private handleMissingName(torrent: Torrent, origName: string | undefined): Promise<number> | number {
-    if (origName !== undefined) return torrent.removeTags('!missingOriginalName');
-    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) return torrent.addTags('!missingOriginalName');
+    if (origName !== undefined) return torrent.tags.includes('!missingOriginalName') ? torrent.removeTags('!missingOriginalName') : 0;
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) return !torrent.tags.includes('!missingOriginalName') ? torrent.addTags('!missingOriginalName') : 0;
     return 0;
   }
 
@@ -171,13 +176,13 @@ export default class Naming {
 
   detectDownscale(info: ParseTorrentTitle.DefaultParserResult): ParseTorrentTitle.DefaultParserResult {
     if (info.resolutionlist && info.resolutionlist.length > 1) {
-      const resolutions = ['480p', '720p', '1080p', '4k']
+      const resolutions = ['480p', '720p', '1080p', '2160p']
       for (let i = 0; i < resolutions.length-1; i++) {
         const resolution = resolutions[i];
         const nextResolution = resolutions[i+1];
         if (resolution === undefined) throw new Error('WTF HAPPENED 1');
         if (nextResolution === undefined) throw new Error('WTF HAPPENED 2');
-        if (info.resolutionlist.includes(resolution) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '4k' && info.resolutionlist.includes('UHD')))) {
+        if (info.resolutionlist.includes(resolution) && (info.resolutionlist.includes(nextResolution) || (nextResolution === '2160p' && info.resolutionlist.includes('2160p')))) {
           info.resolution = resolution;
           info.downscaled = nextResolution;
           delete info.resolutionlist;
@@ -275,12 +280,13 @@ export default class Naming {
       return other;
     },
     resolution: (matches, other) => {
-      if (matches.includes('4k')) other = other.replace(/\b(UHD|2160p)\b/i, '');
+      if (matches.includes('2160p')) other = other.replace(/\b(4k|UHD)\b/i, '');
       else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
       return other;
     },
     downscaled: (matches, other) => {
-      if (matches.includes('4k')) other = other.replace(/\b(UHD|DS4K)\b/i, '');
+      console.log(matches, other)
+      if (matches.includes('2160p')) other = other.replace(/\b(UHD|DS4K|4k)\b/i, '');
       else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
       return other;
     },
@@ -297,8 +303,8 @@ export default class Naming {
       return other;
     },
     channels: (matches, other) => {
-      other = other.replace(Number(matches[0]).toFixed(1), '');
-      other = other.replace(Number(matches[0]).toFixed(1).replace('.', ' '), '');
+      other = other.replaceAll(Number(matches[0]).toFixed(1), '');
+      other = other.replaceAll(Number(matches[0]).toFixed(1).replace('.', ' '), '');
       if (matches.includes(7.1)) other = other.replace(/8(?:CH)/, '');
       else if (matches.includes(5.1)) other = other.replace(/6(?:CH)/, '');
       else if (matches.includes(2.0)) other = other.replace(/2(?:CH)/, '');
