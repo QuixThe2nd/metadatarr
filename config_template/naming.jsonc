@@ -19,7 +19,7 @@
 	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
 	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
 	*/
-	"SCHEME": "[title] ([year]) [season][episode] - [extras] [retail] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
+	"SCHEME": "[title] ([year]) [season][episode] [episode_title] - [extras] [retail] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
 	// Separator between different fields
 	"SPACING": " ",
 	/* Find and replace strings in the name
@@ -95,5 +95,7 @@
 	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
 	"TAG_MISSING_ORIGINAL_NAME": true,
 	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
-	"RESET_ON_FAIL": true
+	"RESET_ON_FAIL": true,
+	// Optionally set a TMDB API key for improved title parsing (recommended)
+	"TMDB_API_KEY": ""
 }

@@ -5,7 +5,7 @@ const name = '';
 const filter = '';
 
 if (name.length) {
-  console.log(Naming.test(name));
+  console.log(await Naming.test(name));
   process.exit()
 }
 
@@ -16,7 +16,7 @@ const tests = [...new Set(torrents.map(t => t.name).filter(t => t.includes(filte
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  const { other, ...result } = Naming.test(test);
+  const { other, ...result } = await Naming.test(test);
   if (other.length !== 0 && other.includes(filter)) {
     fails[other] ??= { originalName: test, count: 0, ...result};
     fails[other].count++;

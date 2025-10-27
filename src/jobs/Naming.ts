@@ -5,6 +5,7 @@ import fs from 'fs';
 import z from 'zod';
 import { version as pttVersion } from 'parse-torrent-title/package.json';
 import { stringKeys } from "../schemas";
+import { getEpisodeTitleFromName } from "../utils/TMDB";
 
 /* -------------------------------------------------
  BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
@@ -92,9 +93,9 @@ export default class Naming {
     return changes;
   }
 
-  private parseName = (name: string): { name: string, other: string } => {
+  private parseName = async (name: string): Promise<{ name: string, other: string }> => {
     if (this.cache.names[name]) return this.cache.names[name];
-    const results = this.cleanName(name);
+    const results = await this.cleanName(name);
     this.cache.names[name] = results;
     return results;
   }
@@ -103,7 +104,7 @@ export default class Naming {
     if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return 0;
     let changes = await this.handleMissingName(torrent, origName)
 
-    const { name, other } = this.parseName(origName ?? torrent.name);
+    const { name, other } = await this.parseName(origName ?? torrent.name);
     changes += await this.updateParsingTags(torrent, other.length > 0);
 
     if (other.length > 0) {
@@ -137,7 +138,7 @@ export default class Naming {
 
     const oldName = parts[0];
     if (oldName === undefined) return changes;
-    const { name, other } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name: torrentName, other: "" } : this.cleanName(oldName);
+    const { name, other } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name: torrentName, other: "" } : await this.cleanName(oldName);
 
     if (other.length > 0) {
       if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFolderFailed");
@@ -189,8 +190,9 @@ export default class Naming {
     return info;
   }
 
-  cleanName(oldName: string, firstRun = true): { name: string; other: string; info: ParseTorrentTitle.DefaultParserResult } {
+  async cleanName(oldName: string, firstRun = true): Promise<{ name: string; other: string; info: ParseTorrentTitle.DefaultParserResult }> {
     let { name: other, info } = this.parse(oldName);
+    const { title, season, episode } = info;
 
     let name = this.config.SCHEME;
     const vals1 = this.handleStringFlags(name, other, info);
@@ -208,9 +210,18 @@ export default class Naming {
 
     other = cleanString(other).replace(/[^a-zA-Z0-9]/g, ' ').trim();
     name = cleanString(name.replace('[other]', other)).trim();
+    
+    if (season !== undefined && episode !== undefined) {
+      const episodeTitle = await getEpisodeTitleFromName(title, season, episode);
+      if (episodeTitle !== undefined && other.includes(episodeTitle)) {
+        name = name.replace('[episode_title]', episodeTitle);
+        other = other.replace(episodeTitle, '');
+      }
+    }
+    name = name.replace('[episode_title]', '');
 
     if (firstRun) {
-      const reCleanName = this.cleanName(name, false).name;
+      const { name: reCleanName } = await this.cleanName(name, false);
       if (reCleanName !== name) name = name.length <= reCleanName.length ? name : reCleanName;
     }
 
@@ -352,9 +363,9 @@ export default class Naming {
     return { name, other, info };
   }
 
-  static test(name: string): { name: string; other: string, info: ParseTorrentTitle.DefaultParserResult } {
+  static async test(name: string): Promise<{ name: string; other: string, info: ParseTorrentTitle.DefaultParserResult }> {
     // @ts-expect-error: Just used for tests, no api needed
     const naming = new Naming();
-    return { ...naming.cleanName(name, false), info: ptt.parse(name) };
+    return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
   }
 }

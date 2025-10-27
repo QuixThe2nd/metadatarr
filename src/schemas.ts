@@ -70,7 +70,8 @@ export const NamingConfigSchema = z.object({
   FORCE_TITLE_CASE: z.boolean(),
   FORCE_ORIGINAL_NAME: z.boolean(),
   TAG_MISSING_ORIGINAL_NAME: z.boolean(),
-  RESET_ON_FAIL: z.boolean()
+  RESET_ON_FAIL: z.boolean(),
+  TMDB_API_KEY: z.string()
 });
 
 export const SortConfigSchema = z.object({
