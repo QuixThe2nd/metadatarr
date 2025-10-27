@@ -30,7 +30,7 @@
 		"Remaster(?:ed)?": "remastered",
 		"Theatrical(?:[. ]Cut)": "theatrical",
 		"open(?:[\\s.]matte)?": "openmatte",
-		"extended(?:[\\s.](?:cut|edition))?": "extended"
+		"extended(?:[\\s.](?:cut|edition|version))?": "extended"
 	},
 	"REDUNDANT_FLAGS": {
 		"codec": [
@@ -72,8 +72,6 @@
 	"TAG_SUCCESSFUL_PARSING": false,
 	// Do not rename if there are any unknown tags in the name
 	"SKIP_IF_UNKNOWN": true,
-	// Trim container (.mkv, .mp4, etc) from end of title
-	"TRIM_CONTAINER": true,
 	// List of known TLDs to remove from titles if REMOVE_DOMAINS is true
 	"REMOVE_TLDS": [],
 	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"

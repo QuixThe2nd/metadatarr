@@ -9,7 +9,7 @@ import { stringKeys } from "../schemas";
 /* -------------------------------------------------
  BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
 ------------------------------------------------- */
-const PARSER_VERSION = 2;
+const PARSER_VERSION = 4;
 
 function cleanString(str: string): string {
   const charSet = new Set([' ','.','-','_']);
@@ -160,10 +160,6 @@ export default class Naming {
   }
 
   postParse(name: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, info: ParseTorrentTitle.DefaultParserResult } {
-    if (this.config.TRIM_CONTAINER && info.container !== undefined) {
-      name = name.replace(new RegExp(`.${info.container}$`, 'i'), '');
-      delete info.container;
-    }
     if (this.config.NO_YEAR_IN_SEASONS && 'year' in info && 'season' in info) {
       name = name.replace(String(info.year), '')
       delete info.year;
@@ -232,7 +228,7 @@ export default class Naming {
 
   private readonly formatFlags: Partial<Record<typeof stringKeys[number], (value: string | number) => string>> = {
     bitdepth: value => `${value}bit`,
-    downscaled: value => `DS${String(value).toUpperCase()}`,
+    downscaled: value => `DS${String(value === '2160p' ? '4k' : value).toUpperCase()}`,
     samplerate: value => `${value}kHz`,
     channels: value => Number(value).toFixed(1),
     source: value => ({ bluray: 'BluRay', 'web-dl': 'WEBDL' }[value] ?? String(value).toUpperCase()),
@@ -267,7 +263,8 @@ export default class Naming {
       return other;
     },
     color: (matches, other) => {
-      if (matches.includes('HDR')) other = other.replace('HDR10', '');
+      if (matches.includes('HDR10+')) other = other.replace(/\bHDR10(?:\+|plus)[\b\s]/i, '')
+      if (matches.includes('HDR')) other = other.replace(/\bHDR(?:10)?\b/i, '');
       if (matches.includes('DV')) other = other.replace(/\b(DoVi|Dolby Vision)\b/i, '');
       return other;
     },

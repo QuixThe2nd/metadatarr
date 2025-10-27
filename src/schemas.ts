@@ -59,7 +59,6 @@ export const NamingConfigSchema = z.object({
   TAG_FAILED_PARSING: z.boolean(),
   TAG_SUCCESSFUL_PARSING: z.boolean(),
   RENAME_FILES: z.boolean(),
-  TRIM_CONTAINER: z.boolean(),
   SKIP_IF_UNKNOWN: z.boolean(),
   REMOVE_DOMAINS: z.boolean(),
   NO_YEAR_IN_SEASONS: z.boolean(),
