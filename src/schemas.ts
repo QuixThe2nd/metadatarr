@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
 import Torrent from './classes/Torrent';
-import { stringKeys } from './jobs/Naming';
 import type Client from './clients/client';
 
 type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
@@ -45,6 +44,8 @@ export const ClientSchema = z.object({
   PASSWORD: z.string().min(1),
   TYPE: z.enum(["qbittorrent", "deluge"])
 });
+
+export const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
 export const NamingConfigSchema = z.object({
   ENABLED: z.boolean(),

@@ -1,7 +1,7 @@
 import Naming from '../src/jobs/Naming'
 import Client from '../src/clients/client'
 
-const name = 'Ratatouille (2007) UHD 2160p BluRay DV HDR10+ HEVC Multi DD 5.1-ĶOCHÂ';
+const name = ''; // Top Gun 1986 2160p PMTP WEB-DL DDPA 5 1 DV HDR H 265-PiRaTeS
 const filter = '';
 
 if (name.length) {
@@ -17,7 +17,7 @@ const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
   const { other, ...result } = Naming.test(test);
-  if (other.includes(filter)) {
+  if (other.length !== 0 && other.includes(filter)) {
     fails[other] ??= { originalName: test, count: 0, ...result};
     fails[other].count++;
   }
