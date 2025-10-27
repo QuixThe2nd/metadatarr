@@ -8,8 +8,11 @@ const parse = (torrents: Torrent[]): { trackers: Trackers; releases: Releases } 
   const trackers: Trackers = {};
   const releases: Releases = {};
   for (const torrent of torrents) {
-    if (torrent.name in releases) releases[torrent.name]++;
-    else releases[torrent.name] = 1;
+    if (torrent.name in releases) releases[torrent.name] = 1;
+    else {
+      const count = releases[torrent.name];
+      if (count !== undefined) releases[torrent.name] = count + 1;
+    }
 
     const tracker = torrent.tags.find(t => t.startsWith('@'))
     if (tracker === undefined) continue;
