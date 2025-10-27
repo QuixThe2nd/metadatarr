@@ -13,6 +13,14 @@ Rules will be executed in order. When chaining many rules together, place the mo
 
 {
 	"ACTIONS": [
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@MaM"]}
+			],
+			"then": "removeTags",
+			"arg": "!noHL"
+		},
 		// Resume completed torrents that are stopped
 		{
 			"if": [{"key": "state", "comparator": "==", "value": ["stoppedUP"]}],
@@ -81,11 +89,18 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			],
 			"then": "delete"
 		},
-		// Remove !noHL torrents from freeleech trackers
+		// Remove !noHL torrents from no-HnR trackers
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]}
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL"]}
+			],
+			"then": "delete"
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "private", "comparator": "!="}
 			],
 			"then": "delete"
 		},
@@ -110,6 +125,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK", "@RUT"]},
+				{"key": "category", "comparator": "!=", "value": ["cross-seed-links"]},
 				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
 			],
 			"then": "start"
@@ -252,6 +268,11 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"arg": "@HDS,Private Tracker"
 		},
 		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["onlyencodes"]}],
+			"then": "addTags",
+			"arg": "@OE,Private Tracker"
+		},
+		{
 			"if": [{"key": "tracker", "comparator": "==", "value": ["rastastugan"]}],
 			"then": "addTags",
 			"arg": "@RAS,Private Tracker"
@@ -295,6 +316,11 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"if": [{"key": "tracker", "comparator": "==", "value": ["aither"]}],
 			"then": "addTags",
 			"arg": "@ATH,Private Tracker"
+		},
+		{
+			"if": [{"key": "tracker", "comparator": "==", "value": ["anthelion"]}],
+			"then": "addTags",
+			"arg": "@ANT,Private Tracker"
 		},
 		{
 			"if": [{"key": "tags", "comparator": "!=", "value": ["Private Tracker"]}],

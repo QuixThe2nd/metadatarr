@@ -53,12 +53,10 @@
 			{
 				"match": ["DV", "HDR"],
 				"keep": "DV"
-			}
-		],
-		"resolution": [
+			},
 			{
-				"match": ["2160p", "4K"],
-				"keep": "2160p"
+				"match": ["DV", "HDR10+"],
+				"keep": "DV"
 			}
 		]
 	},
