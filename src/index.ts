@@ -23,7 +23,7 @@ const tasks = {
   Queue: (torrents: Torrent[]) => queue(torrents, api),
   Naming: (torrents: Torrent[]) => Naming.run(torrents, originalNames.names),
   Metadata: (torrents: Torrent[]) => metadata(torrents, api, webtorrent),
-  Stats,
+  // Stats,
 } as const;
 
 let jobsRunning = false;
