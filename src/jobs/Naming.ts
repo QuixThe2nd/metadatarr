@@ -285,7 +285,6 @@ export default class Naming {
       return other;
     },
     downscaled: (matches, other) => {
-      console.log(matches, other)
       if (matches.includes('2160p')) other = other.replace(/\b(UHD|DS4K|4k)\b/i, '');
       else if (matches.includes('1080p')) other = other.replace(/\bFHD\b/i, '').replace(/1080[pi]?/, '');
       return other;
@@ -347,7 +346,11 @@ export default class Naming {
 
   private handleBooleanFlags(name: string, other: string, info: ParseTorrentTitle.DefaultParserResult): { name: string, other: string, info: ParseTorrentTitle.DefaultParserResult } {
     for (const key of this.booleanKeys) {
-      if (info[key] === true) name = name.replace(`[${key}]`, key.toUpperCase());
+      console.log(key)
+      if (info[key] === true) {
+        name = name.replace(`[${key}]`, key.toUpperCase());
+        other = other.replace(new RegExp(key, 'i'), '');
+      }
       delete info[key];
     }
     return { name, other, info };
