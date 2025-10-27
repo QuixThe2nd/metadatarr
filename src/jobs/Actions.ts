@@ -17,12 +17,11 @@ const Actions = async (torrents: Torrent[]): Promise<{ changes: number, deletes:
   torrents = torrents.sort(Math.random);
   let changes = 0;
   for (const action of CONFIG.ACTIONS().ACTIONS) {
-    if ('max' in action && action.max < 1) action.max = action.max > Math.random() ? 1 : 0;
+    if (action.max !== undefined && action.max < 1) action.max = action.max > Math.random() ? 1 : 0;
     let selectedTorrents = torrents;
     for (const selector of action.if) selectedTorrents = selectorEngine.execute(selectedTorrents, selector, true);
-    for (let i = 0; i < selectedTorrents.length; i++) {
-      if ('max' in action && i === action.max) break;
-      const torrent = selectedTorrents[i]!;
+    for (const [i, torrent] of selectedTorrents.entries()) {
+      if ('max' in action && i === action.max) continue;
       const result = await runAction(torrent, action);
       changes += result.changes;
       if (result.deleted) deletes.push(torrent.hash);

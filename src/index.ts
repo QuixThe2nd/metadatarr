@@ -14,17 +14,17 @@ import type Torrent from './classes/Torrent';
 import { logContext } from './log';
 import metadata from './jobs/Metadata';
 import Actions from './jobs/Actions';
-import { Stats } from './jobs/Stats';
+// import { Stats } from './jobs/Stats';
 
 const tasks = {
   Actions,
   Duplicates,
-  Sort: (torrents: Torrent[]) => sort(torrents, api),
-  Queue: (torrents: Torrent[]) => queue(torrents, api),
-  Naming: (torrents: Torrent[]) => Naming.run(torrents, originalNames.names),
-  Metadata: (torrents: Torrent[]) => metadata(torrents, api, webtorrent),
+  Sort: (torrents: Torrent[]): Promise<{ changes: number }> => sort(torrents, api),
+  Queue: (torrents: Torrent[]): Promise<{ changes: number }> => queue(torrents, api),
+  Naming: (torrents: Torrent[]): Promise<{ changes: number }> => Naming.run(torrents, originalNames.names),
+  Metadata: (torrents: Torrent[]): Promise<{ changes: number }> => metadata(torrents, api, webtorrent),
   // Stats,
-} as const;
+} satisfies Record<string, (t: Torrent[]) => Promise<{ changes: number; deletes?: string[] }>>;
 
 let jobsRunning = false;
 export const runJobs = async (): Promise<number> => {
@@ -40,9 +40,12 @@ export const runJobs = async (): Promise<number> => {
   for (const [name, task] of Object.entries(tasks)) {
     const taskChanges = await logContext(name, async () => {
       console.log('Job Started');
-      const taskResult = await task(torrents)
+      const taskResult = await task(torrents) as { changes: number; deletes?: string[] };
       console.log('Job Finished - Changes:', taskResult.changes);
-      if (taskResult.deletes !== undefined) torrents = torrents.filter(t => !taskResult.deletes!.includes(t.hash))
+      if (taskResult.deletes !== undefined) {
+        const deletesToRemove = taskResult.deletes;
+        torrents = torrents.filter(t => !deletesToRemove.includes(t.hash));
+      }
       return taskResult.changes;
     });
     changes += taskChanges;

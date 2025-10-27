@@ -74,7 +74,8 @@ export default defineConfig([
       "max-params": ["error", 4],
 
       // Other
-      "@typescript-eslint/restrict-template-expressions": "off"
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/no-dynamic-delete": "off"
     }
   }
 ]);

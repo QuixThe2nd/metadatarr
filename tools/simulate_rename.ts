@@ -12,7 +12,8 @@ if (name.length) {
 const client = await Client.connect()
 
 const torrents = await client.torrents();
-const tests = [...new Set(torrents.map(t => t.name).filter(t => t.includes(filter)))];
+const tests = torrents.map(t => t.name).filter(t => t.includes(filter));
+// const tests = [...new Set(torrents.map(t => t.name).filter(t => t.includes(filter)))];
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {

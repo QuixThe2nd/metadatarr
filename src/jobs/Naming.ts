@@ -218,7 +218,7 @@ export default class Naming {
         other = other.replace(episodeTitle, '');
       }
     }
-    name = name.replace('[episode_title]', '');
+    name = name.replace('[episode_title]', '').replace('  ', ' ').trim();
 
     if (firstRun) {
       const { name: reCleanName } = await this.cleanName(name, false);
@@ -356,6 +356,7 @@ export default class Naming {
     for (const key of this.booleanKeys) {
       if (info[key] === true) {
         name = name.replace(`[${key}]`, key.toUpperCase());
+        if (key === 'extras') other = other.replace(/\bExt\b/, '')
         other = other.replace(new RegExp(key, 'i'), '');
       }
       delete info[key];
