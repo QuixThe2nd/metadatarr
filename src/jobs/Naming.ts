@@ -112,8 +112,9 @@ export default class Naming {
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     }
 
-    changes += await torrent.rename(name);
-    if (this.config.RENAME_FILES) changes += await this.renameFiles(torrent, name);
+    const torrentChanges = await torrent.rename(name);
+    changes += torrentChanges;
+    if (this.config.RENAME_FILES && torrentChanges > 0) changes += await this.renameFiles(torrent, name);
 
     return changes;
   }
