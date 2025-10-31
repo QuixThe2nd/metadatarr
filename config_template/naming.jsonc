@@ -61,7 +61,7 @@
 		]
 	},
 	// Fix common mistakes in group names
-	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo", "Will1869", "DarQ HONE"],
+	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo", "Will1869", "DarQ HONE", "COLLECTiVE"],
 	// If true, will rename files based on the naming scheme
 	"RENAME_FILES": true,
 	// If true, will remove domain names from titles
