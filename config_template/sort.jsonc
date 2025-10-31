@@ -114,12 +114,6 @@
 		*/
 		{"key": "progress", "comparator": ">=", "value": 0.1},
 		{"key": "progress", "comparator": ">=", "value": 0.99},
-		/* Prefer manually prioritised torrents
-		ASC: Priority 1 first
-		DESC: Priority 1 last
-		Untagged torrents are considered priority 50
-		*/
-		// {"key": "PRIORITY_TAG", "comparator": "ASC", "prefix": "Priority - "}, // TODO: // Tag torrents with "Priority - 1", "Priority - 2", ..., "Priority - 100" to set their priority
 		{"key": "state", "comparator": "!=", "value": ["stoppedDL", "stoppedUP"]},
 		/* Prefer torrents without metadata
 		ASC: Torrents with metadata first
