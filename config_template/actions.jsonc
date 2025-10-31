@@ -13,14 +13,6 @@ Rules will be executed in order. When chaining many rules together, place the mo
 
 {
 	"ACTIONS": [
-		{
-			"if": [
-				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@MaM"]}
-			],
-			"then": "removeTags",
-			"arg": "!noHL"
-		},
 		// Resume completed torrents that are stopped
 		{
 			"if": [{"key": "state", "comparator": "==", "value": ["stoppedUP"]}],
@@ -49,7 +41,6 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		},
 		// Resume errored downloads
 		{
-			// TODO: Add last-active to torrent schema and use it to only restart torrents that have been in error for more than X hours
 			"if": [
 				{"key": "progress", "comparator": "!=", "value": 1},
 				{"key": "state", "comparator": "==", "value": ["error"]}
@@ -93,17 +84,90 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL"]}
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]}
 			],
-			"then": "delete"
+			"then": "delete",
+			"arg": true
 		},
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
 				{"key": "private", "comparator": "!="}
 			],
-			"then": "delete"
+			"then": "delete",
+			"arg": true
 		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@ULCX", "@HDS", "@SA", "@RAS"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 259200} // 3 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@DP"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 345600} // 4 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@ATH", "@YS", "@DCC"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 518400} // 6 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@BLU"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 691200} // 8 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@TL"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 777600} // 9 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@SP", "@PHD"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 950400} // 11 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@IPT"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 1296000} // 15 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		// {
+		// 	"if": [
+		// 		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+		// 		{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 16 days
+		// 	],
+		// 	"then": "delete",
+		// 	"arg": true
+		// },
 		// Recheck stalled but completed downloads
 		{
 			"if": [
