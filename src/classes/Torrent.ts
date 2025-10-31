@@ -69,9 +69,9 @@ const Torrent = (client: Client, data: TorrentType) => {
 
   return {
     get: (): TorrentType => data,
-    files: async (): Promise<{ name: string }[] | false> => {
+    files: async (): Promise<{ name: string }[] | null> => {
       const res = await request(`files?hash=${data.hash}`);
-      if (res === false) return false;
+      if (res === false) return null;
       return z.array(z.object({ name: z.string() })).parse(JSON.parse(res));
     },
     start: async (): Promise<number> => await request('start') === false ? 0 : 1,
