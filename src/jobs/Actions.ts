@@ -6,7 +6,7 @@ import type { Action } from "../schemas";
 const runAction = async (torrent: ReturnType<typeof Torrent>, action: Action): Promise<{ changes: number; deleted: boolean }> => {
   let changes = 0;
   let deleted = false;
-  if ('arg' in action) changes += await torrent[action.then](action.arg);
+  if ('arg' in action) changes += await torrent[action.then](action.arg as never);
   else changes += await torrent[action.then]();
   if (action.then === 'delete') deleted = true;
   return { changes, deleted }
