@@ -3,29 +3,45 @@ import { logContext } from "../log";
 import { CONFIG } from "../config";
 import type Client from "../clients/client";
 
-export const TorrentSchema = z.object({
-  state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "forcedMetaDL", "queuedUP", "forcedDL", "forcedUP"]),
-  hash: z.string().nonempty(),
-  magnet_uri: z.string(),
-  name: z.string(),
-  size: z.number(),
-  priority: z.number(),
-  category: z.string().nullable(),
-  tags: z.codec(z.string(), z.array(z.string()), { decode: (str) => str.split(', '), encode: (arr) => arr.join(', ') }),
-  completed: z.number().nullable(),
-  progress: z.number(),
-  private: z.boolean().nullable(),
-  amount_left: z.number().nullable(),
-  seq_dl: z.boolean(),
-  auto_tmm: z.boolean(),
-  added_on: z.number(),
-  num_complete: z.number(),
-  tracker: z.string(),
-  eta: z.number(),
-  ratio: z.number(),
-  uploaded: z.number(),
-  downloaded: z.number()
+export const properties = {
+  String: {
+    state: z.enum(['stoppedDL', 'stalledDL', 'stalledUP', 'queuedDL', 'checkingUP', 'checkingDL', 'stoppedUP', 'missingFiles', 'downloading', 'moving', 'uploading', 'checkingResumeData', "error", "metaDL", "forcedMetaDL", "queuedUP", "forcedDL", "forcedUP"]),
+    hash: z.string().nonempty(),
+    magnet_uri: z.string(),
+    name: z.string(),
+    category: z.string().nullable(),
+    tracker: z.string(),
+  },
+  Number: {
+    size: z.number(),
+    priority: z.number(),
+    completed: z.number().nullable(),
+    progress: z.number(),
+    amount_left: z.number().nullable(),
+    added_on: z.number(),
+    num_complete: z.number(),
+    eta: z.number(),
+    ratio: z.number(),
+    uploaded: z.number(),
+    downloaded: z.number(),
+    seeding_time: z.number(),
+    real_amount_left: z.number().optional(),
+  },
+  Boolean: {
+    private: z.boolean().nullable(),
+    seq_dl: z.boolean(),
+    auto_tmm: z.boolean(),
+  },
+  Array: {
+    tags: z.codec(z.string(), z.array(z.string()), { decode: (str) => str.split(', '), encode: (arr) => arr.join(', ') }),
+  }
+}
+
+export const TorrentSchema = z.object({ ...properties.String, ...properties.Number, ...properties.Boolean, ...properties.Array }).superRefine(t => {
+  // When checking a partially completed torrent, amount_left counts total unverified OR missing pieces. This property uses progress to calculate only unverified pieces.
+  t.real_amount_left = t.size * (1 - t.progress)
 });
+
 export type TorrentType = z.infer<typeof TorrentSchema>;
 
 const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile'];
@@ -52,6 +68,8 @@ export default class Torrent implements TorrentType {
   get ratio(): TorrentType['ratio'] { return this.data.ratio }
   get uploaded(): TorrentType['uploaded'] { return this.data.uploaded }
   get downloaded(): TorrentType['downloaded'] { return this.data.downloaded }
+  get seeding_time(): TorrentType['seeding_time'] { return this.data.seeding_time }
+  get real_amount_left(): TorrentType['real_amount_left'] { return this.data.real_amount_left }
 
   constructor(private readonly client: Client, private readonly data: TorrentType) {}
 
@@ -83,7 +101,7 @@ export default class Torrent implements TorrentType {
     this.data.state = this.data.progress === 1 ? 'checkingUP' : 'checkingDL';
     return await this.request('recheck') === false ? 0 : 1;
   }
-  public delete = async (): Promise<number> => await this.request('delete', { deleteFiles: false }) === false ? 0 : 1;;
+  public delete = async (deleteFiles = false): Promise<number> => await this.request('delete', { deleteFiles }) === false ? 0 : 1;;
   public setCategory = (category: string): Promise<string | false> => {
     this.data.category = category;
     return this.request('setCategory', { category });
