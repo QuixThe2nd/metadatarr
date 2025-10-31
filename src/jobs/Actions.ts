@@ -3,7 +3,7 @@ import type Torrent from "../classes/Torrent";
 import { CONFIG } from "../config";
 import type { Action } from "../schemas";
 
-const runAction = async (torrent: Torrent, action: Action): Promise<{ changes: number; deleted: boolean }> => {
+const runAction = async (torrent: ReturnType<typeof Torrent>, action: Action): Promise<{ changes: number; deleted: boolean }> => {
   let changes = 0;
   let deleted = false;
   if ('arg' in action) changes += await torrent[action.then](action.arg);
@@ -12,7 +12,7 @@ const runAction = async (torrent: Torrent, action: Action): Promise<{ changes: n
   return { changes, deleted }
 }
 
-const Actions = async (torrents: Torrent[]): Promise<{ changes: number, deletes: string[] }> => {
+const Actions = async (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number, deletes: string[] }> => {
   const deletes: string[] = [];
   torrents = torrents.sort(Math.random);
   let changes = 0;
@@ -24,7 +24,7 @@ const Actions = async (torrents: Torrent[]): Promise<{ changes: number, deletes:
       if ('max' in action && i === action.max) continue;
       const result = await runAction(torrent, action);
       changes += result.changes;
-      if (result.deleted) deletes.push(torrent.hash);
+      if (result.deleted) deletes.push(torrent.get().hash);
     }
   }
   return { changes, deletes };

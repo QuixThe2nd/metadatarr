@@ -19,12 +19,12 @@ import Actions from './jobs/Actions';
 const tasks = {
   Actions,
   Duplicates,
-  Sort: (torrents: Torrent[]): Promise<{ changes: number }> => sort(torrents, api),
-  Queue: (torrents: Torrent[]): Promise<{ changes: number }> => queue(torrents, api),
-  Naming: (torrents: Torrent[]): Promise<{ changes: number }> => Naming.run(torrents, originalNames.names),
-  Metadata: (torrents: Torrent[]): Promise<{ changes: number }> => metadata(torrents, api, webtorrent),
+  Sort: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => sort(torrents, api),
+  Queue: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => queue(torrents, api),
+  Naming: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => Naming.run(torrents, originalNames.names),
+  Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => metadata(torrents, api, webtorrent),
   // Stats,
-} satisfies Record<string, (t: Torrent[]) => Promise<{ changes: number; deletes?: string[] }>>;
+} satisfies Record<string, (t: ReturnType<typeof Torrent>[]) => Promise<{ changes: number; deletes?: string[] }>>;
 
 let jobsRunning = false;
 export const runJobs = async (): Promise<number> => {
@@ -44,7 +44,7 @@ export const runJobs = async (): Promise<number> => {
       console.log('Job Finished - Changes:', taskResult.changes);
       if (taskResult.deletes !== undefined) {
         const deletesToRemove = taskResult.deletes;
-        torrents = torrents.filter(t => !deletesToRemove.includes(t.hash));
+        torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
       }
       return taskResult.changes;
     });

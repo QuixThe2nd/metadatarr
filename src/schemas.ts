@@ -1,22 +1,16 @@
 import { z } from 'zod';
 import { SelectorSchema } from './classes/SelectorEngine';
-import Torrent from './classes/Torrent';
+import Torrent, { type TorrentType } from './classes/Torrent';
 import type Client from './clients/client';
 
-type MethodNames<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
+const objectKeys = <T extends object>(obj: T): (keyof T)[] => Object.keys(obj) as (keyof T)[];
 
-function getMethodNames<T extends object>(obj: T): MethodNames<T>[] {
-  const methods = new Set<string>();
-  for (let proto: T | null = obj; proto; proto = Object.getPrototypeOf(proto) as T | null) 
-  Object.getOwnPropertyNames(proto).forEach(prop => typeof obj[prop] === 'function' && prop !== 'constructor' && methods.add(prop));
-  
-  return [...methods] as MethodNames<T>[];
-}
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
-const actions = getMethodNames(new Torrent({} as Client, {} as Torrent));
-const excludedActions = ['setAutoManagement', 'addTags', 'removeTags', 'rename', 'renameFile', 'setCategory', 'files'] as const;
-const filteredActions = exclude(actions, excludedActions);
+const actions = objectKeys(Torrent({} as Client, {} as TorrentType));
+const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setCategory'] as const;
+const excludedActions = ['get', 'rename', 'renameFile', 'files'] as const;
+const filteredActions = exclude(actions, [...argedActions, ...excludedActions]);
 
 const ActionSchema = z.object({ if: z.array(SelectorSchema) }).and(z.union([
   z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),

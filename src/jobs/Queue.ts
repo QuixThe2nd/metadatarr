@@ -4,25 +4,25 @@ import { CONFIG } from "../config";
 
 const GB = 1024*1024*1024;
 
-const getDownloadQueue = (torrents: Torrent[]): Torrent[] => torrents.filter(torrent => (torrent.state === 'downloading' || torrent.state === 'forcedDL' || torrent.state === 'queuedDL'));
-const getTorrentsMoving = (torrents: Torrent[]): Torrent[] => torrents.filter(torrent => torrent.state === 'moving');
+const getDownloadQueue = (torrents: ReturnType<typeof Torrent>[]): ReturnType<typeof Torrent>[] => torrents.filter(torrent => (torrent.get().state === 'downloading' || torrent.get().state === 'forcedDL' || torrent.get().state === 'queuedDL'));
+const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<typeof Torrent>[] => torrents.filter(torrent => torrent.get().state === 'moving');
 
-const getTotalSize = (torrents: Torrent[]): number => torrents.map(torrent => torrent.size).reduce((acc, curr) => acc + curr, 0);
+const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
-export const queue = async (torrents: Torrent[], client: Client): Promise<{ changes: number }> => {
+export const queue = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<{ changes: number }> => {
   const config = CONFIG.QUEUE();
   if (!config.QUEUE_SIZE_LIMIT) return { changes: 0 };
 
-  torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.category ?? ''));
+  torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.get().category ?? ''));
 
   let sizeLimit = config.QUEUE_SIZE_LIMIT*GB - (config.INCLUDE_MOVING_TORRENTS ? getTotalSize(getTorrentsMoving(torrents)) : 0);
   let queueSize = 0;
   for (const torrent of getDownloadQueue(torrents)) {
-    if (torrent.size > sizeLimit) {
+    if (torrent.get().size > sizeLimit) {
       if (!config.HARD_QUEUE_SIZE_LIMIT) queueSize++;
       break;
     }
-    sizeLimit -= torrent.size;
+    sizeLimit -= torrent.get().size;
     queueSize++;
   }
 

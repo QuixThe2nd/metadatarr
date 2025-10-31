@@ -57,7 +57,7 @@ export default class Naming {
   private readonly config = CONFIG.NAMING();
   private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, parserVersion: PARSER_VERSION, namingSchema: this.config.SCHEME, names: {} };
 
-  private constructor(private readonly torrents: Torrent[], private readonly originalNames: Record<string, string>){
+  private constructor(private readonly torrents: ReturnType<typeof Torrent>[], private readonly originalNames: Record<string, string>){
     if (fs.existsSync('./store/naming_cache.json')) {
       const cache = CacheSchema.parse(JSON.parse(fs.readFileSync('./store/naming_cache.json').toString()));
       if (cache.pttVersion === pttVersion && cache.parserVersion === PARSER_VERSION && cache.namingSchema === this.config.SCHEME) this.cache = cache;
@@ -65,23 +65,23 @@ export default class Naming {
   }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras', 'retail'] as const;
 
-  static run = (torrents: Torrent[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.added_on - a.added_on), originalNames).renameAll();
+  static run = (torrents: ReturnType<typeof Torrent>[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.get().added_on - a.get().added_on), originalNames).renameAll();
 
   private async renameAll(): Promise<{ changes: number }> {
     if (!this.config.ENABLED) return { changes: 0 };
     let changes = 0;
-    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.hash]);
+    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.get().hash]);
     fs.writeFileSync('./store/naming_cache.json', JSON.stringify(this.cache));
     return { changes };
   }
 
-  private handleMissingName(torrent: Torrent, origName: string | undefined): Promise<number> | number {
-    if (origName !== undefined) return torrent.tags.includes('!missingOriginalName') ? torrent.removeTags('!missingOriginalName') : 0;
-    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.size > 0) return !torrent.tags.includes('!missingOriginalName') ? torrent.addTags('!missingOriginalName') : 0;
+  private handleMissingName(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Promise<number> | number {
+    if (origName !== undefined) return torrent.removeTags('!missingOriginalName');
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return torrent.addTags('!missingOriginalName');
     return 0;
   }
 
-  private async updateParsingTags(torrent: Torrent, hasParsingErrors: boolean): Promise<number> {
+  private async updateParsingTags(torrent: ReturnType<typeof Torrent>, hasParsingErrors: boolean): Promise<number> {
     let changes = 0;
     if (hasParsingErrors) {
       if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFailed");
@@ -100,15 +100,15 @@ export default class Naming {
     return results;
   }
 
-  private async renameTorrent(torrent: Torrent, origName: string | undefined): Promise<number> {
+  private async renameTorrent(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Promise<number> {
     if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return 0;
     let changes = await this.handleMissingName(torrent, origName)
 
-    const { name, other } = await this.parseName(origName ?? torrent.name);
+    const { name, other } = await this.parseName(origName ?? torrent.get().name);
     changes += await this.updateParsingTags(torrent, other.length > 0);
 
     if (other.length > 0) {
-      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.name) changes += await torrent.rename(origName);
+      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.get().name) changes += await torrent.rename(origName);
       if (this.config.SKIP_IF_UNKNOWN) return changes;
     }
 
@@ -119,7 +119,7 @@ export default class Naming {
     return changes;
   }
 
-  async renameAllFiles(torrent: Torrent, files: { name: string }[], oldName: string, name: string): Promise<number> {
+  async renameAllFiles(torrent: ReturnType<typeof Torrent>, files: { name: string }[], oldName: string, name: string): Promise<number> {
     let changes = 0;
     for (const file of files) {
       const oldFileName = file.name;
@@ -129,7 +129,7 @@ export default class Naming {
     return changes;
   }
 
-  async renameFiles(torrent: Torrent, torrentName: string): Promise<number> {
+  async renameFiles(torrent: ReturnType<typeof Torrent>, torrentName: string): Promise<number> {
     let changes = 0;
     const files = await torrent.files();
     if (files === false) return changes;

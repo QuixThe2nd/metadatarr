@@ -5,13 +5,13 @@ import type { SortConfigSchema } from "../schemas";
 import type z from "zod";
 import type Client from "../clients/client";
 
-const getInitialTorrents = (torrents: Torrent[]): Torrent[] => torrents
-  .filter(torrent => torrent.priority > 0)
+const getInitialTorrents = (torrents: ReturnType<typeof Torrent>[]): ReturnType<typeof Torrent>[] => torrents
+  .filter(torrent => torrent.get().priority > 0)
   // This is needed to ensure sorts are consistent. Otherwise order could be different every run if 2 torrents have the same priority as defined by sort config.
-  .sort((a, b) => a.hash.localeCompare(b.hash));
+  .sort((a, b) => a.get().hash.localeCompare(b.get().hash));
 
-const getCurrentPositions = (torrents: Torrent[]): string[] => [...torrents].sort((a, b) => a.priority - b.priority).map(t => t.hash);
-const getDesiredPositions = (torrents: Torrent[], methods: z.infer<typeof SortConfigSchema>['METHODS']): string[] => methods.reduce((torrents, sort) => selectorEngine.execute(torrents, sort, false), torrents).map(t => t.hash);
+const getCurrentPositions = (torrents: ReturnType<typeof Torrent>[]): string[] => [...torrents].sort((a, b) => a.get().priority - b.get().priority).map(t => t.get().hash);
+const getDesiredPositions = (torrents: ReturnType<typeof Torrent>[], methods: z.infer<typeof SortConfigSchema>['METHODS']): string[] => methods.reduce((torrents, sort) => selectorEngine.execute(torrents, sort, false), torrents).map(t => t.get().hash);
 
 const handleApiCall = async (client: Client, desiredPositions: string[], desiredPosition: number, config: z.infer<typeof SortConfigSchema>): Promise<void> => {
   await client.topPriority(desiredPositions.slice(0, desiredPosition + 1));
@@ -23,7 +23,7 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-export const sort = async (torrents: Torrent[], client: Client, config = CONFIG.SORT()): Promise<{ changes: number }> => {
+export const sort = async (torrents: ReturnType<typeof Torrent>[], client: Client, config = CONFIG.SORT()): Promise<{ changes: number }> => {
   if (!config.ENABLED) return { changes: 0 };
 
   torrents = getInitialTorrents(torrents);

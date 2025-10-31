@@ -16,7 +16,7 @@ export default class Client {
 
   public request = (path: `/${string}`, body?: URLSearchParams | FormData): Promise<string | false> => this.client.request(path, body);
 
-  public torrents = async (): Promise<Torrent[]> => (await this.client.torrents()).map(t => new Torrent(this, t));
+  public torrents = async (): Promise<ReturnType<typeof Torrent>[]> => (await this.client.torrents()).map(t => Torrent(this, t));
 
   public add = (data: Buffer): Promise<string | false> => {
     logContext('qBittorrent', () => { console.log(`Adding Torrent`); });

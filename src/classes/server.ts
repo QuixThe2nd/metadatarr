@@ -23,12 +23,12 @@ export const startServer = (qB: Client): Promise<void> => new Promise(resolve =>
     const payload = validatedData.extra;
     if (payload.result === 'INJECTED') {
       const torrents = await qB.torrents();
-      const oldTorrent = torrents.find(t => t.hash === payload.searchee.infoHash);
+      const oldTorrent = torrents.find(t => t.get().hash === payload.searchee.infoHash);
       if (oldTorrent && CONFIG.UNCROSS_SEED().FILTERS.some(f => selectorEngine.execute([oldTorrent], f, true).length !== 0)) {
         console.log("\x1b[32m[Cross-Seed]\x1b[0m Uncross-Seeding torrent");
         await oldTorrent.delete();
-        const newTorrent = torrents.find(t => t.hash === payload.infoHashes[0]);
-        if (oldTorrent.category !== null && payload.infoHashes.length !== 0) await newTorrent?.setCategory(oldTorrent.category);
+        const newTorrent = torrents.find(t => t.get().hash === payload.infoHashes[0]);
+        if (oldTorrent.get().category !== null && payload.infoHashes.length !== 0) await newTorrent?.setCategory(oldTorrent.get().category ?? '');
         await newTorrent?.addTags('uncross-seed');
       }
     }

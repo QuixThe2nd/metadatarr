@@ -4,28 +4,28 @@ import ptt from 'parse-torrent-title';
 type Trackers = Record<string, { ul: number; dl: number, torrents: number }>;
 type Releases = Record<string, number>;
 
-const parse = (torrents: Torrent[]): { trackers: Trackers; releases: Releases } => {
+const parse = (torrents: ReturnType<typeof Torrent>[]): { trackers: Trackers; releases: Releases } => {
   const trackers: Trackers = {};
   const releases: Releases = {};
   for (const torrent of torrents) {
-    if (torrent.name in releases) releases[torrent.name] = 1;
+    if (torrent.get().name in releases) releases[torrent.get().name] = 1;
     else {
-      const count = releases[torrent.name];
-      if (count !== undefined) releases[torrent.name] = count + 1;
+      const count = releases[torrent.get().name];
+      if (count !== undefined) releases[torrent.get().name] = count + 1;
     }
 
-    const tracker = torrent.tags.find(t => t.startsWith('@'))
+    const tracker = torrent.get().tags.find(t => t.startsWith('@'))
     if (tracker === undefined) continue;
     if (trackers[tracker]) {
-      trackers[tracker].ul += torrent.uploaded;
-      trackers[tracker].dl += torrent.downloaded;
+      trackers[tracker].ul += torrent.get().uploaded;
+      trackers[tracker].dl += torrent.get().downloaded;
       trackers[tracker].torrents++;
-    } else trackers[tracker] = { ul: torrent.uploaded, dl: torrent.downloaded, torrents: 1 }
+    } else trackers[tracker] = { ul: torrent.get().uploaded, dl: torrent.get().downloaded, torrents: 1 }
   }
   return { trackers, releases };
 }
 
-export const Stats = (torrents: Torrent[]): { changes: 0 } => {
+export const Stats = (torrents: ReturnType<typeof Torrent>[]): { changes: 0 } => {
   const { trackers, releases } = parse(torrents);
 
   console.log('Trackers:')

@@ -60,18 +60,18 @@ const compare = (a: number | boolean, b: number | boolean, comparator: z.infer<t
   }
 };
 
-const booleanSort = (torrents: Torrent[], getValue: (t: Torrent) => boolean): Torrent[] => [...torrents].sort((a, b) => +getValue(b) - +getValue(a));
+const booleanSort = (torrents: ReturnType<typeof Torrent>[], getValue: (t: ReturnType<typeof Torrent>) => boolean): ReturnType<typeof Torrent>[] => [...torrents].sort((a, b) => +getValue(b) - +getValue(a));
 
-const process = (torrents: Torrent[], filter: boolean, getValue: (t: Torrent) => boolean): Torrent[] => filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
+const process = (torrents: ReturnType<typeof Torrent>[], filter: boolean, getValue: (t: ReturnType<typeof Torrent>) => boolean): ReturnType<typeof Torrent>[] => filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
 
 export const selectorEngine = {
-  execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
+  execute(torrents: ReturnType<typeof Torrent>[], query: Selector, filter: boolean): ReturnType<typeof Torrent>[] {
     const startCount = torrents.length;
     torrents = this._execute(torrents, query, filter);
     if (!filter && torrents.length !== startCount) throw new Error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
     return torrents;
   },
-  _execute(torrents: Torrent[], query: Selector, filter: boolean): Torrent[] {
+  _execute(torrents: ReturnType<typeof Torrent>[], query: Selector, filter: boolean): ReturnType<typeof Torrent>[] {
     torrents = typeGuard(BooleanKeys, query.key) ? this.processBoolean(torrents, query as Selector & { key: BooleanProperty }, filter) :
       typeGuard(StringKeys, query.key) ? this.processString(torrents, query as Selector & { key: StringProperty }, filter) :
       typeGuard(ArrayKeys, query.key) ? this.processArray(torrents, query as Selector & { key: ArrayProperty }, filter) :
@@ -87,12 +87,12 @@ export const selectorEngine = {
     }
     return torrents;
   },
-  processBoolean: (torrents: Torrent[], query: Selector & { key: BooleanProperty }, filter: boolean): Torrent[] => process(torrents, filter, t => query.comparator === '==' ? t[query.key] ?? false : !(t[query.key] ?? false)),
-  processString: (torrents: Torrent[], query: Selector & { key: StringProperty }, filter: boolean): Torrent[] => process(torrents, filter, t => compare(query.value.some(q => t[query.key]?.toLowerCase().includes(q.toLowerCase()) ?? false), true, query.comparator)),
-  processArray: (torrents: Torrent[], query: Selector & { key: ArrayProperty }, filter: boolean): Torrent[] => process(torrents, filter, t => compare(query.value.some(q => t[query.key].includes(q)), true, query.comparator)),
-  processNumber(torrents: Torrent[], query: Selector & { key: NumberProperty }, filter: boolean): Torrent[] {
-    if ('value' in query) return process(torrents, filter, t => compare(t[query.key] ?? 0, query.value, query.comparator));
-    const getValue = (t: Torrent): number => t[query.key] ?? 0;
+  processBoolean: (torrents: ReturnType<typeof Torrent>[], query: Selector & { key: BooleanProperty }, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => query.comparator === '==' ? t.get()[query.key] ?? false : !(t.get()[query.key] ?? false)),
+  processString: (torrents: ReturnType<typeof Torrent>[], query: Selector & { key: StringProperty }, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => compare(query.value.some(q => t.get()[query.key]?.toLowerCase().includes(q.toLowerCase()) ?? false), true, query.comparator)),
+  processArray: (torrents: ReturnType<typeof Torrent>[], query: Selector & { key: ArrayProperty }, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => compare(query.value.some(q => t.get()[query.key].includes(q)), true, query.comparator)),
+  processNumber(torrents: ReturnType<typeof Torrent>[], query: Selector & { key: NumberProperty }, filter: boolean): ReturnType<typeof Torrent>[] {
+    if ('value' in query) return process(torrents, filter, t => compare(t.get()[query.key] ?? 0, query.value, query.comparator));
+    const getValue = (t: ReturnType<typeof Torrent>): number => t.get()[query.key] ?? 0;
     return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * (query.comparator === 'ASC' ? 1 : -1));
   }
 }
