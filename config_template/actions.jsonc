@@ -28,7 +28,10 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		},
 		// Recheck missing files
 		{
-			"if": [{"key": "state", "comparator": "==", "value": ["missingFiles"]}],
+			"if": [
+				{"key": "state", "comparator": "==", "value": ["missingFiles"]},
+				{"key": "category", "comparator": "!=", "value": ["lidarr"]}
+			],
 			"then": "recheck"
 		},
 		// Remove errored cross-seed-links
