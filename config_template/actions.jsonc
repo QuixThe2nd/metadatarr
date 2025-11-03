@@ -87,7 +87,12 @@ Rules will be executed in order. When chaining many rules together, place the mo
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]}
+				// {"key": "tags", "comparator": "==", "value": "$FREELEECH_TRACKERS"}
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]},
+				// [
+				// 	{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]},
+				// 	{"key": "tags", "comparator": "==", "value": ["@FL", "@YNK", "@RFX"]}
+				// ]
 			],
 			"then": "delete",
 			"arg": true

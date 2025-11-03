@@ -3,7 +3,7 @@ import JSONC from 'jsonc-parser';
 import z from "zod";
 import * as schemas from "./schemas";
 
-function parseConfigFile<T extends z.ZodObject | z.ZodArray>(filePath: string, schema: T): z.infer<T> {
+function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, schema: T): z.infer<T> {
   const strict = schema instanceof z.ZodObject ? schema.strict() : schema;
   const partial = schema instanceof z.ZodObject ? schema.partial() : schema;
 
@@ -25,6 +25,7 @@ export const CONFIG = {
   CORE: (): z.infer<typeof schemas.CoreSchema> => parseConfigFile('core.jsonc', schemas.CoreSchema),
   ACTIONS: (): z.infer<typeof schemas.ActionsSchema> => parseConfigFile('actions.jsonc', schemas.ActionsSchema),
   UNCROSS_SEED: (): z.infer<typeof schemas.UncrossSeedSchema> => parseConfigFile('uncross-seed.jsonc', schemas.UncrossSeedSchema),
+  VARIABLES: (): z.infer<typeof schemas.VariablesSchema> => parseConfigFile('variables.jsonc', schemas.VariablesSchema)
 };
 
 const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;
