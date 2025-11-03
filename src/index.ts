@@ -7,7 +7,6 @@ import OriginalNames from "./startup_tasks/OriginalNames";
 import { importMetadataFiles } from "./startup_tasks/ImportMetadataFiles";
 import Naming from "./jobs/Naming";
 import { sort } from "./jobs/Sort";
-import { Duplicates } from "./jobs/Duplicates";
 import { queue } from './jobs/Queue';
 import hook from '../tools/inject';
 import type Torrent from './classes/Torrent';
@@ -18,7 +17,6 @@ import Actions from './jobs/Actions';
 
 const tasks = {
   Actions,
-  Duplicates,
   Sort: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => sort(torrents, api),
   Queue: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => queue(torrents, api),
   Naming: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => Naming.run(torrents, originalNames.names),

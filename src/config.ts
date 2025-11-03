@@ -20,7 +20,6 @@ export const CONFIG = {
   METADATA: (): z.infer<typeof schemas.MetadataSchema> => parseConfigFile('metadata.jsonc', schemas.MetadataSchema),
   SORT: (): z.infer<typeof schemas.SortConfigSchema> => parseConfigFile('sort.jsonc', schemas.SortConfigSchema),
   NAMING: (): z.infer<typeof schemas.NamingConfigSchema> => parseConfigFile('naming.jsonc', schemas.NamingConfigSchema),
-  DUPLICATES: (): z.infer<typeof schemas.DuplicatesSchema> => parseConfigFile('duplicates.jsonc', schemas.DuplicatesSchema),
   QUEUE: (): z.infer<typeof schemas.QueueSchema> => parseConfigFile('queue.jsonc', schemas.QueueSchema),
   CORE: (): z.infer<typeof schemas.CoreSchema> => parseConfigFile('core.jsonc', schemas.CoreSchema),
   ACTIONS: (): z.infer<typeof schemas.ActionsSchema> => parseConfigFile('actions.jsonc', schemas.ActionsSchema),

@@ -87,12 +87,6 @@ export const QueueSchema = z.object({
   MINIMUM_SEEDERS: z.number()
 });
 
-export const DuplicatesSchema = z.object({
-  ENABLED: z.boolean(),
-  TIE_BREAKERS: z.array(QuerySchema),
-  FILTERS: z.array(QuerySchema)
-});
-
 export const MetadataSchema = z.object({
   TORRENT_PATH: z.string().min(1),
   sources: z.array(z.object({
