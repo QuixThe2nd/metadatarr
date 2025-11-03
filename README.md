@@ -90,7 +90,7 @@ npx tsx src/index.ts
 ```
 
 ## Configuration
-All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file.
+All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. READ ALL CONFIG BEFORE RUNNING! The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
 ## Uncross-Seed
 To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
