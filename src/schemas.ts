@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SelectorSchema } from './classes/SelectorEngine';
+import { QuerySchema } from './classes/SelectorEngine';
 import Torrent, { type TorrentType } from './classes/Torrent';
 import type Client from './clients/client';
 
@@ -12,7 +12,7 @@ const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setCategory
 const excludedActions = ['get', 'rename', 'renameFile', 'files'] as const;
 const filteredActions = exclude(actions, [...argedActions, ...excludedActions]);
 
-const ActionSchema = z.object({ if: z.array(SelectorSchema) }).and(z.union([
+const ActionSchema = z.object({ if: z.array(QuerySchema) }).and(z.union([
   z.object({ then: z.enum(['setAutoManagement', 'addTags', 'removeTags']), arg: z.union([z.boolean(), z.string()]) }),
   z.object({ then: z.enum(filteredActions) })
 ])).and(z.object({
@@ -74,7 +74,7 @@ export const SortConfigSchema = z.object({
   MAX_MOVES_PER_CYCLE: z.number().int().nonnegative(),
   MIN_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
   MAX_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
-  METHODS: z.array(SelectorSchema)
+  METHODS: z.array(QuerySchema)
 });
 
 export const QueueSchema = z.object({
@@ -89,8 +89,8 @@ export const QueueSchema = z.object({
 
 export const DuplicatesSchema = z.object({
   ENABLED: z.boolean(),
-  TIE_BREAKERS: z.array(SelectorSchema),
-  FILTERS: z.array(SelectorSchema)
+  TIE_BREAKERS: z.array(QuerySchema),
+  FILTERS: z.array(QuerySchema)
 });
 
 export const MetadataSchema = z.object({
@@ -101,5 +101,7 @@ export const MetadataSchema = z.object({
 });
 
 export const UncrossSeedSchema = z.object({
-  FILTERS: z.array(SelectorSchema)
+  FILTERS: z.array(QuerySchema)
 });
+
+export const VariablesSchema = z.record(z.string(), z.array(z.string()))
