@@ -1,14 +1,22 @@
 /*
 Automatically execute actions on torrents based off custom rules
 
-Each array of objects is a set of rules that must all match for an action to be executed.
-Treat the parent array (array of arrays) as an OR condition, and each object under IF as an AND condition.
+The actions defined below are examples only - modify them to suit your needs.
 
-To specify IS/IS NOT and greater/lesser than conditions, use the "type" field.
-For example to match a boolean (true/false) field, use "IS NOT" to delete if false, and "IS" to delete if true.
-To match a value (number) field, use "ASC" to delete if greater than the value, and "DESC" to delete if lesser than the value.
+Each rule consists of an IF array and a THEN action.
+All items in the IF array must match for the action to be executed.
+Each IF item consists of:
+- key: The torrent field to match against
+- comparator: The comparison operator to use (==, !=, >, <, >=, <=)
+- value: The value(s) to match against (array of values for == and !=, single value for greater/lesser than)
 
-Rules will be executed in order. When chaining many rules together, place the most specific rules first. E.g. if you auto resume torrents then later later delete stopped torrents, place the resume rule first.
+The THEN action is the action to execute when all IF conditions are met.
+Some actions require an argument (arg), which is either a boolean or string value depending on the action.
+
+For a list of available keys and actions, run Metadatarr in dry run mode. At startup it will log all available keys and actions.
+
+Rules will be executed in order. When chaining many rules together, place the most specific rules first.
+E.g. if you auto resume torrents then later later delete stopped torrents, place the resume rule first.
 */
 
 {
@@ -18,29 +26,24 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"if": [{"key": "state", "comparator": "==", "value": ["stoppedUP"]}],
 			"then": "start"
 		},
-		// Resume almost finished torrents that are stopped
+		// Force enable sequential downloads on all torrents
 		{
-			"if": [
-				{"key": "state", "comparator": "==", "value": ["stoppedDL"]},
-				{"key": "progress", "comparator": ">=", "value": 0.95}
-			],
-			"then": "start"
+			"if": [{"key": "seq_dl", "comparator": "!="}],
+			"then": "toggleSequentialDownload"
 		},
 		// Recheck missing files
 		{
-			"if": [
-				{"key": "state", "comparator": "==", "value": ["missingFiles"]},
-				{"key": "category", "comparator": "!=", "value": ["lidarr"]}
-			],
+			"if": [{"key": "state", "comparator": "==", "value": ["missingFiles"]}],
 			"then": "recheck"
 		},
-		// Remove errored cross-seed-links
+		// Delete errored cross-seed-links
 		{
 			"if": [
 				{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
 				{"key": "state", "comparator": "==", "value": ["error"]}
 			],
-			"then": "delete"
+			"then": "delete",
+			"arg": true
 		},
 		// Resume errored downloads
 		{
@@ -51,19 +54,15 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"then": "start",
 			"max": 0.01 // 1% chance a single errored download will be restarted each run
 		},
-		// Remove cross-seed-links that have less than 95% progress
+		// Delete cross-seed-links that have less than 95% progress
 		{
 			"if": [
 				{"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
 				{"key": "progress", "comparator": "<", "value": 0.95},
 				{"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving", "stoppedDL"]}
 			],
-			"then": "stop"
-		},
-		// Force disable sequential downloads on all torrents
-		{
-			"if": [{"key": "seq_dl", "comparator": "!="}],
-			"then": "toggleSequentialDownload"
+			"then": "delete",
+			"arg": true
 		},
 		// Force enable auto torrent management mode for non cross-seed torrents
 		{
@@ -74,29 +73,17 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"then": "setAutoManagement",
 			"arg": true
 		},
-		// Remove Public Torrents
+		// Remove completed public torrents with ratio >= 2.0
 		{
 			"if": [
 				{"key": "private", "comparator": "!="},
-				{"key": "ratio", "comparator": ">=", "value": 2.0},
-				{"key": "state", "comparator": "==", "value": ["stoppedUP", "stalledUP", "uploading"]}
-			],
-			"then": "delete"
-		},
-		// Remove !noHL torrents from no-HnR trackers
-		{
-			"if": [
-				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				// {"key": "tags", "comparator": "==", "value": "$FREELEECH_TRACKERS"}
-				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]},
-				// [
-				// 	{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]},
-				// 	{"key": "tags", "comparator": "==", "value": ["@FL", "@YNK", "@RFX"]}
-				// ]
+				{"key": "ratio", "comparator": ">=", "value": 2},
+				{"key": "progress", "comparator": "==", "value": 1}
 			],
 			"then": "delete",
 			"arg": true
 		},
+		// Remove !noHL torrents from public trackers
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
@@ -105,6 +92,21 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"then": "delete",
 			"arg": true
 		},
+		// Remove !noHL torrents from no-HnR trackers
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				// {"key": "tags", "comparator": "==", "value": "$FREELEECH_TRACKERS"} // TODO:
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]}
+				// [
+				// 	{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]},
+				// 	{"key": "tags", "comparator": "==", "value": ["@FL", "@YNK", "@RFX"]}
+				// ]
+			],
+			"then": "delete",
+			"arg": true
+		},
+		// Remove !noHL torrents from private trackers based on seeding time
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
@@ -168,14 +170,15 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"then": "delete",
 			"arg": true
 		},
-		// {
-		// 	"if": [
-		// 		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-		// 		{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 16 days
-		// 	],
-		// 	"then": "delete",
-		// 	"arg": true
-		// },
+		// Default: Remove !noHL torrents after 30 days
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 30 days
+			],
+			"then": "delete",
+			"arg": true
+		},
 		// Recheck stalled but completed downloads
 		{
 			"if": [
@@ -184,6 +187,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			],
 			"then": "recheck"
 		},
+		// Tag stalled downloads
 		{
 			"if": [{"key": "state", "comparator": "==", "value": ["stalledDL"]}],
 			"then": "addTags",
@@ -194,21 +198,7 @@ Rules will be executed in order. When chaining many rules together, place the mo
 			"then": "removeTags",
 			"arg": "stalledDL"
 		},
-		{
-			"if": [
-				{"key": "tags", "comparator": "==", "value": ["@FNP", "MLK", "@RUT"]},
-				{"key": "category", "comparator": "!=", "value": ["cross-seed-links"]},
-				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
-			],
-			"then": "start"
-		},
-		{
-			"if": [
-				{"key": "private", "comparator": "!="},
-				{"key": "state", "comparator": "==", "value": ["stoppedDL"]}
-			],
-			"then": "start"
-		},
+		// Tag private trackers
 		{
 			"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
 			"then": "addTags",

@@ -1,8 +1,13 @@
 {
+	/*
+	If true, jobs will only simulate actions without making actual changes
+	Disable this once you have confirmed everything is working as expected
+	DO NOT DISABLE THIS ON FIRST RUN - Metadatarr configuration is quite verbose, you have almost certainly misconfigured something!
+	*/
 	"DRY_RUN": true,
-	// Time (in ms) to wait between job runs if no changes were made in last run
-	"JOB_WAIT": 5000,
 	// Time (in ms) to wait between job runs if changes were made in last run
+	"JOB_WAIT": 5000,
+	// Time (in ms) to wait between job runs if no changes were made in last run
 	"NO_JOB_WAIT": 30000,
 	// If true, runs `./tools/inject.ts` and skips all jobs - For development only
 	"DEV_INJECT": false

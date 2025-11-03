@@ -13,7 +13,25 @@ import type Torrent from './classes/Torrent';
 import { logContext } from './log';
 import metadata from './jobs/Metadata';
 import Actions from './jobs/Actions';
+import { properties } from './classes/Torrent';
+import { argedActions, filteredActions } from './schemas';
 // import { Stats } from './jobs/Stats';
+
+if (CONFIG.CORE().DRY_RUN) {
+  console.log("======== PROPERTIES ========")
+  Object.entries(properties).forEach(type => {
+    console.log(`|\n| ${type[0]}:`)
+    Object.keys(type[1]).forEach(property => {
+      console.log(`| - ${property}`)
+    })
+  })
+  console.log("|\n======== PROPERTIES ========\n")
+  console.log("======== ACTIONS ========")
+  console.log('|\n| Actions:')
+  console.log(`| - ${filteredActions.join("()\n| - ")}()`)
+  console.log(`| - ${argedActions.join("(xxxx)\n| - ")}(xxxx)`)
+  console.log("|\n======== ACTIONS ========")
+}
 
 const tasks = {
   Actions,
@@ -66,5 +84,5 @@ await startServer(api);
 
 for (;;) {
   const changes = await runJobs();
-  await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 || CONFIG.CORE().DRY_RUN ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
+  await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
 }

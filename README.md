@@ -92,9 +92,6 @@ npx tsx src/index.ts
 ## Configuration
 All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file.
 
-### Required: qBittorrent Connection
-The only mandatory config that MUST be set is your qBittorrent endpoint and login credentials at `.qbittorrent_client.jsonc`.
-
 ## Uncross-Seed
 To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
 
