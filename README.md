@@ -78,19 +78,13 @@ This is temporary. Metadatarr will eventually migrate to using the primary repo 
 To run via Docker, copy `./Dockerfile` and `./docker-compose.yml` to a folder called `metadatarr` and run `docker compose up -d`.
 
 ### Configure
-1. Once installed, copy `./store/config_template` to `./store/config`. **Do not** change `config_template/`, all configuration changes should be applied to `config/`.
-2. Go to `./store/config/.qbittorrent_client.jsonc` and set your qBittorrent Web UI credentials.
-
-All other configuration is optional, the defaults are finely tuned and work out of the box. However it is **highly recommended** that you at least read through all config to ensure everything is configured how you want it.
+All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
 ## Usage
 To start Metadatarr, run:
 ```
-npx tsx src/index.ts
+npx tsx src
 ```
-
-## Configuration
-All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. READ ALL CONFIG BEFORE RUNNING! The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
 ## Uncross-Seed
 To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
@@ -108,7 +102,6 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - before/after photos of torrent names
 
 #### Other:
-- Deluge/Transmission/RTorrent support
 - Create docker container
 
 ### Stage 2
@@ -126,6 +119,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Priority tags
 
 #### Other:
+- Deluge/Transmission/RTorrent support
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name

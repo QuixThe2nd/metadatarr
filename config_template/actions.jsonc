@@ -96,12 +96,7 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				// {"key": "tags", "comparator": "==", "value": "$FREELEECH_TRACKERS"} // TODO:
 				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]}
-				// [
-				// 	{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT"]},
-				// 	{"key": "tags", "comparator": "==", "value": ["@FL", "@YNK", "@RFX"]}
-				// ]
 			],
 			"then": "delete",
 			"arg": true

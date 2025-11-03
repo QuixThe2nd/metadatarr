@@ -97,5 +97,3 @@ export const MetadataSchema = z.object({
 export const UncrossSeedSchema = z.object({
   FILTERS: z.array(QuerySchema)
 });
-
-export const VariablesSchema = z.record(z.string(), z.array(z.string()))

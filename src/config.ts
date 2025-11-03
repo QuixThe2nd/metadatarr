@@ -23,8 +23,7 @@ export const CONFIG = {
   QUEUE: (): z.infer<typeof schemas.QueueSchema> => parseConfigFile('queue.jsonc', schemas.QueueSchema),
   CORE: (): z.infer<typeof schemas.CoreSchema> => parseConfigFile('core.jsonc', schemas.CoreSchema),
   ACTIONS: (): z.infer<typeof schemas.ActionsSchema> => parseConfigFile('actions.jsonc', schemas.ActionsSchema),
-  UNCROSS_SEED: (): z.infer<typeof schemas.UncrossSeedSchema> => parseConfigFile('uncross-seed.jsonc', schemas.UncrossSeedSchema),
-  VARIABLES: (): z.infer<typeof schemas.VariablesSchema> => parseConfigFile('variables.jsonc', schemas.VariablesSchema)
+  UNCROSS_SEED: (): z.infer<typeof schemas.UncrossSeedSchema> => parseConfigFile('uncross-seed.jsonc', schemas.UncrossSeedSchema)
 };
 
 const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;
