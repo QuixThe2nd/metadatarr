@@ -56,7 +56,7 @@ Integrates with [Cross-Seed](https://cross-seed.org) so when a cross seed is fou
 - **Webhook Support**: Integrates with Cross-Seed via a webhook for instant replacement
 - **Smart Cleanup**: Removes redundant public torrents
 
-## Install
+## Manual Install
 ```
 git clone https://github.com/QuixThe2nd/metadatarr
 cd metadatarr
