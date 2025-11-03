@@ -81,19 +81,19 @@ const Torrent = (client: Client, data: TorrentType) => {
     },
     recheck,
     delete: async (deleteFiles = false): Promise<number> => await request('delete', { deleteFiles }) === false ? 0 : 1,
-    setCategory: (category: string): Promise<string | false> => {
+    setCategory: async (category: string): Promise<number> => {
       data.category = category;
-      return request('setCategory', { category });
+      return await request('setCategory', { category }) === false ? 0 : 1;
     },
     rename: async (name: string): Promise<number> => {
       if (name === data.name) return 0;
       data.name = name;
       return await request('rename', { name }) === false ? 0 : 1;
     },
-    renameFile: async (oldPath: string, newPath: string): Promise<string | false> => {
+    renameFile: async (oldPath: string, newPath: string): Promise<number> => {
       const result = await request('renameFile', { oldPath, newPath });
       if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await recheck();
-      return result;
+      return result === false ? 0 : 1;
     },
     toggleSequentialDownload: async (): Promise<number> => {
       data.seq_dl = !data.seq_dl;
