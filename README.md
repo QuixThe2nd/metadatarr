@@ -75,7 +75,20 @@ After you've chosen the fork you'd like to use, you must `git clone` the fork to
 This is temporary. Metadatarr will eventually migrate to using the primary repo once majority of edge cases are solved.
 
 ## Docker
-To run via Docker, copy `./Dockerfile` and `./docker-compose.yml` to a folder called `metadatarr` and run `docker compose up -d`.
+To run via Docker, create a file called `docker-compose.yml` and paste the following:
+```
+services:
+  metadatarr:
+    image: ghcr.io/quixthe2nd/metadatarr:latest
+    container_name: metadatarr
+    restart: unless-stopped
+    ports:
+      - 9191:9191
+    volumes:
+      - /srv/docker/metadatarr:/app/store
+      - /mnt/external/qBittorrent/Torrents:/torrents
+```
+Then run `docker compose up -d`
 
 ### Configure
 All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
