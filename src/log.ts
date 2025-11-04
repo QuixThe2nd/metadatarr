@@ -1,9 +1,15 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const logPath = './store/logs/metadatarr.log';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const logDir = path.join(__dirname, '../store/logs/');
+const logPath = path.join(logDir, '/metadatarr.log')
 const maxSize = 10 * 1024 * 1024;
 
-if (!fs.existsSync('./store/logs')) fs.mkdirSync('./store/logs', { recursive: true })
+if (!fs.existsSync(logDir)) fs.mkdirSync(logDir)
 if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
 
 const logFile = fs.createWriteStream(logPath, { flags: 'a' });

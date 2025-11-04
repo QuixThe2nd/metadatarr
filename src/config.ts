@@ -2,17 +2,26 @@ import fs from 'fs';
 import JSONC from 'jsonc-parser';
 import z from "zod";
 import * as schemas from "./schemas";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-if (!fs.existsSync('./store/config')) fs.mkdirSync('./store/config', { recursive: true })
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const configDir = path.join(__dirname, '../store/config');
+
+if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
 
 function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, schema: T): z.infer<T> {
   const strict = schema instanceof z.ZodObject ? schema.strict() : schema;
   const partial = schema instanceof z.ZodObject ? schema.partial() : schema;
 
-  const rawDefaultConfig = fs.readFileSync(`./config_template/${filePath}`, 'utf8');
+  const configPath = path.join(configDir, `/${filePath}`);
+
+  const rawDefaultConfig = fs.readFileSync(path.join(__dirname, `../config_template/${filePath}`), 'utf8');
   const defaultConfig = strict.parse(JSONC.parse(rawDefaultConfig)) as z.infer<T>;
-  if (!fs.existsSync(`./store/config/${filePath}`)) fs.writeFileSync(`./store/config/${filePath}`, rawDefaultConfig);
-  const config = partial.parse(JSONC.parse(fs.readFileSync(`./store/config/${filePath}`, 'utf8')) ?? {}) as Partial<z.infer<T>>;
+  if (!fs.existsSync(configPath)) fs.writeFileSync(configPath, rawDefaultConfig);
+  const config = partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8')) ?? {}) as Partial<z.infer<T>>;
   for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
   
