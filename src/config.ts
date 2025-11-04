@@ -3,6 +3,8 @@ import JSONC from 'jsonc-parser';
 import z from "zod";
 import * as schemas from "./schemas";
 
+if (!fs.existsSync('./store/config')) fs.mkdirSync('./store/config', { recursive: true })
+
 function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, schema: T): z.infer<T> {
   const strict = schema instanceof z.ZodObject ? schema.strict() : schema;
   const partial = schema instanceof z.ZodObject ? schema.partial() : schema;
