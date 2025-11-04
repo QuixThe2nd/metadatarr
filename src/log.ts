@@ -1,11 +1,6 @@
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const logPath = path.join(__dirname, '../store/logs/metadatarr.log');
+const logPath = './store/logs/metadatarr.log';
 const maxSize = 10 * 1024 * 1024;
 
 if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
