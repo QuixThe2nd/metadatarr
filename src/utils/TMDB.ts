@@ -7,11 +7,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const cacheDir = path.join(__dirname, '../store/cache');
+const cacheDir = path.join(__dirname, '../store/cache/');
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir)
 
-const showCachePath = path.join(cacheDir, '/show_cache.json');
-const episodeCachePath = path.join(cacheDir, '/episode_cache.json');
+const showCachePath = path.join(cacheDir, 'shows.json');
+const episodeCachePath = path.join(cacheDir, 'episodes.json');
 
 const ShowSchema = z.object({
   results: z.array(z.object({

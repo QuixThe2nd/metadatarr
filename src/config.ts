@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const configDir = path.join(__dirname, '../store/config');
+const configDir = path.join(__dirname, '../store/config/');
 
 if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
 
