@@ -24,7 +24,7 @@ function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, 
   const config = partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8')) ?? {}) as Partial<z.infer<T>>;
   for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
-  
+
   return defaultConfig;
 }
 
