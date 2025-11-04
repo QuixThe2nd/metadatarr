@@ -1,6 +1,17 @@
 import fs from 'fs';
 import z from 'zod';
 import { CONFIG } from "../config";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const cacheDir = path.join(__dirname, '../store/cache');
+if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir)
+
+const showCachePath = path.join(cacheDir, '/show_cache.json');
+const episodeCachePath = path.join(cacheDir, '/episode_cache.json');
 
 const ShowSchema = z.object({
   results: z.array(z.object({
@@ -13,12 +24,12 @@ const EpisodeSchema = z.object({
 });
 
 const ShowCacheSchema = z.record(z.string(), z.number().optional());
-if (!fs.existsSync('./store/show_cache.json')) fs.writeFileSync('./store/show_cache.json', '{}');
-const showCache = ShowCacheSchema.parse(JSON.parse(fs.readFileSync('./store/show_cache.json').toString()));
+if (!fs.existsSync(showCachePath)) fs.writeFileSync(showCachePath, '{}');
+const showCache = ShowCacheSchema.parse(JSON.parse(fs.readFileSync(showCachePath).toString()));
 
 const EpisodeCacheSchema = z.record(z.string(), z.string().optional());
-if (!fs.existsSync('./store/episode_cache.json')) fs.writeFileSync('./store/episode_cache.json', '{}');
-const episodeCache = EpisodeCacheSchema.parse(JSON.parse(fs.readFileSync('./store/episode_cache.json').toString()));
+if (!fs.existsSync(episodeCachePath)) fs.writeFileSync(episodeCachePath, '{}');
+const episodeCache = EpisodeCacheSchema.parse(JSON.parse(fs.readFileSync(episodeCachePath).toString()));
 
 const getShowID = async (title: string): Promise<number | undefined> => {
   if (title in showCache) return showCache[title];
@@ -30,7 +41,7 @@ const getShowID = async (title: string): Promise<number | undefined> => {
   const id = ShowSchema.parse(await res.json()).results[0]?.id;
 
   showCache[title] = id;
-  fs.writeFileSync('./store/show_cache.json', JSON.stringify(showCache));
+  fs.writeFileSync(showCachePath, JSON.stringify(showCache));
   return id;
 }
 
@@ -45,7 +56,7 @@ const getEpisodeTitle = async (id: number, season: number, episode: number): Pro
   const name = EpisodeSchema.parse(await res.json()).name;
 
   episodeCache[cacheKey] = name;
-  fs.writeFileSync('./store/episode_cache.json', JSON.stringify(episodeCache));
+  fs.writeFileSync(episodeCachePath, JSON.stringify(episodeCache));
   return name;
 }
 
