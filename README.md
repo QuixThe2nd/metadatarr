@@ -85,7 +85,7 @@ services:
     ports:
       - 9191:9191
     volumes:
-      - /srv/docker/metadatarr:/app/store
+      - /srv/docker/metadatarr:/app/metadatarr/store
       - /mnt/external/qBittorrent/Torrents:/torrents
 ```
 Then run `docker compose up -d`
