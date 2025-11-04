@@ -1,4 +1,5 @@
 {
+	"ENABLED": true,
 	/*
 	Naming scheme for renaming torrents.
 	Only applicable tags are applied. This means the same config can apply to all media types (e.g. movies without episodes work fine with `[episode]` defined).
@@ -18,17 +19,49 @@
 	- Schema: [title] ([year]) [season][episode] [extended] [resolution] [source] [codec] [audio] [group]
 	- Output: The Matrix (1999) 2160p BluRay x265 DTS-HD SPARKS
 	*/
-	"SCHEME": "[title] ([year]) [season][episode] - [extras] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [service] [source] [downscaled] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
+	"SCHEME": "[title] ([year]) [season][episode] [episode_title] - [extras] [retail] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]",
 	// Separator between different fields
 	"SPACING": " ",
 	/* Find and replace strings in the name
   Optionally supports regex
-  Example:
-    ["x265|h265", "HEVC"]
   */
-	"REPLACE": [],
+	"REPLACE": {
+		"rerip": "repack",
+		"Remaster(?:ed)?": "remastered",
+		"Theatrical(?:[. ]Cut)": "theatrical",
+		"open(?:[\\s.]matte)?": "openmatte",
+		"extended(?:[\\s.](?:cut|edition|version))?": "extended"
+	},
+	"REDUNDANT_FLAGS": {
+		"codec": [
+			{
+				"match": ["h264", "x264"],
+				"keep": "x264"
+			},
+			{
+				"match": ["h265", "x265"],
+				"keep": "x265"
+			}
+		],
+		"audio": [
+			{
+				"match": ["ddp", "dd"],
+				"keep": "ddp"
+			}
+		],
+		"color": [
+			{
+				"match": ["DV", "HDR"],
+				"keep": "DV"
+			},
+			{
+				"match": ["DV", "HDR10+"],
+				"keep": "DV"
+			}
+		]
+	},
 	// Fix common mistakes in group names
-	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo"],
+	"FIX_BAD_GROUPS": ["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo", "Will1869", "DarQ HONE", "COLLECTiVE"],
 	// If true, will rename files based on the naming scheme
 	"RENAME_FILES": true,
 	// If true, will remove domain names from titles
@@ -36,17 +69,15 @@
 	// If true, will add a tag to any torrents that had unknown metadata
 	"TAG_FAILED_PARSING": true,
 	// If true, will add a tag to any torrents that were successfully parsed
-	"TAG_SUCCESSFUL_PARSING": true,
+	"TAG_SUCCESSFUL_PARSING": false,
 	// Do not rename if there are any unknown tags in the name
 	"SKIP_IF_UNKNOWN": true,
-	// Trim container (.mkv, .mp4, etc) from end of title
-	"TRIM_CONTAINER": true,
 	// List of known TLDs to remove from titles if REMOVE_DOMAINS is true
 	"REMOVE_TLDS": [],
 	// If true, will not include the year in season packs "Show Name S01" instead of "Show Name (2020) S01"
 	"NO_YEAR_IN_SEASONS": true,
 	// If true, will recheck the torrent after renaming
-	"RECHECK_ON_RENAME": true,
+	"RECHECK_ON_RENAME": false,
 	// If true, will force the first letter of each word to be capitalized
 	"FORCE_TITLE_CASE": true,
 	// Renames the directory to match the torrent name
@@ -64,5 +95,7 @@
 	// Tag torrents that are missing the original name (requires TORRENTS_DIR to be set)
 	"TAG_MISSING_ORIGINAL_NAME": true,
 	// If parsing of original name fails, reset to current name (requires TORRENTS_DIR to be true)
-	"RESET_ON_FAIL": true
+	"RESET_ON_FAIL": true,
+	// Optionally set a TMDB API key for improved title parsing (recommended)
+	"TMDB_API_KEY": ""
 }

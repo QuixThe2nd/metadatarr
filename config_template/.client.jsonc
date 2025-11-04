@@ -9,5 +9,6 @@
 {
 	"ENDPOINT": "http://localhost:8080",
 	"USERNAME": "admin",
-	"PASSWORD": "password"
+	"PASSWORD": "password",
+	"TYPE": "qbittorrent"
 }

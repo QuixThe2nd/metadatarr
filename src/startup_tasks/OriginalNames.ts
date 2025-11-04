@@ -10,31 +10,30 @@ export default class OriginalNames {
 
   static async start(): Promise<{ names: Record<string, string> }> {
     const originalNames = new OriginalNames();
-    if (!originalNames.dir.length) return { names: {} };
-    await originalNames.scanDirectory();
+
+    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
+    for (const {hash, name} of Object.values(cache)) originalNames.names[hash] = name;
+
+    if (!originalNames.dir.length) return originalNames;
+    await originalNames.scanDirectory(cache);
     fs.watch(originalNames.dir, (_, filename) => {
-      if (filename) originalNames.saveName(originalNames.dir, filename).catch(console.error);
+      if (filename !== null) originalNames.saveName(originalNames.dir, filename).catch(console.error);
     });
     return originalNames;
   }
 
-  private async scanDirectory() {
+  private async scanDirectory(cache: Record<string, { hash: string; name: string }>): Promise<void>{
     console.log('Scanning torrent name directory');
     const files = fs.readdirSync(this.dir)
     const totalFiles = files.length;
     let lastLoggedPercent = 0;
 
-    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
-
     console.log(`Scan: 0% complete (0 of ${totalFiles})`);
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]!;
-      if (file in cache) {
-        this.names[cache[file]!.hash] = cache[file]!.name;
-        continue;
-      }
+      const file = files[i];
+      if (file === undefined || cache[file]) continue;
       const res = await this.saveName(this.dir, file);
-      if (!res) continue;
+      if (res === false) continue;
       cache[file] = res;
       const currentPercent = Math.floor((i + 1) / totalFiles * 100);
       if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
@@ -51,11 +50,13 @@ export default class OriginalNames {
     if (!file.endsWith('.torrent')) return false;
     const filePath = path.join(dir, file);
     const torrent = fs.readFileSync(filePath);
+    if (torrent.length === 0) return false;
     try {
       // eslint-disable-next-line
       const metadata = await parseTorrent(torrent);
-      this.names[metadata.infoHash!] = metadata.name as string;
-      return { name: metadata.name as string, hash: metadata.infoHash! }
+      if (metadata.infoHash === undefined) return false;
+      this.names[metadata.infoHash] = metadata.name as string;
+      return { name: metadata.name as string, hash: metadata.infoHash }
     } catch (e) {
       console.error(e, torrent.toString().slice(0, 100))
       return false;

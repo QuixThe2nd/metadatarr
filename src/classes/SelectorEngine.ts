@@ -1,86 +1,112 @@
 import z from "zod";
-import Torrent from "./Torrent";
-import { TorrentSchema } from "./Torrent";
-import type { SomeType } from "zod/v4/core";
+import type Torrent from "./Torrent";
+import { properties } from "./Torrent";
 
-type Direction = "ASC" | "DESC";
-type Mode = 'SORT' | 'MATCH';
+const typedKeys = <T extends object>(obj: T): (keyof T)[] => Object.keys(obj) as (keyof T)[];
 
-type TypedKeysOf<Z extends SomeType, T> = {
-  [K in keyof T]: T[K] extends Z ? K :
-  T[K] extends z.ZodNullable<Z> ? K :
-  never;
-}[keyof T];
+const StringKeys = typedKeys(properties.String);
+const NumberKeys = typedKeys(properties.Number);
+const BooleanKeys = typedKeys(properties.Boolean);
+const ArrayKeys = typedKeys(properties.Array);
 
-const properties = <T extends z.ZodNumber | z.ZodString | z.ZodBoolean | z.ZodEnum<any> | z.ZodCodec<any>>(ctor: new (...args: any[]) => T) => Object.entries(TorrentSchema.shape)
-  .filter(([, value]) => {
-    const def = (value as any)._def;
-    return value instanceof ctor
-    || (value instanceof z.ZodNullable && value.unwrap() instanceof ctor)
-    || (value instanceof z.ZodEnum && ctor === z.ZodEnum as any)
-    || (def?.typeName === 'ZodPipeline' && def.out && def.out instanceof ctor);
-  })
-  .map(([key]) => key) as TypedKeysOf<T, typeof TorrentSchema.shape>[];
+// Comparators
+const BooleanComparators = z.enum(["==", "!="]);
+const NumericComparators = z.enum([">=", ">", "<", "<="]);
+const NumericSortComparators = z.enum(["ASC", "DESC"]);
 
-const stringProperties = [...properties(z.ZodString), ...properties(z.ZodEnum)];
-const numberProperties = properties(z.ZodNumber);
-const booleanProperties = properties(z.ZodBoolean);
-const arrayProperties = properties(z.ZodCodec);
+// Comparator Schemas
+const NumericComparatorSchema = z.object({ comparator: NumericSortComparators });
+const BooleanComparatorSchema = z.object({ comparator: BooleanComparators });
+const CoercedBooleanComparatorSchema = z.object({ comparator: z.union([NumericComparators, BooleanComparators]) });
 
-const isBooleanProperty = (key: string): key is typeof booleanProperties[number] => booleanProperties.includes(key as typeof booleanProperties[number]);
-const isStringProperty = (key: string): key is typeof stringProperties[number] => stringProperties.includes(key as typeof stringProperties[number]);
-const isNumberProperty = (key: string): key is typeof numberProperties[number] => numberProperties.includes(key as typeof numberProperties[number]);
-const isArrayProperty = (key: string): key is typeof arrayProperties[number] => arrayProperties.includes(key as typeof arrayProperties[number]);
-
-const BaseSelectorSchema = z.object({ direction: z.enum(["ASC", "DESC"]) });
-
-export const SelectorSchema = z.union([
-  BaseSelectorSchema.extend({ key: z.enum(numberProperties), threshold: z.number().optional() }),
-  BaseSelectorSchema.extend({ key: z.enum(stringProperties), includes: z.array(z.string().min(1)).min(1) }),
-  BaseSelectorSchema.extend({ key: z.enum(arrayProperties), includes: z.array(z.string().min(1)).min(1) }),
-  BaseSelectorSchema.extend({ key: z.enum(booleanProperties) }),
-  BaseSelectorSchema.extend({ key: z.literal("priority_tag"), prefix: z.string().min(1) }),
+const SelectorSchema = z.union([
+  NumericComparatorSchema.extend({ key: z.enum(NumberKeys) }),
+  BooleanComparatorSchema.extend({ key: z.enum(BooleanKeys) }),
+  CoercedBooleanComparatorSchema.extend({
+    key: z.enum(NumberKeys),
+    value: z.number()
+  }),
+  CoercedBooleanComparatorSchema.extend({
+    key: z.union([z.enum(StringKeys), z.enum(ArrayKeys)]),
+    value: z.array(z.string().min(1)).min(1)
+  }),
+  // BaseSelectorSchema.extend({ key: z.literal("priority_tag"), prefix: z.string().min(1) }),
 ]);
-export type Selector = z.infer<typeof SelectorSchema>;
 
-// console.log(stringProperties, numberProperties, booleanProperties);
-// process.exit()
+type Query = z.infer<typeof SelectorSchema> & {
+  then?: Query[] | undefined;
+  else?: Query[] | undefined;
+}
 
-export class SelectorEngine {
-  private static strategies = {
-    PRIORITY_TAG: (torrents: Torrent[], direction: Direction, prefix: string) => this.numericSort(torrents, direction, t => {
-      const priority = Number(t.tags.find(tag => tag.startsWith(prefix))?.replace(prefix, ''))
-      return Number.isNaN(priority) ? 50 : priority;
-    }),
+export const QuerySchema: z.ZodType<Query> = z.lazy(() =>
+  SelectorSchema
+    .and(z.object({ then: z.array(QuerySchema) }).partial())
+    .and(z.object({ else: z.array(QuerySchema) }).partial())
+);
+
+type StringQuery = Query & { key: keyof typeof properties.String };
+type NumberQuery = Query & { key: keyof typeof properties.Number };
+type BooleanQuery = Query & { key: keyof typeof properties.Boolean };
+type ArrayQuery = Query & { key: keyof typeof properties.Array };
+
+const typeGuard = (query: Query): { string: StringQuery } | { number: NumberQuery } | { boolean: BooleanQuery } | { array: ArrayQuery } | Record<never, never> => {
+  if (StringKeys.includes(query.key as typeof StringKeys[number])) return { string: query as StringQuery }
+  if (NumberKeys.includes(query.key as typeof NumberKeys[number])) return { number: query as NumberQuery }
+  if (BooleanKeys.includes(query.key as typeof BooleanKeys[number])) return { boolean: query as BooleanQuery }
+  if (ArrayKeys.includes(query.key as typeof ArrayKeys[number])) return { array: query as ArrayQuery }
+  return {};
+}
+
+const compare = (a: number | boolean, b: number | boolean, comparator: z.infer<typeof NumericComparators> | z.infer<typeof BooleanComparators>): boolean => {
+  switch (comparator) {
+    case '>': return a > b;
+    case '>=': return a >= b;
+    case '<': return a < b;
+    case '<=': return a <= b;
+    case '==': return a === b;
+    case '!=': return a !== b;
+    default: throw new Error(`Unknown comparator: ${comparator}`);
   }
+};
 
-  static execute(torrents: Torrent[], query: Selector, mode: Mode): Torrent[] {
-    const { key } = query;
-    if (isBooleanProperty(key)) return this.booleanSort(torrents, query.direction, mode, t => t[key]);
-    else if (isStringProperty(query.key) && key === query.key) return this.booleanSort(torrents, query.direction, mode, t => query.includes.some(q => t.name.toLowerCase().includes(q.toLowerCase())));
-    else if (isArrayProperty(query.key) && key === query.key) return this.booleanSort(torrents, query.direction, mode, t => query.includes.some(q => t[key].includes(q)));
-    else if (isNumberProperty(query.key) && key === query.key) {
-      const threshold = query.threshold;
-      return threshold === undefined
-        ? this.numericSort(torrents, query.direction, t => t.size)
-        : this.booleanSort(torrents, query.direction, mode, t => t.size >= threshold);
-    } else throw new Error('Unexpected key???');
+const booleanSort = (torrents: ReturnType<typeof Torrent>[], getValue: (t: ReturnType<typeof Torrent>) => boolean): ReturnType<typeof Torrent>[] => [...torrents].sort((a, b) => +getValue(b) - +getValue(a));
+
+const process = (torrents: ReturnType<typeof Torrent>[], filter: boolean, getValue: (t: ReturnType<typeof Torrent>) => boolean): ReturnType<typeof Torrent>[] => filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
+
+export const selectorEngine = {
+  execute(torrents: ReturnType<typeof Torrent>[], query: Query, filter: boolean): ReturnType<typeof Torrent>[] {
+    const startCount = torrents.length;
+    torrents = this._execute(torrents, query, filter);
+    if (!filter && torrents.length !== startCount) throw new Error(`SOMETHING WENT VERY WRONG SORTING - Some torrents got omitted? Inputted ${startCount} - Outputted ${torrents.length}`);
+    return torrents;
+  },
+  _execute(torrents: ReturnType<typeof Torrent>[], query: Query, filter: boolean): ReturnType<typeof Torrent>[] {
+    const matches: ReturnType<typeof Torrent>[] = [];
+    // for (const subquery of (Array.isArray(query) ? query : [query])) 
+    const subquery = typeGuard(query);
+      matches.push(...'boolean' in subquery ? this.processBoolean(torrents, subquery.boolean, filter) :
+        'string' in subquery ? this.processString(torrents, subquery.string, filter) :
+        'array' in subquery ? this.processArray(torrents, subquery.array, filter) :
+        'number' in subquery ? this.processNumber(torrents, subquery.number, filter) : []);
+    torrents = [...new Map(matches.map(t => [t.get().hash, t])).values()]
+
+    if (!filter && (query.then || query.else)) return this.subExecute(torrents, query);
+    return torrents;
+  },
+  subExecute(torrents: ReturnType<typeof Torrent>[], query: Query): ReturnType<typeof Torrent>[] {
+    const thenTorrents = this.execute(torrents, query, true);
+    const elseTorrents = torrents.filter(t => !thenTorrents.includes(t));
+    return [
+        ...(query.then ?? []).reduce((torrents, thenQuery) => this.execute(torrents, thenQuery, false), thenTorrents),
+        ...(query.else ?? []).reduce((torrents, elseQuery) => this.execute(torrents, elseQuery, false), elseTorrents)
+      ]
+  },
+  processBoolean: (torrents: ReturnType<typeof Torrent>[], query: BooleanQuery, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => query.comparator === '==' ? t.get()[query.key] ?? false : !(t.get()[query.key] ?? false)),
+  processString: (torrents: ReturnType<typeof Torrent>[], query: StringQuery, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => compare(query.value.some(q => t.get()[query.key]?.toLowerCase().includes(q.toLowerCase()) ?? false), true, query.comparator)),
+  processArray: (torrents: ReturnType<typeof Torrent>[], query: ArrayQuery, filter: boolean): ReturnType<typeof Torrent>[] => process(torrents, filter, t => compare(query.value.some(q => t.get()[query.key].includes(q)), true, query.comparator)),
+  processNumber(torrents: ReturnType<typeof Torrent>[], query: NumberQuery, filter: boolean): ReturnType<typeof Torrent>[] {
+    if ('value' in query) return process(torrents, filter, t => compare(t.get()[query.key] ?? 0, query.value, query.comparator));
+    const getValue = (t: ReturnType<typeof Torrent>): number => t.get()[query.key] ?? 0;
+    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * (query.comparator === 'ASC' ? 1 : -1));
   }
-
-  private static numericSort(torrents: Torrent[], direction: Direction, getValue: (t: Torrent) => number) {
-    const multiplier = direction === "DESC" ? -1 : 1;
-    return [...torrents].sort((a, b) => (getValue(a) - getValue(b)) * multiplier);
-  }
-
-  private static booleanSort(torrents: Torrent[], direction: Direction, mode: Mode, getValue: (t: Torrent) => boolean | null) {
-    if (mode === 'MATCH') {
-      const targetValue = direction === 'DESC' ? true : false;
-      return torrents.filter(t => getValue(t) === targetValue);
-    } else {
-      const multiplier = direction === "DESC" ? -1 : 1;
-      return [...torrents].sort((a, b) => (this.getNumericValue(getValue(a)) - this.getNumericValue(getValue(b))) * multiplier);
-    }
-  }
-
-  private static getNumericValue = (val: boolean | null): number => val === false ? 0 : val === null ? 1 : 2;
 }
