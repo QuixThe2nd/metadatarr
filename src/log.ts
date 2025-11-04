@@ -3,6 +3,7 @@ import fs from 'fs';
 const logPath = './store/logs/metadatarr.log';
 const maxSize = 10 * 1024 * 1024;
 
+if (!fs.existsSync('./store/logs')) fs.mkdirSync('./store/logs')
 if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
 
 const logFile = fs.createWriteStream(logPath, { flags: 'a' });
