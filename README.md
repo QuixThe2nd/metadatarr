@@ -93,6 +93,8 @@ Then run `docker compose up -d`
 ### Configure
 All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
+Note that changes apply instantly on save, you do not need to restart Metadatarr.
+
 ## Usage
 To start Metadatarr, run:
 ```
