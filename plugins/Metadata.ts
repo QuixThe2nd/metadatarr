@@ -12,6 +12,8 @@ const webtorrent = new WebTorrent({ downloadLimit: 1024 });
 let firstRun = true;
 
 const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<[]> => {
+  const { sources, ...config } = CONFIG.METADATA();
+  if (!config.ENABLED) return [];
   if (firstRun) {
     await importMetadataFiles(webtorrent, client)
     firstRun = false;
@@ -37,7 +39,6 @@ const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client):
     }
   }
 
-  const { sources } = CONFIG.METADATA();
   for (const torrent of torrents) 
     if (torrent.get().size <= 0) {
       console.log(torrent.get().hash, "Fetching metadata");
