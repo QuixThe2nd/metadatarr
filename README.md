@@ -132,9 +132,12 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
 - Priority tags
 - Or / || statements
+- Variable support
 
 #### Other:
+- Rebrand jobs to plugins, let users import custom plugins similar to how inject works
 - Deluge/Transmission/RTorrent support
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name
+- Hot reload on config change

@@ -8,18 +8,20 @@ const objectKeys = <T extends object>(obj: T): (keyof T)[] => Object.keys(obj) a
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
 const actions = objectKeys(Torrent({} as Client, {} as TorrentType));
-export const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setCategory'] as const;
-const excludedActions = ['get', 'rename', 'renameFile', 'files'] as const;
+export const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setCategory', 'rename'] as const;
+const excludedActions = ['get', 'renameFile', 'files'] as const;
 export const filteredActions = exclude(actions, [...argedActions, ...excludedActions]);
 
-const ActionSchema = z.object({ if: z.array(QuerySchema) }).and(z.union([
+const InstructionSchema = z.union([
   z.object({ then: z.enum(argedActions), arg: z.union([z.boolean(), z.string()]) }),
   z.object({ then: z.enum(filteredActions) })
-])).and(z.object({
+]);
+
+const ActionSchema = z.object({ if: z.array(QuerySchema) }).and(InstructionSchema).and(z.object({
   max: z.number().optional()
 }));
 
-export type Action = z.infer<typeof ActionSchema>;
+export type TorrentInstruction = z.infer<typeof InstructionSchema>;
 
 export const ActionsSchema = z.object({
   ACTIONS: z.array(ActionSchema)
@@ -70,7 +72,6 @@ export const NamingConfigSchema = z.object({
 
 export const SortConfigSchema = z.object({
   ENABLED: z.boolean(),
-  MOVE_DELAY: z.number().int().nonnegative(),
   MAX_MOVES_PER_CYCLE: z.number().int().nonnegative(),
   MIN_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),
   MAX_API_CALLS_PER_CYCLE: z.number().int().nonnegative(),

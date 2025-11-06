@@ -4,9 +4,9 @@ import type { Instance } from 'webtorrent';
 import { saveMetadata } from "../utils/saveMetadata";
 import type z from "zod";
 import { CONFIG } from "../config";
-import type Client from "../clients/client";
+import type Client from '../clients/client';
 
-const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client, webtorrent: Instance): Promise<{ changes: number }> => {
+const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client, webtorrent: Instance): Promise<[]> => {
   const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
     if (await webtorrent.get(hash)) return;
     console.log(hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");
@@ -35,6 +35,6 @@ const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client, 
       await Promise.all(sources.map(source => fetchFromHTTP(torrent.get().hash, source)));
     }
   
-  return { changes: 0 };
+  return [];
 }
 export default metadata;
