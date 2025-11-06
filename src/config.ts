@@ -20,8 +20,7 @@ function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, 
 
   const rawDefaultConfig = fs.readFileSync(path.join(__dirname, `../config_template/${filePath}`), 'utf8');
   const defaultConfig = strict.parse(JSONC.parse(rawDefaultConfig)) as z.infer<T>;
-  if (!fs.existsSync(configPath)) fs.writeFileSync(configPath, rawDefaultConfig);
-  const config = partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8')) ?? {}) as Partial<z.infer<T>>;
+  const config = (fs.existsSync(configPath) ? partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8'))) : {}) as Partial<z.infer<T>>;
   for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
 

@@ -96,7 +96,7 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX"]}
+				{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX", "@SP", "@CBR", "@ANT"]}
 			],
 			"then": "delete",
 			"arg": true
@@ -105,7 +105,7 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@ULCX", "@HDS", "@SA", "@RAS"]},
+				{"key": "tags", "comparator": "==", "value": ["@ULCX", "@HDS", "@SA", "@RAS", "@OE", "@PTF"]},
 				{"key": "seeding_time", "comparator": ">=", "value": 259200} // 3 days
 			],
 			"then": "delete",
@@ -114,7 +114,7 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@DP"]},
+				{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@DP", "@ST"]},
 				{"key": "seeding_time", "comparator": ">=", "value": 345600} // 4 days
 			],
 			"then": "delete",
@@ -123,8 +123,17 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@ATH", "@YS", "@DCC"]},
+				{"key": "tags", "comparator": "==", "value": ["@ATH", "@YS", "@DCC", "@RF"]},
 				{"key": "seeding_time", "comparator": ">=", "value": 518400} // 6 days
+			],
+			"then": "delete",
+			"arg": true
+		},
+		{
+			"if": [
+				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
+				{"key": "tags", "comparator": "==", "value": ["@SHR"]},
+				{"key": "seeding_time", "comparator": ">=", "value": 604800} // 7 days
 			],
 			"then": "delete",
 			"arg": true
@@ -150,7 +159,7 @@ E.g. if you auto resume torrents then later later delete stopped torrents, place
 		{
 			"if": [
 				{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-				{"key": "tags", "comparator": "==", "value": ["@SP", "@PHD"]},
+				{"key": "tags", "comparator": "==", "value": ["@PHD"]},
 				{"key": "seeding_time", "comparator": ">=", "value": 950400} // 11 days
 			],
 			"then": "delete",
