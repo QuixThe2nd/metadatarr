@@ -32,7 +32,7 @@ const CorePluginSchema = z.array(z.object({
   get: z.function()
 }));
 const PluginSchema = z.function({
-  input: [CorePluginSchema, z.object()],
+  input: [CorePluginSchema, z.object().loose()],
   output: z.array(InstructionSchema)
 });
 
