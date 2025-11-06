@@ -21,6 +21,7 @@ const importFile = async (webtorrent: Instance, client: Client, dir: string, fil
 
 export const importMetadataFiles = async (webtorrent: Instance, client: Client): Promise<void> => {
   const dir = path.join(__dirname, '/../../', CONFIG.METADATA().TORRENT_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 
   console.log(`Scanning torrent import directory`);
   for (const file of fs.readdirSync(dir)) await importFile(webtorrent, client, dir, file);
