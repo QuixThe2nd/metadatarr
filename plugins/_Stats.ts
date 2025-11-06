@@ -1,4 +1,4 @@
-import type Torrent from "../classes/Torrent";
+import type Torrent from "../src/classes/Torrent";
 import ptt from 'parse-torrent-title';
 
 type Trackers = Record<string, { ul: number; dl: number, torrents: number }>;
@@ -25,7 +25,7 @@ const parse = (torrents: ReturnType<typeof Torrent>[]): { trackers: Trackers; re
   return { trackers, releases };
 }
 
-export const Stats = (torrents: ReturnType<typeof Torrent>[]): { changes: 0 } => {
+const Stats = (torrents: ReturnType<typeof Torrent>[]): [] => {
   const { trackers, releases } = parse(torrents);
 
   console.log('Trackers:')
@@ -52,5 +52,6 @@ export const Stats = (torrents: ReturnType<typeof Torrent>[]): { changes: 0 } =>
   console.log('Cross Seeded Groups:');
   console.log(Object.entries(crossSeeds).sort((a, b) => b[1] - a[1]))
 
-  return { changes: 0 };
+  return [];
 }
+export default Stats;

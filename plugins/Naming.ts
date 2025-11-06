@@ -1,12 +1,12 @@
-import type Torrent from "../classes/Torrent";
+import type Torrent from "../src/classes/Torrent";
 import ptt from "parse-torrent-title";
-import { CONFIG } from "../config";
+import { CONFIG } from "../src/config";
 import fs from 'fs';
 import z from 'zod';
 import { version as pttVersion } from 'parse-torrent-title/package.json';
-import { stringKeys } from "../schemas";
-import { getEpisodeTitleFromName } from "../utils/TMDB";
-import type { Instruction } from "../Types";
+import { stringKeys, type Instruction } from "../src/schemas";
+import { getEpisodeTitleFromName } from "../src/utils/TMDB";
+import OriginalNames from "../src/startup_tasks/OriginalNames";
 
 /* -------------------------------------------------
  BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
@@ -54,11 +54,13 @@ const CacheSchema = z.object({
   }))
 });
 
-export default class Naming {
+const originalNames = new OriginalNames();
+
+class NamingClass {
   private readonly config = CONFIG.NAMING();
   private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, parserVersion: PARSER_VERSION, namingSchema: this.config.SCHEME, names: {} };
 
-  private constructor(private readonly torrents: ReturnType<typeof Torrent>[], private readonly originalNames: Record<string, string>){
+  constructor(private readonly torrents: ReturnType<typeof Torrent>[]){
     if (fs.existsSync('./store/naming_cache.json')) {
       const cache = CacheSchema.parse(JSON.parse(fs.readFileSync('./store/naming_cache.json').toString()));
       if (cache.pttVersion === pttVersion && cache.parserVersion === PARSER_VERSION && cache.namingSchema === this.config.SCHEME) this.cache = cache;
@@ -66,7 +68,7 @@ export default class Naming {
   }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras', 'retail'] as const;
 
-  static run = (torrents: ReturnType<typeof Torrent>[], originalNames: Record<string, string>): Promise<Instruction[]> => new Naming(torrents.sort((a, b) => b.get().added_on - a.get().added_on), originalNames).renameAll();
+  static run = (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => new NamingClass(torrents.sort((a, b) => b.get().added_on - a.get().added_on)).renameAll();
 
   private async renameAll(): Promise<Instruction[]> {
     if (!this.config.ENABLED) return [];
@@ -102,7 +104,7 @@ export default class Naming {
   }
 
   private async renameTorrent(torrent: ReturnType<typeof Torrent>): Promise<Instruction[]> {
-    const origName = this.originalNames[torrent.get().hash];
+    const origName = originalNames.names[torrent.get().hash];
     if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return [];
     const instructions: Instruction[] = this.handleMissingName(torrent, origName)
 
@@ -361,10 +363,12 @@ export default class Naming {
     }
     return { name, other, info };
   }
-
-  static async test(name: string): Promise<{ name: string; other: string, info: ParseTorrentTitle.DefaultParserResult }> {
-    // @ts-expect-error: Just used for tests, no api needed
-    const naming = new Naming();
-    return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
-  }
 }
+
+export const test = async (name: string): Promise<{ name: string; other: string, info: ParseTorrentTitle.DefaultParserResult }> => {
+  const naming = new NamingClass([]);
+  return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
+}
+
+const Naming = (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => NamingClass.run(torrents)
+export default Naming;
