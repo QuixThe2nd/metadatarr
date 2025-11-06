@@ -17,7 +17,6 @@ import { properties } from './classes/Torrent';
 import { argedActions, filteredActions } from './schemas';
 import type { Instruction } from './Types';
 // import { Stats } from './jobs/Stats';
-import { Instruction } from './Types';
 
 if (CONFIG.CORE().DRY_RUN) {
   console.log("======== PROPERTIES ========")
