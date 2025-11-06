@@ -3,7 +3,7 @@ Like Sonarr for your torrent queue: Intelligent automation for power users manag
 
 Metadatarr is a highly modular Torrent automation tool giving you surgical control over your torrents. It continuously monitors your BitTorrent client and applies rules you define to manage everything automatically.
 
-## Core Features
+## Features
 - **Actions**: Automatically performs actions on your torrents based on custom rules IF/THEN rules (e.g. resume stopped torrents if above 95% complete, delete errored ones in a category, recheck missing files, etc.)
 - **Sort**: Automatically reorders your queue based off sophisticated custom chained rules (e.g. prefer small torrents BUT de-prioritise public torrents BUT prefer Sonarr torrents BUT prefer torrent names with "S01")
 - **Queue**: Automatically changes download queue size based off a configurable total size limit
@@ -79,7 +79,7 @@ To run via Docker, create a file called `docker-compose.yml` and paste the follo
 ```
 services:
   metadatarr:
-    image: ghcr.io/quixthe2nd/metadatarr:latest
+    image: ghcr.io/quixthe2nd/metadatarr
     container_name: metadatarr
     restart: unless-stopped
     ports:
@@ -90,8 +90,10 @@ services:
 ```
 Then run `docker compose up -d`
 
-### Configure
-All default configuration files are located at `./config_template/`. To change values, copy config files to `./store/config/`. Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
+## Configuration
+All default configuration files are located at `./config_template/`. To change values, create files at `./store/config/` with the same name. Any config value you haven't defined will fallback to the defaults.
+
+Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
 Note that changes apply instantly on save, you do not need to restart Metadatarr.
 
@@ -116,9 +118,6 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - demo video showcasing features like sorting
 - before/after photos of torrent names
 
-#### Other:
-- Create docker container
-
 ### Stage 2
 #### Metadata
 - Use TVDB to parse episode names
@@ -132,6 +131,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Validate config type for enums like state - Right now it accepts any string, but it should only allow valid states
 - Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
 - Priority tags
+- Or / || statements
 
 #### Other:
 - Deluge/Transmission/RTorrent support
