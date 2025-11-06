@@ -1,7 +1,7 @@
-import { selectorEngine } from "../classes/SelectorEngine";
-import type Torrent from "../classes/Torrent";
-import { CONFIG } from "../config";
-import type { Instruction } from "../Types";
+import { selectorEngine } from "../src/classes/SelectorEngine";
+import type Torrent from "../src/classes/Torrent";
+import { CONFIG } from "../src/config";
+import type { Instruction } from "../src/schemas";
 
 const Actions = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
   torrents = torrents.sort(Math.random);

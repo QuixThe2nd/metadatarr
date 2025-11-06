@@ -1,7 +1,7 @@
 import fs from 'fs';
 import express from 'express';
 import z from 'zod';
-import { runJobs } from '..';
+import { runPlugins } from '..';
 import type Client from '../clients/client';
 import { CONFIG } from '../config';
 import { selectorEngine } from './SelectorEngine';
@@ -37,7 +37,7 @@ export const startServer = (qB: Client): Promise<void> => new Promise(resolve =>
   
   app.post('/api/run-jobs', (_, res) => {
     console.log('Job run manually requested')
-    runJobs().catch(console.error);
+    runPlugins().catch(console.error);
     res.status(200).send();
   });
 

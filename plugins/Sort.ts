@@ -1,9 +1,8 @@
-import type Torrent from "../classes/Torrent";
-import { selectorEngine } from "../classes/SelectorEngine";
-import { CONFIG } from "../config";
-import type { SortConfigSchema } from "../schemas";
+import type Torrent from "../src/classes/Torrent";
+import { selectorEngine } from "../src/classes/SelectorEngine";
+import { CONFIG } from "../src/config";
+import type { Instruction, SortConfigSchema } from "../src/schemas";
 import type z from "zod";
-import type { Instruction } from "../Types";
 
 const getInitialTorrents = (torrents: ReturnType<typeof Torrent>[]): ReturnType<typeof Torrent>[] => torrents
   .filter(torrent => torrent.get().priority > 0)
@@ -18,7 +17,7 @@ const limitReached = (config: z.infer<typeof SortConfigSchema>, moves: number, c
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-export const Sort = (torrents: ReturnType<typeof Torrent>[], config = CONFIG.SORT()): Instruction[] => {
+const Sort = (torrents: ReturnType<typeof Torrent>[], config = CONFIG.SORT()): Instruction[] => {
   if (!config.ENABLED) return [];
 
   torrents = getInitialTorrents(torrents);
@@ -43,3 +42,4 @@ export const Sort = (torrents: ReturnType<typeof Torrent>[], config = CONFIG.SOR
 
   return instructions;
 }
+export default Sort;

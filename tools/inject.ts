@@ -1,18 +1,13 @@
-import Qbittorrent from "../src/clients/qBittorrent";
 import type Torrent from "../src/classes/Torrent";
-import type { Instruction } from "../src/Types";
+import type Client from "../src/clients/client";
+import type { Instruction } from "../src/schemas";
 
-const hook = async () => {
-  const qB = await Qbittorrent.connect();
-  console.log(qB);
+const hook = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<Instruction[]> => {
+  console.log(client)
+  for (const torrent of torrents) console.log(torrent.get().tracker)
 
-  return async (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => {
-    for (const torrent of torrents) 
-      console.log(torrent.get().tracker)
-
-    await new Promise(res => setTimeout(res, 10_000))
-    return [];
-  }
+  await new Promise(res => setTimeout(res, 10_000))
+  return [];
 }
 
 export default hook;

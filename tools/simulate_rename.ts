@@ -1,25 +1,25 @@
-import Naming from '../src/jobs/Naming'
+import { test } from '../plugins/Naming'
 import Client from '../src/clients/client'
 
 const name = '';
 const filter = '';
 
 if (name.length) {
-  console.log(await Naming.test(name));
+  console.log(await test(name));
   process.exit()
 }
 
 const client = await Client.connect()
 
 const torrents = await client.torrents();
-const tests = torrents.map(t => t.get().name).filter(t => t.includes(filter));
-// const tests = [...new Set(torrents.map(t => t.name).filter(t => t.includes(filter)))];
+const names = torrents.map(t => t.get().name).filter(t => t.includes(filter));
+// const names = [...new Set(torrents.map(t => t.name).filter(t => t.includes(filter)))];
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
-for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  const { other, ...result } = await Naming.test(test);
+for (const name of names.sort(() => Math.random() > 0.5 ? 1 : -1)) {
+  const { other, ...result } = await test(name);
   if (other.length !== 0 && other.includes(filter)) {
-    fails[other] ??= { originalName: test, count: 0, ...result};
+    fails[other] ??= { originalName: name, count: 0, ...result};
     fails[other].count++;
   }
 }
@@ -27,5 +27,5 @@ for (const test of tests.sort(() => Math.random() > 0.5 ? 1 : -1)) {
 const failCount = Object.values(fails).reduce((a, b) => a + b.count, 0);
 for (const fail of Object.entries(fails).sort((a, b) => a[1].count - b[1].count)) console.log(JSON.stringify(fail, null, 2))
 console.log('Failures:', failCount)
-console.log('Successes:', tests.length - failCount)
-console.log('Fail Rate:', `${Math.round(10_000*failCount/tests.length)/100  }%`)
+console.log('Successes:', names.length - failCount)
+console.log('Fail Rate:', `${Math.round(10_000*failCount/names.length)/100  }%`)

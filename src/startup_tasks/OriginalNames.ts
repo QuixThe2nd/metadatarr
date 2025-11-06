@@ -6,20 +6,15 @@ import parseTorrent from 'parse-torrent';
 export default class OriginalNames {
   public readonly names: Record<string, string> = {};
 
-  private constructor(readonly dir = CONFIG.NAMING().TORRENTS_DIR) {}
-
-  static async start(): Promise<{ names: Record<string, string> }> {
-    const originalNames = new OriginalNames();
-
+  constructor(private readonly dir = CONFIG.NAMING().TORRENTS_DIR) {
     const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
-    for (const {hash, name} of Object.values(cache)) originalNames.names[hash] = name;
+    for (const {hash, name} of Object.values(cache)) this.names[hash] = name;
 
-    if (!originalNames.dir.length) return originalNames;
-    await originalNames.scanDirectory(cache);
-    fs.watch(originalNames.dir, (_, filename) => {
-      if (filename !== null) originalNames.saveName(originalNames.dir, filename).catch(console.error);
+    if (!dir.length) return;
+    this.scanDirectory(cache).catch(console.error)
+    fs.watch(dir, (_, filename) => {
+      if (filename !== null) this.saveName(dir, filename).catch(console.error);
     });
-    return originalNames;
   }
 
   private async scanDirectory(cache: Record<string, { hash: string; name: string }>): Promise<void>{
@@ -36,7 +31,7 @@ export default class OriginalNames {
       if (res === false) continue;
       cache[file] = res;
       const currentPercent = Math.floor((i + 1) / totalFiles * 100);
-      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0 || (i + 1) % 500 === 0) {
+      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
         console.log(`Scan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
         lastLoggedPercent = currentPercent;
       }

@@ -1,12 +1,22 @@
-import type Torrent from "../classes/Torrent";
-import type { MetadataSchema } from '../schemas';
-import type { Instance } from 'webtorrent';
-import { saveMetadata } from "../utils/saveMetadata";
+import type Torrent from "../src/classes/Torrent";
+import type { MetadataSchema } from '../src/schemas';
+import { saveMetadata } from "../src/utils/saveMetadata";
 import type z from "zod";
-import { CONFIG } from "../config";
-import type Client from '../clients/client';
+import { CONFIG } from "../src/config";
+import type Client from '../src/clients/client';
+import WebTorrent from 'webtorrent';
+import { importMetadataFiles } from "../src/startup_tasks/ImportMetadataFiles";
 
-const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client, webtorrent: Instance): Promise<[]> => {
+const webtorrent = new WebTorrent({ downloadLimit: 1024 });
+
+let firstRun = true;
+
+const metadata = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<[]> => {
+  if (firstRun) {
+    await importMetadataFiles(webtorrent, client)
+    firstRun = false;
+  }
+
   const fetchWebtorrent = async (hash: string, magnet_uri: string): Promise<void> => {
     if (await webtorrent.get(hash)) return;
     console.log(hash, "\x1b[34m[WebTorrent]\x1b[0m Fetching metadata");

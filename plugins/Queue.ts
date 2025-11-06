@@ -1,6 +1,6 @@
-import type Torrent from "../classes/Torrent";
-import { CONFIG } from "../config";
-import type { Instruction } from "../Types";
+import type Torrent from "../src/classes/Torrent";
+import { CONFIG } from "../src/config";
+import type { Instruction } from "../src/schemas";
 
 const GB = 1024*1024*1024;
 
@@ -9,7 +9,7 @@ const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<t
 
 const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
-export const Queue = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
+const Queue = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
   const config = CONFIG.QUEUE();
   if (!config.QUEUE_SIZE_LIMIT) return [];
 
@@ -31,3 +31,4 @@ export const Queue = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => 
     arg: Math.min(config.MAXIMUM_QUEUE_SIZE, Math.max(config.MINIMUM_QUEUE_SIZE, queueSize))
   }];
 }
+export default Queue;

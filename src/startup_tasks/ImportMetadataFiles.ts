@@ -3,6 +3,11 @@ import { CONFIG } from '../config';
 import { saveMetadata } from '../utils/saveMetadata';
 import type { Instance } from 'webtorrent';
 import type Client from '../clients/client';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const importFile = async (webtorrent: Instance, client: Client, dir: string, file: string): Promise<void> => {
   if (!file.endsWith('.torrent')) return;
@@ -15,7 +20,7 @@ const importFile = async (webtorrent: Instance, client: Client, dir: string, fil
 }
 
 export const importMetadataFiles = async (webtorrent: Instance, client: Client): Promise<void> => {
-  const dir = CONFIG.METADATA().TORRENT_PATH;
+  const dir = path.join(__dirname, '/../../', CONFIG.METADATA().TORRENT_PATH);
 
   console.log(`Scanning torrent import directory`);
   for (const file of fs.readdirSync(dir)) await importFile(webtorrent, client, dir, file);

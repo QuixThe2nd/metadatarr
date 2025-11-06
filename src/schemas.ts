@@ -12,16 +12,16 @@ export const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setC
 const excludedActions = ['get', 'renameFile', 'files'] as const;
 export const filteredActions = exclude(actions, [...argedActions, ...excludedActions]);
 
-const InstructionSchema = z.union([
+export const TorrentInstructionSchema = z.union([
   z.object({ then: z.enum(argedActions), arg: z.union([z.boolean(), z.string()]) }),
   z.object({ then: z.enum(filteredActions) })
 ]);
 
-const ActionSchema = z.object({ if: z.array(QuerySchema) }).and(InstructionSchema).and(z.object({
+const ActionSchema = z.object({ if: z.array(QuerySchema) }).and(TorrentInstructionSchema).and(z.object({
   max: z.number().optional()
 }));
 
-export type TorrentInstruction = z.infer<typeof InstructionSchema>;
+export type TorrentInstruction = z.infer<typeof TorrentInstructionSchema>;
 
 export const ActionsSchema = z.object({
   ACTIONS: z.array(ActionSchema)
@@ -98,3 +98,26 @@ export const MetadataSchema = z.object({
 export const UncrossSeedSchema = z.object({
   FILTERS: z.array(QuerySchema)
 });
+
+const ExpandedTorrentSchema = TorrentInstructionSchema.and(
+  z.object({ hash: z.string() })
+);
+
+export const InstructionSchema = z.union([
+  ExpandedTorrentSchema,
+  z.object({
+    then: z.literal('setMaxActiveDownloads'),
+    arg: z.number()
+  }),
+  z.object({
+    then: z.literal('topPriority'),
+    arg: z.array(z.string())
+  }),
+  z.object({
+    then: z.literal('renameFile'),
+    arg: z.tuple([z.string(), z.string()]),
+    hash: z.string()
+  })
+]);
+
+export type Instruction = z.infer<typeof InstructionSchema>;

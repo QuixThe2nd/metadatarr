@@ -1,22 +1,16 @@
 import './log';
 import { CONFIG, testConfig } from './config';
-import WebTorrent from 'webtorrent';
 import { startServer } from './classes/server';
 import Client from "./clients/client";
-import OriginalNames from "./startup_tasks/OriginalNames";
-import { importMetadataFiles } from "./startup_tasks/ImportMetadataFiles";
-import Naming from "./jobs/Naming";
-import { Sort } from "./jobs/Sort";
-import { Queue } from './jobs/Queue';
 import hook from '../tools/inject';
 import type Torrent from './classes/Torrent';
 import { logContext } from './log';
-import metadata from './jobs/Metadata';
-import Actions from './jobs/Actions';
 import { properties } from './classes/Torrent';
-import { argedActions, filteredActions } from './schemas';
-import type { Instruction } from './Types';
-// import { Stats } from './jobs/Stats';
+import { argedActions, filteredActions, InstructionSchema, type Instruction } from './schemas';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import z from 'zod';
 
 if (CONFIG.CORE().DRY_RUN) {
   console.log("======== PROPERTIES ========")
@@ -34,14 +28,28 @@ if (CONFIG.CORE().DRY_RUN) {
   console.log("|\n======== ACTIONS ========")
 }
 
-const tasks = {
-  Actions,
-  Sort,
-  Queue,
-  Naming: (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => Naming.run(torrents, originalNames.names),
-  Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<[]> => metadata(torrents, api, webtorrent),
-  // Stats,
-} satisfies Record<string, (t: ReturnType<typeof Torrent>[]) => Promise<Instruction[]> | Instruction[]>;
+const CorePluginSchema = z.array(z.object({
+  get: z.function()
+}));
+const PluginSchema = z.function({
+  input: [CorePluginSchema, z.object()],
+  output: z.array(InstructionSchema)
+});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const pluginDir = path.join(__dirname, '../plugins/');
+
+const plugins: Record<string, (t: ReturnType<typeof Torrent>[], client: Client) => Promise<Instruction[]> | Instruction[]> = {};
+for (const pluginName of fs.readdirSync(pluginDir)) {
+  if (pluginName.startsWith('_')) continue;
+  const { default: plugin } = await import(path.join(pluginDir, pluginName));
+  const importedPlugin = PluginSchema.implementAsync(plugin);
+  plugins[pluginName.replace(/\.[tj]s/i, '')] = importedPlugin;
+}
+
+// Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<[]> => metadata(torrents, api, webtorrent),
 
 // eslint-disable-next-line complexity
 const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
@@ -116,34 +124,34 @@ const reduceInstructions = async (instructions: Instruction[], torrents: Record<
   });
 }
 
-let jobsRunning = false;
-export const runJobs = async (): Promise<number> => {
-  if (jobsRunning) return 0;
-  jobsRunning = true;
-  console.log('Jobs Started');
+let pluginsRunning = false;
+export const runPlugins = async (): Promise<number> => {
+  if (pluginsRunning) return 0;
+  pluginsRunning = true;
+  console.log('Plugins Started');
 
   const torrents = await api.torrents();
 
   const instructions: Instruction[] = [];
 
-  if (inject !== false) instructions.push(...await inject(torrents));
+  if (CONFIG.CORE().DEV_INJECT) instructions.push(...await hook(torrents, api));
   else
-    for (const [name, task] of Object.entries(tasks)) {
-      const taskInstructions = await logContext(name, async () => {
-        console.log('Job Started');
-        const taskInstructions = await task(torrents);
-        console.log('Job Finished - Instructions:', taskInstructions.length);
-        // if (taskResult.deletes !== undefined) {
-        //   const deletesToRemove = taskResult.deletes;
+    for (const [name, plugin] of Object.entries(plugins)) {
+      const pluginInstructions = await logContext(name, async () => {
+        console.log('Plugin Started');
+        const pluginInstructions = await plugin(torrents, api);
+        console.log('Plugin Finished - Instructions:', pluginInstructions.length);
+        // if (pluginResult.deletes !== undefined) {
+        //   const deletesToRemove = pluginResult.deletes;
         //   torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
         // }
-        return taskInstructions;
+        return pluginInstructions;
       });
-      instructions.push(...taskInstructions);
+      instructions.push(...pluginInstructions);
     }
 
-  console.log('Jobs Finished - Instructions:', instructions.length);
-  jobsRunning = false;
+  console.log('Plugins Finished - Instructions:', instructions.length);
+  pluginsRunning = false;
 
   const mappedTorrents = Object.fromEntries(torrents.map(t => [t.get().hash, t]));
   const optimisedInstructions = await reduceInstructions(optimiseInstructions(instructions), mappedTorrents);
@@ -163,14 +171,10 @@ export const runJobs = async (): Promise<number> => {
 await testConfig();
 
 const api = await Client.connect();
-const webtorrent = new WebTorrent({ downloadLimit: 1024 });
-const originalNames = await OriginalNames.start();
-const inject = CONFIG.CORE().DEV_INJECT ? await hook() : false;
-if (inject !== false) await importMetadataFiles(webtorrent, api);
 
 await startServer(api);
 
 for (;;) {
-  const changes = await runJobs();
+  const changes = await runPlugins();
   await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
 }

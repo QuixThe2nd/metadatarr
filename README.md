@@ -109,6 +109,44 @@ To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a we
 ## Triggering Jobs
 Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better of setting a much slower frequency of job runs and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add (or complete).
 
+## Plugins
+Metadatarr is highly modular, every feature you see is a plugin (e.g. `Sort`, `Actions`, etc.). You can see `./plugins` for a list of all built-in plugins. To disable a plugin so it doesn't run, simply prepend `_` to the start of the name, like `_Stats.ts`. Plugins can be built in either TS or JS, no build step is required if using TS, so I highly recommend shipping your plugins using TS.
+
+To build a plugin, create a file in `./plugins/` with a function that looks like this:
+```ts
+import type Torrent from "../src/classes/Torrent";
+import type { Instruction } from "../src/Types";
+
+const Plugin = (torrents: ReturnType<typeof Torrent>[], client: Client): Instruction[] => {}
+// or
+const Plugin = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<Instruction[]> => {}
+export default plugin;
+```
+Or in JS:
+```js
+const Plugin = (torrents, client) => {}
+// or
+const Plugin = async (torrents, client) => {}
+export default plugin;
+```
+
+You can use `./tools/inject.ts` to experiment with new plugins, simply turn on `DEV_INJECT` in `core.jsonc`.
+
+Plugins can return an array of instructions Metadatarr uses to modify torrents or directly interface with client settings. For a full list of available instructions, check `InstructionSchema` in `./src/schemas.ts`.
+
+These instructions can look like so:
+```json
+[
+  { "hash": "0123456789abcdef", "then": "start" },
+  { "hash": "0123456789abcdef", "then": "rename", "arg": "Ubuntu 22.04" },
+  { "then": "setMaxActiveDownloads", "arg": 5 }
+]
+```
+
+Each torrent in the `torrents` array passed to your plugin has an interface the can be used to interact directly with torrents. There is also a `client` argument that can be used to directly interface with the BitTorrent client for global settings. These are only provided as a last resort in case you have a use case that for whatever reason is not natively supported by the instruction schema. However I ask that you submit a GitHub issue (or PR) if you find new use-cases not natively supported.
+
+Although everything the instruction schema can do is possible by natively interacting with torrent and client objects, it is highly discouraged. Metadatarr has built in optimisers that reduce the number of API calls made to the underlying BitTorrent client. For example, when testing on my personal library with ~5k torrents at the time of writing, each run, the default plugins return a combined 16k instructions. After a simple de-duplication, the number of instructions shrinks to 10k. Then finally after diffing against my qBitTorrent state, the total number of calls each run is ~8. Interfacing directly with the BitTorrent client will result in many redundant calls, or require time optimising calls that Metadatarr can optimise for you.
+
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!
 
@@ -135,9 +173,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Variable support
 
 #### Other:
-- Rebrand jobs to plugins, let users import custom plugins similar to how inject works
 - Deluge/Transmission/RTorrent support
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
-- If torrent renamed, recheck all torrents with the same name
 - Hot reload on config change
