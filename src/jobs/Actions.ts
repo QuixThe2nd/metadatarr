@@ -12,7 +12,8 @@ const Actions = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
     for (const selector of action.if) selectedTorrents = selectorEngine.execute(selectedTorrents, selector, true);
     for (const [i, torrent] of selectedTorrents.entries()) {
       if ('max' in action && i === action.max) continue;
-      instructions.push({ hash: torrent.get().hash, ...action });
+      const { if: _, ...rest } = action;
+      instructions.push({ hash: torrent.get().hash, ...rest });
     }
   }
   return instructions;

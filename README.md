@@ -140,5 +140,4 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - recross-seed: auto remove torrents from sonarr/radarr/lidarr/readarr if they have no cross-seeds, so hopefully a new cross-seedable torrent is found
 - Web Dashboard
 - If torrent renamed, recheck all torrents with the same name
-- Batched operations - Log all required operations (start, remove, recheck, etc), then at the end of all job runs, reduce list to remove redundant operations (if torrent actions are: start->stop, only call stop. If start->recheck->stop only call stop->recheck)
 - Hot reload on config change

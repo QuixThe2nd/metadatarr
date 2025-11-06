@@ -77,7 +77,7 @@ export default class Naming {
   }
 
   private handleMissingName(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Instruction[] {
-    if (origName !== undefined) return [{ then: 'removeTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && origName !== undefined) return [{ then: 'removeTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
     if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return [{ then: 'addTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
     return [];
   }
@@ -115,7 +115,8 @@ export default class Naming {
     }
 
     instructions.push({ then: 'rename', arg: name, hash: torrent.get().hash });
-    instructions.push(...await this.renameFiles(torrent, name));
+    // TODO: add caching before enabling this:
+    // instructions.push(...await this.renameFiles(torrent, name));
 
     return instructions;
   }
