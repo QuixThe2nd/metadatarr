@@ -56,6 +56,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
   const deletes = new Set<string>();
   const starts = new Set<string>();
   const stops = new Set<string>();
+  const rechecks = new Set<string>();
   const addTags: Record<string, string[]> = {};
   const removeTags: Record<string, string[]> = {};
   const rename: Record<string, string> = {};
@@ -65,6 +66,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
 
   for (const instruction of instructions)
     if (instruction.then === 'delete') deletes.add(instruction.hash);
+    else if (instruction.then === 'recheck') rechecks.add(instruction.hash);
     else if (instruction.then === 'start') {
       starts.add(instruction.hash);
       stops.delete(instruction.hash);
@@ -95,6 +97,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     delete rename[hash];
     starts.delete(hash);
     stops.delete(hash);
+    rechecks.delete(hash);
   }
 
   const optimisedInstructions: Instruction[] = [
@@ -105,7 +108,8 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     ...topPriority.map((torrents): Instruction => ({ then: 'topPriority', arg: torrents })),
     ...[...sequentialDownload].map((hash): Instruction => ({ then: 'toggleSequentialDownload', hash })),
     ...[...starts].map((hash): Instruction => ({ then: 'start', hash })),
-    ...[...stops].map((hash): Instruction => ({ then: 'stop', hash }))
+    ...[...stops].map((hash): Instruction => ({ then: 'stop', hash })),
+    ...[...rechecks].map((hash): Instruction => ({ then: 'recheck', hash }))
   ];
   if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads });
 
