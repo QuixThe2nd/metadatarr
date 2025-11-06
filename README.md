@@ -115,7 +115,7 @@ Metadatarr is highly modular, every feature you see is a plugin (e.g. `Sort`, `A
 To build a plugin, create a file in `./plugins/` with a function that looks like this:
 ```ts
 import type Torrent from "../src/classes/Torrent";
-import type { Instruction } from "../src/Types";
+import type { Instruction } from "../src/schemas";
 
 const Plugin = (torrents: ReturnType<typeof Torrent>[], client: Client): Instruction[] => {}
 // or
