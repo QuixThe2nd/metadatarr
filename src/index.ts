@@ -17,6 +17,7 @@ import { properties } from './classes/Torrent';
 import { argedActions, filteredActions } from './schemas';
 import type { Instruction } from './Types';
 // import { Stats } from './jobs/Stats';
+import { Instruction } from './Types';
 
 if (CONFIG.CORE().DRY_RUN) {
   console.log("======== PROPERTIES ========")
@@ -50,6 +51,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
   const removeTags: Record<string, string[]> = {};
   const rename: Record<string, string> = {};
   const topPriority: string[][] = [];
+  const sequentialDownload = new Set<string>();
   let setMaxActiveDownloads: number | undefined;
 
   for (const instruction of instructions)
@@ -69,6 +71,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     } else if (instruction.then === 'topPriority') topPriority.push(instruction.arg)
     else if (instruction.then === 'setMaxActiveDownloads') setMaxActiveDownloads = instruction.arg;
     else if (instruction.then === 'rename') rename[instruction.hash] = instruction.arg as string;
+    else if (instruction.then === 'toggleSequentialDownload') sequentialDownload.add(instruction.hash);
     else throw new Error(`Unknown Instruction: ${instruction.then}`);
 
   for (const hash of deletes) {
@@ -83,6 +86,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     ...Object.entries(removeTags).map(([hash, tags]): Instruction => ({ then: 'removeTags', hash, arg: tags.join(',') })),
     ...Object.entries(rename).map(([hash, name]): Instruction => ({ then: 'rename', hash, arg: name })),
     ...topPriority.map((torrents): Instruction => ({ then: 'topPriority', arg: torrents })),
+    ...[...sequentialDownload].map((hash): Instruction => ({ then: 'toggleSequentialDownload', hash }))
   ];
   if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads });
 
@@ -108,6 +112,7 @@ const reduceInstructions = async (instructions: Instruction[], torrents: Record<
       const removeTags = (instruction.arg as string).split(',');
       return removeTags.filter(tag => torrent.tags.includes(tag)).length !== 0;
     } else if (instruction.then === 'rename') return torrent.name !== instruction.arg;
+    else if (instruction.then === 'toggleSequentialDownload') return true;
     throw new Error(`Unknown Instruction: ${instruction.then}`);
   });
 }
@@ -151,9 +156,7 @@ export const runJobs = async (): Promise<number> => {
       if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
       else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
       else await torrent[instruction.then]();
-    } else if (instruction.then === 'setMaxActiveDownloads') await api.setMaxActiveDownloads(instruction.arg)
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    else if (instruction.then === 'topPriority') await api.topPriority(instruction.arg)
+    } else await api[instruction.then](instruction.arg)
 
   return optimisedInstructions.length;
 }
