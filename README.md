@@ -79,7 +79,7 @@ To run via Docker, create a file called `docker-compose.yml` and paste the follo
 ```
 services:
   metadatarr:
-    image: ghcr.io/quixthe2nd/metadatarr:latest
+    image: ghcr.io/quixthe2nd/metadatarr
     container_name: metadatarr
     restart: unless-stopped
     ports:
