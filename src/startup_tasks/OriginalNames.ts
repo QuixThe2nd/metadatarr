@@ -36,7 +36,7 @@ export default class OriginalNames {
       if (res === false) continue;
       cache[file] = res;
       const currentPercent = Math.floor((i + 1) / totalFiles * 100);
-      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
+      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0 || (i + 1) % 500 === 0) {
         console.log(`Scan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
         lastLoggedPercent = currentPercent;
       }
