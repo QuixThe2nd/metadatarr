@@ -1,4 +1,5 @@
 {
+	"ENABLED": true,
 	/*
 	This path is used to look for torrent files to import into the BitTorrent client.
   This is primarily for users who use a separate program to download torrents and want Metadatarr to pick up the torrent files from there.

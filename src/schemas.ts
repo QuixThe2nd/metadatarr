@@ -89,6 +89,7 @@ export const QueueSchema = z.object({
 });
 
 export const MetadataSchema = z.object({
+  ENABLED: z.boolean(),
   TORRENT_PATH: z.string().min(1),
   sources: z.array(z.object({
     url: z.tuple([z.url(), z.union([z.string(), z.void()])])
