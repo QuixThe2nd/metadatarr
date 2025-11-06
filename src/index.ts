@@ -128,7 +128,7 @@ const reduceInstructions = async (instructions: Instruction[], torrents: Record<
     const torrent = torrents[instruction.hash]?.get();
     if (torrent === undefined) return false;
 
-    if (instruction.then === 'delete') return true;
+    if (instruction.then === 'delete' || instruction.then === 'recheck') return true;
     else if (instruction.then === 'addTags') {
       const addTags = (instruction.arg as string).split(',');
       return addTags.filter(tag => !torrent.tags.includes(tag)).length !== 0;
