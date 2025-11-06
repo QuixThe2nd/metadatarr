@@ -6,8 +6,8 @@ import Client from "./clients/client";
 import OriginalNames from "./startup_tasks/OriginalNames";
 import { importMetadataFiles } from "./startup_tasks/ImportMetadataFiles";
 import Naming from "./jobs/Naming";
-import { sort } from "./jobs/Sort";
-import { queue } from './jobs/Queue';
+import { Sort } from "./jobs/Sort";
+import { Queue } from './jobs/Queue';
 import hook from '../tools/inject';
 import type Torrent from './classes/Torrent';
 import { logContext } from './log';
@@ -15,6 +15,7 @@ import metadata from './jobs/Metadata';
 import Actions from './jobs/Actions';
 import { properties } from './classes/Torrent';
 import { argedActions, filteredActions } from './schemas';
+import type { Instruction } from './Types';
 // import { Stats } from './jobs/Stats';
 
 if (CONFIG.CORE().DRY_RUN) {
@@ -35,41 +36,41 @@ if (CONFIG.CORE().DRY_RUN) {
 
 const tasks = {
   Actions,
-  Sort: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => sort(torrents, api),
-  Queue: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => queue(torrents, api),
-  Naming: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => Naming.run(torrents, originalNames.names),
-  Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<{ changes: number }> => metadata(torrents, api, webtorrent),
+  Sort,
+  Queue,
+  Naming: (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => Naming.run(torrents, originalNames.names),
+  Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<[]> => metadata(torrents, api, webtorrent),
   // Stats,
-} satisfies Record<string, (t: ReturnType<typeof Torrent>[]) => Promise<{ changes: number; deletes?: string[] }>>;
+} satisfies Record<string, (t: ReturnType<typeof Torrent>[]) => Promise<Instruction[]> | Instruction[]>;
 
 let jobsRunning = false;
-export const runJobs = async (): Promise<number> => {
-  if (jobsRunning) return 0;
+export const runJobs = async (): Promise<Instruction[]> => {
+  if (jobsRunning) return [];
   jobsRunning = true;
   console.log('Jobs Started');
 
-  let torrents = await api.torrents();
+  const torrents = await api.torrents();
 
   if (inject !== false) return inject(torrents);
 
-  let changes = 0;
+  const instructions: Instruction[] = [];
   for (const [name, task] of Object.entries(tasks)) {
-    const taskChanges = await logContext(name, async () => {
+    const taskInstructions = await logContext(name, async () => {
       console.log('Job Started');
-      const taskResult = await task(torrents) as { changes: number; deletes?: string[] };
-      console.log('Job Finished - Changes:', taskResult.changes);
-      if (taskResult.deletes !== undefined) {
-        const deletesToRemove = taskResult.deletes;
-        torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
-      }
-      return taskResult.changes;
+      const taskInstructions = await task(torrents);
+      console.log('Job Finished - Instructions:', taskInstructions.length);
+      // if (taskResult.deletes !== undefined) {
+      //   const deletesToRemove = taskResult.deletes;
+      //   torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
+      // }
+      return taskInstructions;
     });
-    changes += taskChanges;
+    instructions.push(...taskInstructions);
   }
 
-  console.log('Jobs Finished - Changes:', changes);
+  console.log('Jobs Finished - Instructions:', instructions.length);
   jobsRunning = false;
-  return changes;
+  return instructions;
 }
 
 await testConfig();
@@ -83,6 +84,7 @@ if (inject !== false) await importMetadataFiles(webtorrent, api);
 await startServer(api);
 
 for (;;) {
-  const changes = await runJobs();
-  await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
+  const instructions = await runJobs();
+  // TODO: run instructions
+  await new Promise(res => setTimeout(res, CONFIG.CORE()[instructions.length === 0 ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
 }

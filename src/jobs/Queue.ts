@@ -1,6 +1,6 @@
 import type Torrent from "../classes/Torrent";
-import type Client from "../clients/client";
 import { CONFIG } from "../config";
+import type { Instruction } from "../Types";
 
 const GB = 1024*1024*1024;
 
@@ -9,9 +9,9 @@ const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<t
 
 const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
-export const queue = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<{ changes: number }> => {
+export const Queue = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
   const config = CONFIG.QUEUE();
-  if (!config.QUEUE_SIZE_LIMIT) return { changes: 0 };
+  if (!config.QUEUE_SIZE_LIMIT) return [];
 
   torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.get().category ?? ''));
 
@@ -26,14 +26,8 @@ export const queue = async (torrents: ReturnType<typeof Torrent>[], client: Clie
     queueSize++;
   }
 
-  const current = await client.getMaxActiveDownloads();
-  if (current === false) return { changes: 0 };
-
-  const target = Math.min(config.MAXIMUM_QUEUE_SIZE, Math.max(config.MINIMUM_QUEUE_SIZE, queueSize));
-  if (target !== current) {
-    console.log(`\x1b[32m[qBittorrent]\x1b[0m Setting maximum active downloads to ${target}`);
-    await client.setMaxActiveDownloads(target);
-    return { changes: 1 };
-  }
-  return { changes: 0 };
+  return [{
+    then: 'setMaxActiveDownloads',
+    arg: Math.min(config.MAXIMUM_QUEUE_SIZE, Math.max(config.MINIMUM_QUEUE_SIZE, queueSize))
+  }];
 }

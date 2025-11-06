@@ -5,17 +5,6 @@
 	*/
 	"ENABLED": true,
 
-	/* Time to wait before sorting each individual torrent
-	Setting too fast may cause race conditions in qBittorrent or even make it unresponsive or crash.
-	
-	If "do not count slow torrents" is enabled in qBittorrent, ensure the move delay is faster than the time it takes to process slow torrents.
-	For example, if you are processing 10 torrents at a time, and you've configured to ignore slow torrents after 60 seconds of inactivity, ensure the move delay is less than 6000ms (60 seconds / 10 torrents).
-	Failing to do so will result in qBittorrent downloading torrents in the wrong order.
-	
-	Set to 0 to disable delay - Will consume more CPU and may cause issues in qBittorrent.
-	*/
-	"MOVE_DELAY": 100,
-
 	/* Maximum number of torrents to move each cycle
 	Once this value is reached, the SORT job will be stopped, and resumed in the next cycle.
 	When managing a large number of torrents, this is particularly useful as it focuses on sorting the first X torrents, then moves onto the next X torrents in the next cycle.

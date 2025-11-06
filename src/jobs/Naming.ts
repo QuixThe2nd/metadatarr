@@ -6,6 +6,7 @@ import z from 'zod';
 import { version as pttVersion } from 'parse-torrent-title/package.json';
 import { stringKeys } from "../schemas";
 import { getEpisodeTitleFromName } from "../utils/TMDB";
+import type { Instruction } from "../Types";
 
 /* -------------------------------------------------
  BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
@@ -65,32 +66,32 @@ export default class Naming {
   }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras', 'retail'] as const;
 
-  static run = (torrents: ReturnType<typeof Torrent>[], originalNames: Record<string, string>): Promise<{ changes: number }> => new Naming(torrents.sort((a, b) => b.get().added_on - a.get().added_on), originalNames).renameAll();
+  static run = (torrents: ReturnType<typeof Torrent>[], originalNames: Record<string, string>): Promise<Instruction[]> => new Naming(torrents.sort((a, b) => b.get().added_on - a.get().added_on), originalNames).renameAll();
 
-  private async renameAll(): Promise<{ changes: number }> {
-    if (!this.config.ENABLED) return { changes: 0 };
-    let changes = 0;
-    for (const torrent of this.torrents) changes += await this.renameTorrent(torrent, this.originalNames[torrent.get().hash]);
+  private async renameAll(): Promise<Instruction[]> {
+    if (!this.config.ENABLED) return [];
+    const instructions: Instruction[] = [];
+    for (const torrent of this.torrents) instructions.push(...await this.renameTorrent(torrent));
     fs.writeFileSync('./store/naming_cache.json', JSON.stringify(this.cache));
-    return { changes };
+    return instructions;
   }
 
-  private handleMissingName(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Promise<number> | number {
-    if (origName !== undefined) return torrent.removeTags('!missingOriginalName');
-    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return torrent.addTags('!missingOriginalName');
-    return 0;
+  private handleMissingName(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Instruction[] {
+    if (origName !== undefined) return [{ then: 'removeTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return [{ then: 'addTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
+    return [];
   }
 
-  private async updateParsingTags(torrent: ReturnType<typeof Torrent>, hasParsingErrors: boolean): Promise<number> {
-    let changes = 0;
+  private updateParsingTags(torrent: ReturnType<typeof Torrent>, hasParsingErrors: boolean): Instruction[] {
+    const instructions: Instruction[] = [];
     if (hasParsingErrors) {
-      if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFailed");
-      if (this.config.TAG_SUCCESSFUL_PARSING) changes += await torrent.removeTags('!renamed');
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: '!renameFailed', hash: torrent.get().hash });
+      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'removeTags', arg: '!renamed', hash: torrent.get().hash });
     } else {
-      if (this.config.TAG_FAILED_PARSING) changes += await torrent.removeTags("!renameFailed");
-      if (this.config.TAG_SUCCESSFUL_PARSING) changes += await torrent.addTags('!renamed');
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'removeTags', arg: '!renameFailed', hash: torrent.get().hash });
+      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'addTags', arg: '!renamed', hash: torrent.get().hash });
     }
-    return changes;
+    return [];
   }
 
   private parseName = async (name: string): Promise<{ name: string, other: string }> => {
@@ -100,50 +101,50 @@ export default class Naming {
     return results;
   }
 
-  private async renameTorrent(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Promise<number> {
-    if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return 0;
-    let changes = await this.handleMissingName(torrent, origName)
+  private async renameTorrent(torrent: ReturnType<typeof Torrent>): Promise<Instruction[]> {
+    const origName = this.originalNames[torrent.get().hash];
+    if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return [];
+    const instructions: Instruction[] = this.handleMissingName(torrent, origName)
 
     const { name, other } = await this.parseName(origName ?? torrent.get().name);
-    changes += await this.updateParsingTags(torrent, other.length > 0);
+    instructions.push(...this.updateParsingTags(torrent, other.length > 0));
 
     if (other.length > 0) {
-      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.get().name) changes += await torrent.rename(origName);
-      if (this.config.SKIP_IF_UNKNOWN) return changes;
+      if (this.config.RESET_ON_FAIL && origName !== undefined && origName !== torrent.get().name) instructions.push({ then: 'rename', arg: origName, hash: torrent.get().hash });
+      if (this.config.SKIP_IF_UNKNOWN) return instructions;
     }
 
-    const torrentChanges = await torrent.rename(name);
-    changes += torrentChanges;
-    if (torrentChanges > 0) changes += await this.renameFiles(torrent, name);
+    instructions.push({ then: 'rename', arg: name, hash: torrent.get().hash });
+    instructions.push(...await this.renameFiles(torrent, name));
 
-    return changes;
+    return instructions;
   }
 
-  async renameAllFiles(torrent: ReturnType<typeof Torrent>, files: { name: string }[], oldName: string, name: string): Promise<number> {
-    let changes = 0;
+  renameAllFiles(torrent: ReturnType<typeof Torrent>, files: { name: string }[], oldName: string, name: string): Instruction[] {
+    const instructions: Instruction[] = []
     for (const file of files) {
       const oldFileName = file.name;
       const newFileName = oldFileName.replaceAll(oldName, name);
-      if (oldFileName !== newFileName && await torrent.renameFile(oldFileName, newFileName) !== false) changes++;
+      if (oldFileName !== newFileName) instructions.push({ then: 'renameFile', arg: [oldFileName, newFileName], hash: torrent.get().hash })
     }
-    return changes;
+    return instructions;
   }
 
-  async renameFiles(torrent: ReturnType<typeof Torrent>, torrentName: string): Promise<number> {
-    if (!this.config.RENAME_FILES) return 0;
+  async renameFiles(torrent: ReturnType<typeof Torrent>, torrentName: string): Promise<Instruction[]> {
+    if (!this.config.RENAME_FILES) return [];
     const files = await torrent.files() ?? [];
 
     const oldFolder = files[0]?.name.split('/')[0];
-    if (oldFolder === undefined) return 0;
+    if (oldFolder === undefined) return [];
     const { name, other } = this.config.FORCE_SAME_DIRECTORY_NAME ? { name: torrentName, other: "" } : await this.cleanName(oldFolder);
 
-    let changes = 0;
+    const instructions: Instruction[] = [];
     if (other.length > 0) {
-      if (this.config.TAG_FAILED_PARSING) changes += await torrent.addTags("!renameFolderFailed");
-      if (this.config.SKIP_IF_UNKNOWN) return changes;
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: '!renameFolderFailed', hash: torrent.get().hash });
+      if (this.config.SKIP_IF_UNKNOWN) return instructions;
     }
 
-    return changes + await this.renameAllFiles(torrent, files, oldFolder, name);
+    return [...instructions, ...this.renameAllFiles(torrent, files, oldFolder, name)];
   }
 
   parse(name: string): { name: string, info: ParseTorrentTitle.DefaultParserResult } {
