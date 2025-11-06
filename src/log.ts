@@ -10,7 +10,7 @@ const logPath = path.join(logDir, '/metadatarr.log')
 const maxSize = 10 * 1024 * 1024;
 
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath  }.bak`);
+if (fs.existsSync(logPath) && fs.statSync(logPath).size > maxSize) fs.renameSync(logPath, `${logPath}.bak`);
 
 const logFile = fs.createWriteStream(logPath, { flags: 'a' });
 

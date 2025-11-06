@@ -132,6 +132,7 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 - Time based queries - To allow this action: Delete !noHL if lastActivity > 7d ago && seeders < 5
 - Priority tags
 - Or / || statements
+- Variable support
 
 #### Other:
 - Deluge/Transmission/RTorrent support
