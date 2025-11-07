@@ -49,8 +49,6 @@ for (const pluginName of fs.readdirSync(pluginDir)) {
   plugins[pluginName.replace(/\.[tj]s/i, '')] = importedPlugin;
 }
 
-// Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<[]> => metadata(torrents, api, webtorrent),
-
 // eslint-disable-next-line max-lines-per-function, complexity
 const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
   const deletes = new Set<string>();
@@ -95,6 +93,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     delete addTags[hash];
     delete removeTags[hash];
     delete rename[hash];
+    sequentialDownload.delete(hash);
     starts.delete(hash);
     stops.delete(hash);
     rechecks.delete(hash);
@@ -155,19 +154,13 @@ export const runPlugins = async (): Promise<number> => {
 
   if (CONFIG.CORE().DEV_INJECT) instructions.push(...await hook(torrents, api));
   else
-    for (const [name, plugin] of Object.entries(plugins)) {
-      const pluginInstructions = await logContext(name, async () => {
+    for (const [name, plugin] of Object.entries(plugins))
+      instructions.push(...await logContext(name, async () => {
         console.log('Plugin Started');
         const pluginInstructions = await plugin(torrents, api);
         console.log('Plugin Finished - Instructions:', pluginInstructions.length);
-        // if (pluginResult.deletes !== undefined) {
-        //   const deletesToRemove = pluginResult.deletes;
-        //   torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
-        // }
         return pluginInstructions;
-      });
-      instructions.push(...pluginInstructions);
-    }
+      }));
 
   console.log('Plugins Finished - Instructions:', instructions.length);
   pluginsRunning = false;
