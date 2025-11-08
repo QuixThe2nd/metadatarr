@@ -169,11 +169,12 @@ export const runPlugins = async (): Promise<number> => {
   pluginsRunning = true;
   console.log('Plugins Started');
 
+  const coreConfig = CONFIG.CORE();
+
   const torrents = await client.torrents();
 
   const instructions: Instruction[] = [];
-
-  if (CONFIG.CORE().DEV_INJECT) instructions.push(...await hook(torrents, client));
+  if (coreConfig.DEV_INJECT) instructions.push(...await hook(torrents, client));
   else
     for (const [name, { plugin, ConfigSchema }] of Object.entries(plugins))
       instructions.push(...await logContext(name, async () => {
@@ -191,13 +192,15 @@ export const runPlugins = async (): Promise<number> => {
   const optimisedInstructions = await reduceInstructions(optimiseInstructions(instructions), mappedTorrents);
   console.log('Reduced instructions to:', optimisedInstructions.length);
 
-  for (const instruction of optimisedInstructions)
+  for (const instruction of optimisedInstructions) {
     if ('hash' in instruction) {
       const torrent = mappedTorrents[instruction.hash]!;
       if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
       else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
       else await torrent[instruction.then]();
-    } else await client[instruction.then](instruction.arg)
+    } else await client[instruction.then](instruction.arg);
+    await new Promise(res => setTimeout(res, coreConfig.INSTRUCTION_WAIT));
+  }
 
   return optimisedInstructions.length;
 }
