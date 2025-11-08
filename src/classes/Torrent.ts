@@ -1,9 +1,6 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable max-lines-per-function, @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 import z from "zod";
 import { logContext } from "../log";
-import { CONFIG } from "../config";
 import type Client from "../clients/client";
 
 export const properties = {
@@ -90,11 +87,7 @@ const Torrent = (client: Client, data: TorrentType) => {
       data.name = name;
       return await request('rename', { name }) === false ? 0 : 1;
     },
-    renameFile: async (oldPath: string, newPath: string): Promise<number> => {
-      const result = await request('renameFile', { oldPath, newPath });
-      if (CONFIG.NAMING().RECHECK_ON_RENAME && result !== false) await recheck();
-      return result === false ? 0 : 1;
-    },
+    renameFile: async (oldPath: string, newPath: string): Promise<number> => await request('renameFile', { oldPath, newPath }) === false ? 0 : 1,
     toggleSequentialDownload: async (): Promise<number> => {
       data.seq_dl = !data.seq_dl;
       return await request('toggleSequentialDownload') === false ? 0 : 1;

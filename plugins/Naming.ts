@@ -1,12 +1,205 @@
 import type Torrent from "../src/classes/Torrent";
 import ptt from "parse-torrent-title";
-import { CONFIG } from "../src/config";
 import fs from 'fs';
 import z from 'zod';
 import { version as pttVersion } from 'parse-torrent-title/package.json';
-import { stringKeys, type Instruction } from "../src/schemas";
-import { getEpisodeTitleFromName } from "../src/utils/TMDB";
-import OriginalNames from "../src/startup_tasks/OriginalNames";
+import type { Instruction } from "../src/schemas";
+import path from "path";
+import parseTorrent from 'parse-torrent';
+import type { PluginInputs } from "../src";
+import { fileURLToPath } from 'url';
+
+const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
+
+export const ConfigSchema = z.object({
+  ENABLED: z.boolean().default(true),
+  SCHEME: z.string().default("[title] ([year]) [season][episode] [episode_title] - [extras] [retail] [criterion] [unrated] [extended] [uncut] [theatrical] [remastered] - [internal] [hybrid] [proper] [repack] - [[resolution] [downscaled] [source] [service] [remux] [color] [codec]] [[samplerate] [bitdepth] [audio] [channels] [language]] - [encoder] [group]"),
+  REPLACE: z.record(z.string(), z.string()).default({
+		"rerip": "repack",
+		"Remaster(?:ed)?": "remastered",
+		"Theatrical(?:[. ]Cut)": "theatrical",
+		"open(?:[\\s.]matte)?": "openmatte",
+		"extended(?:[\\s.](?:cut|edition|version))?": "extended"
+	}),
+  REDUNDANT_FLAGS: z.record(z.enum(stringKeys), z.array(z.object({
+    match: z.array(z.union([z.string(), z.number()])),
+    keep: z.union([z.string(), z.number()])
+  })).optional()).default({
+		"codec": [
+			{
+				"match": ["h264", "x264"],
+				"keep": "x264"
+			},
+			{
+				"match": ["h265", "x265"],
+				"keep": "x265"
+			}
+		],
+		"audio": [
+			{
+				"match": ["ddp", "dd"],
+				"keep": "ddp"
+			}
+		],
+		"color": [
+			{
+				"match": ["DV", "HDR"],
+				"keep": "DV"
+			},
+			{
+				"match": ["DV", "HDR10+"],
+				"keep": "DV"
+			}
+		],
+    title: undefined,
+    resolution: undefined,
+    source: undefined,
+    encoder: undefined,
+    group: undefined,
+    container: undefined,
+    language: undefined,
+    service: undefined,
+    samplerate: undefined,
+    bitdepth: undefined,
+    channels: undefined,
+    season: undefined,
+    episode: undefined,
+    year: undefined,
+    downscaled: undefined
+	}),
+  FIX_BAD_GROUPS: z.array(z.string()).default(["Vyndros", "t3nzin", "SiMPLE", "Silence", "RZeroX", "BluEvo", "Will1869", "DarQ HONE", "COLLECTiVE"]),
+  TAG_FAILED_PARSING: z.boolean().default(true),
+  TAG_SUCCESSFUL_PARSING: z.boolean().default(false),
+  RENAME_FILES: z.boolean().default(true),
+  SKIP_IF_UNKNOWN: z.boolean().default(true),
+  REMOVE_DOMAINS: z.boolean().default(true),
+  NO_YEAR_IN_SEASONS: z.boolean().default(true),
+  REMOVE_TLDS: z.array(z.string()).default([]),
+  FORCE_SAME_DIRECTORY_NAME: z.boolean().default(true),
+  SPACING: z.string().length(1).default(' '),
+  TORRENTS_DIR: z.string().default("/torrents"),
+  FORCE_TITLE_CASE: z.boolean().default(true),
+  FORCE_ORIGINAL_NAME: z.boolean().default(true),
+  TAG_MISSING_ORIGINAL_NAME: z.boolean().default(true),
+  RESET_ON_FAIL: z.boolean().default(true),
+  TMDB_API_KEY: z.string().default("")
+});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const cacheDir = path.join(__dirname, '../../store/cache/');
+if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true })
+
+const showCachePath = path.join(cacheDir, 'shows.json');
+const episodeCachePath = path.join(cacheDir, 'episodes.json');
+
+const ShowSchema = z.object({
+  results: z.array(z.object({
+    id: z.number()
+  }))
+});
+
+const EpisodeSchema = z.object({
+  name: z.string().optional()
+});
+
+const ShowCacheSchema = z.record(z.string(), z.number().optional());
+if (!fs.existsSync(showCachePath)) fs.writeFileSync(showCachePath, '{}');
+const showCache = ShowCacheSchema.parse(JSON.parse(fs.readFileSync(showCachePath).toString()));
+
+const EpisodeCacheSchema = z.record(z.string(), z.string().optional());
+if (!fs.existsSync(episodeCachePath)) fs.writeFileSync(episodeCachePath, '{}');
+const episodeCache = EpisodeCacheSchema.parse(JSON.parse(fs.readFileSync(episodeCachePath).toString()));
+
+const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): Promise<number | undefined> => {
+  if (title in showCache) return showCache[title];
+  if (config.TMDB_API_KEY.length === 0) return undefined;
+
+  console.log(`[TMDB] Show: ${title}`);
+  const res = await fetch(`https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&query=${title}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
+  const id = ShowSchema.parse(await res.json()).results[0]?.id;
+
+  showCache[title] = id;
+  fs.writeFileSync(showCachePath, JSON.stringify(showCache));
+  return id;
+}
+
+const getEpisodeTitle = async (id: number, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
+  const cacheKey = `${id}S${season}E${episode}`;
+  if (cacheKey in episodeCache) return episodeCache[cacheKey];
+  if (config.TMDB_API_KEY.length === 0) return undefined;
+
+  console.log(`[TMDB] Episode: ${id} S${season}E${episode}`)
+  const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}/episode/${episode}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
+  const name = EpisodeSchema.parse(await res.json()).name;
+
+  episodeCache[cacheKey] = name;
+  fs.writeFileSync(episodeCachePath, JSON.stringify(episodeCache));
+  return name;
+}
+
+export const getEpisodeTitleFromName = async (title: string, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
+  const id = await getShowID(title, config);
+  if (id === undefined) return undefined;
+  return getEpisodeTitle(id, season, episode, config);
+}
+
+class OriginalNames {
+  public readonly names: Record<string, string> = {};
+
+  constructor(private readonly dir: string) {
+    const cache = fs.existsSync('./store/original_names.json') ? JSON.parse(fs.readFileSync('./store/original_names.json').toString()) as Record<string, { hash: string; name: string }> : {};
+    for (const {hash, name} of Object.values(cache)) this.names[hash] = name;
+
+    if (!dir.length) return;
+    this.scanDirectory(cache).catch(console.error)
+    fs.watch(dir, (_, filename) => {
+      if (filename !== null) this.saveName(dir, filename).catch(console.error);
+    });
+  }
+
+  private async scanDirectory(cache: Record<string, { hash: string; name: string }>): Promise<void>{
+    console.log('Scanning torrent name directory');
+    const files = fs.readdirSync(this.dir)
+    const totalFiles = files.length;
+    let lastLoggedPercent = 0;
+
+    console.log(`Scan: 0% complete (0 of ${totalFiles})`);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file === undefined || cache[file]) continue;
+      const res = await this.saveName(this.dir, file);
+      if (res === false) continue;
+      cache[file] = res;
+      const currentPercent = Math.floor((i + 1) / totalFiles * 100);
+      if (currentPercent > lastLoggedPercent && currentPercent % 5 === 0) {
+        console.log(`Scan: ${currentPercent}% complete (${i + 1} of ${totalFiles})`);
+        lastLoggedPercent = currentPercent;
+      }
+    }
+    fs.writeFileSync('./store/original_names.json', JSON.stringify(cache));
+    console.log(`Scan: 100% complete (${totalFiles} of ${totalFiles})`);
+    console.log('Scanned torrent name directory');
+  }
+
+  private async saveName(dir: string, file: string): Promise<false | { name: string; hash: string }> {
+    if (!file.endsWith('.torrent')) return false;
+    const filePath = path.join(dir, file);
+    const torrent = fs.readFileSync(filePath);
+    if (torrent.length === 0) return false;
+    try {
+      // eslint-disable-next-line
+      const metadata = await parseTorrent(torrent);
+      if (metadata.infoHash === undefined) return false;
+      this.names[metadata.infoHash] = metadata.name as string;
+      return { name: metadata.name as string, hash: metadata.infoHash }
+    } catch (e) {
+      console.error(e, torrent.toString().slice(0, 100))
+      return false;
+    }
+  }
+}
 
 /* -------------------------------------------------
  BUMP THIS WHEN PARSER LOGIC CHANGES TO RESET CACHE
@@ -47,28 +240,29 @@ function cleanString(str: string): string {
 const CacheSchema = z.object({
   parserVersion: z.number(),
   pttVersion: z.string(),
-  namingSchema: z.string(),
+  namingSchema: z.string().optional(),
   names: z.record(z.string(), z.object({
     name: z.string(),
     other: z.string()
   }))
 });
 
-const originalNames = new OriginalNames();
+let originalNames: OriginalNames | undefined;
 
 class NamingClass {
-  private readonly config = CONFIG.NAMING();
-  private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, parserVersion: PARSER_VERSION, namingSchema: this.config.SCHEME, names: {} };
+  private readonly cache: z.infer<typeof CacheSchema> = { pttVersion, parserVersion: PARSER_VERSION, names: {} };
 
-  constructor(private readonly torrents: ReturnType<typeof Torrent>[]){
+  constructor(private readonly torrents: ReturnType<typeof Torrent>[], private readonly config: z.infer<typeof ConfigSchema>){
+    this.cache.namingSchema = config.SCHEME;
     if (fs.existsSync('./store/naming_cache.json')) {
       const cache = CacheSchema.parse(JSON.parse(fs.readFileSync('./store/naming_cache.json').toString()));
       if (cache.pttVersion === pttVersion && cache.parserVersion === PARSER_VERSION && cache.namingSchema === this.config.SCHEME) this.cache = cache;
     }
+    originalNames ??= new OriginalNames(config.TORRENTS_DIR);
   }
   private booleanKeys = ['remux', 'extended', 'remastered', 'proper', 'repack', 'openmatte', 'unrated', 'internal', 'hybrid', 'theatrical', 'uncut', 'criterion', 'extras', 'retail'] as const;
 
-  static run = (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => new NamingClass(torrents.sort((a, b) => b.get().added_on - a.get().added_on)).renameAll();
+  static run = (torrents: ReturnType<typeof Torrent>[], config: z.infer<typeof ConfigSchema>): Promise<Instruction[]> => new NamingClass(torrents.sort((a, b) => b.get().added_on - a.get().added_on), config).renameAll();
 
   private async renameAll(): Promise<Instruction[]> {
     if (!this.config.ENABLED) return [];
@@ -104,7 +298,7 @@ class NamingClass {
   }
 
   private async renameTorrent(torrent: ReturnType<typeof Torrent>): Promise<Instruction[]> {
-    const origName = originalNames.names[torrent.get().hash];
+    const origName = originalNames?.names[torrent.get().hash];
     if (this.config.FORCE_ORIGINAL_NAME && origName === undefined) return [];
     const instructions: Instruction[] = this.handleMissingName(torrent, origName)
 
@@ -212,7 +406,7 @@ class NamingClass {
     name = cleanString(name.replace('[other]', other)).trim();
     
     if (season !== undefined && episode !== undefined) {
-      const episodeTitle = await getEpisodeTitleFromName(title, season, episode);
+      const episodeTitle = await getEpisodeTitleFromName(title, season, episode, this.config);
       if (episodeTitle !== undefined && other.includes(episodeTitle)) {
         name = name.replace('[episode_title]', episodeTitle);
         other = other.replace(episodeTitle, '');
@@ -365,10 +559,10 @@ class NamingClass {
   }
 }
 
-export const test = async (name: string): Promise<{ name: string; other: string, info: ParseTorrentTitle.DefaultParserResult }> => {
-  const naming = new NamingClass([]);
+export const test = async (name: string, config: z.infer<typeof ConfigSchema>): Promise<{ name: string; other: string, info: ParseTorrentTitle.DefaultParserResult }> => {
+  const naming = new NamingClass([], config);
   return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
 }
 
-const Naming = (torrents: ReturnType<typeof Torrent>[]): Promise<Instruction[]> => NamingClass.run(torrents)
+const Naming = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => NamingClass.run(torrents, config);
 export default Naming;

@@ -1,6 +1,17 @@
+import z from 'zod';
 import type Torrent from "../src/classes/Torrent";
-import { CONFIG } from "../src/config";
 import type { Instruction } from "../src/schemas";
+import type { PluginInputs } from '../src';
+
+export const ConfigSchema = z.object({
+  QUEUE_SIZE_LIMIT: z.number().default(128),
+  HARD_QUEUE_SIZE_LIMIT: z.boolean().default(true),
+  INCLUDE_MOVING_TORRENTS: z.boolean().default(true),
+  EXCLUDE_CATEGORIES: z.array(z.string()).default(["cross-seed-links"]),
+  MINIMUM_QUEUE_SIZE: z.number().default(2),
+  MAXIMUM_QUEUE_SIZE: z.number().default(20)
+});
+type Config = z.infer<typeof ConfigSchema>;
 
 const GB = 1024*1024*1024;
 
@@ -9,8 +20,7 @@ const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<t
 
 const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
-const Queue = (torrents: ReturnType<typeof Torrent>[]): Instruction[] => {
-  const config = CONFIG.QUEUE();
+const Queue = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
   if (!config.QUEUE_SIZE_LIMIT) return [];
 
   torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.get().category ?? ''));

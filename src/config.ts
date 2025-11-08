@@ -12,14 +12,12 @@ const configDir = path.join(__dirname, '../store/config/');
 
 if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true })
 
-function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, schema: T): z.infer<T> {
-  const strict = schema instanceof z.ZodObject ? schema.strict() : schema;
+export function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, schema: T): z.infer<T> {
   const partial = schema instanceof z.ZodObject ? schema.partial() : schema;
 
   const configPath = path.join(configDir, `/${filePath}`);
 
-  const rawDefaultConfig = fs.readFileSync(path.join(__dirname, `../config_template/${filePath}`), 'utf8');
-  const defaultConfig = strict.parse(JSONC.parse(rawDefaultConfig)) as z.infer<T>;
+  const defaultConfig = schema.parse({}) as z.infer<T>;
   const config = (fs.existsSync(configPath) ? partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8'))) : {}) as Partial<z.infer<T>>;
   for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
@@ -29,13 +27,7 @@ function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: string, 
 
 export const CONFIG = {
   CLIENT: (): z.infer<typeof schemas.ClientSchema> => parseConfigFile('.client.jsonc', schemas.ClientSchema),
-  METADATA: (): z.infer<typeof schemas.MetadataSchema> => parseConfigFile('metadata.jsonc', schemas.MetadataSchema),
-  SORT: (): z.infer<typeof schemas.SortConfigSchema> => parseConfigFile('sort.jsonc', schemas.SortConfigSchema),
-  NAMING: (): z.infer<typeof schemas.NamingConfigSchema> => parseConfigFile('naming.jsonc', schemas.NamingConfigSchema),
-  QUEUE: (): z.infer<typeof schemas.QueueSchema> => parseConfigFile('queue.jsonc', schemas.QueueSchema),
   CORE: (): z.infer<typeof schemas.CoreSchema> => parseConfigFile('core.jsonc', schemas.CoreSchema),
-  ACTIONS: (): z.infer<typeof schemas.ActionsSchema> => parseConfigFile('actions.jsonc', schemas.ActionsSchema),
-  UNCROSS_SEED: (): z.infer<typeof schemas.UncrossSeedSchema> => parseConfigFile('uncross-seed.jsonc', schemas.UncrossSeedSchema)
 };
 
 const yellow = (text: string): string => `\x1b[33m${text}\x1b[0m`;

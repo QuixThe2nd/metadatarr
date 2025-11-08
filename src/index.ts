@@ -1,6 +1,6 @@
 import './log';
-import { CONFIG, testConfig } from './config';
-import { startServer } from './classes/server';
+import { CONFIG, parseConfigFile, testConfig } from './config';
+import { startServer, type PluginEndpoint } from './classes/server';
 import Client from "./clients/client";
 import hook from '../tools/inject';
 import type Torrent from './classes/Torrent';
@@ -32,24 +32,43 @@ const CorePluginSchema = z.array(z.object({
   get: z.function()
 }));
 const PluginSchema = z.function({
-  input: [CorePluginSchema, z.object().loose()],
+  input: [z.object({ torrents: CorePluginSchema, client: z.object().loose(), config: z.object().loose() })],
   output: z.array(InstructionSchema)
+});
+const PluginEndpointSchema = z.function({
+  input: [z.object().loose(), z.object().loose()],
+  output: z.function()
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const pluginDir = path.join(__dirname, '../plugins/');
-
-const plugins: Record<string, (t: ReturnType<typeof Torrent>[], client: Client) => Promise<Instruction[]> | Instruction[]> = {};
-for (const pluginName of fs.readdirSync(pluginDir)) {
-  if (pluginName.startsWith('_')) continue;
-  const { default: plugin } = await import(path.join(pluginDir, pluginName));
-  const importedPlugin = PluginSchema.implementAsync(plugin);
-  plugins[pluginName.replace(/\.[tj]s/i, '')] = importedPlugin;
+// TODO: move old config comments to zod .describe()
+export interface PluginInputs<Config extends Record<string, unknown> = Record<string, unknown>> {
+  torrents: ReturnType<typeof Torrent>[];
+  client: Client;
+  config: Config;
 }
 
-// Metadata: (torrents: ReturnType<typeof Torrent>[]): Promise<[]> => metadata(torrents, api, webtorrent),
+type Plugin = (pluginInputs: PluginInputs) => Promise<Instruction[]> | Instruction[];
+const plugins: Record<string, { plugin: Plugin, ConfigSchema: z.ZodObject }> = {};
+const endpoints: PluginEndpoint = {};
+console.log('Importing Plugins');
+for (const file of fs.readdirSync(pluginDir)) {
+  if (file.startsWith('_')) continue;
+  const name = file.replace(/\.[tj]s/i, '');
+  console.log('Importing Plugin:', name);
+
+  const pluginExports = await import(path.join(pluginDir, file)) as unknown;
+  const { default: plugin, ConfigSchema, endpoint } = pluginExports;
+  if (endpoint !== undefined) endpoints[name] = PluginEndpointSchema.implementAsync(endpoint);
+  if (plugin !== undefined) {
+    const importedPlugin = PluginSchema.implementAsync(plugin);
+    plugins[name] = { plugin: importedPlugin, ConfigSchema };
+  }
+}
+console.log()
 
 // eslint-disable-next-line max-lines-per-function, complexity
 const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
@@ -95,6 +114,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
     delete addTags[hash];
     delete removeTags[hash];
     delete rename[hash];
+    sequentialDownload.delete(hash);
     starts.delete(hash);
     stops.delete(hash);
     rechecks.delete(hash);
@@ -118,7 +138,7 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
 }
 
 const reduceInstructions = async (instructions: Instruction[], torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => {
-  const maxActiveDownloads = instructions.some(instruction => instruction.then === 'setMaxActiveDownloads') ? await api.getMaxActiveDownloads() : false;
+  const maxActiveDownloads = instructions.some(instruction => instruction.then === 'setMaxActiveDownloads') ? await client.getMaxActiveDownloads() : false;
 
   // eslint-disable-next-line complexity
   return instructions.filter(instruction => {
@@ -149,25 +169,20 @@ export const runPlugins = async (): Promise<number> => {
   pluginsRunning = true;
   console.log('Plugins Started');
 
-  const torrents = await api.torrents();
+  const torrents = await client.torrents();
 
   const instructions: Instruction[] = [];
 
-  if (CONFIG.CORE().DEV_INJECT) instructions.push(...await hook(torrents, api));
+  if (CONFIG.CORE().DEV_INJECT) instructions.push(...await hook(torrents, client));
   else
-    for (const [name, plugin] of Object.entries(plugins)) {
-      const pluginInstructions = await logContext(name, async () => {
+    for (const [name, { plugin, ConfigSchema }] of Object.entries(plugins))
+      instructions.push(...await logContext(name, async () => {
         console.log('Plugin Started');
-        const pluginInstructions = await plugin(torrents, api);
+        const config: z.infer<typeof ConfigSchema> = parseConfigFile(`plugins/${name}.jsonc`, ConfigSchema);
+        const pluginInstructions = await plugin({ torrents, client, config });
         console.log('Plugin Finished - Instructions:', pluginInstructions.length);
-        // if (pluginResult.deletes !== undefined) {
-        //   const deletesToRemove = pluginResult.deletes;
-        //   torrents = torrents.filter(t => !deletesToRemove.includes(t.get().hash));
-        // }
         return pluginInstructions;
-      });
-      instructions.push(...pluginInstructions);
-    }
+      }));
 
   console.log('Plugins Finished - Instructions:', instructions.length);
   pluginsRunning = false;
@@ -182,16 +197,16 @@ export const runPlugins = async (): Promise<number> => {
       if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
       else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
       else await torrent[instruction.then]();
-    } else await api[instruction.then](instruction.arg)
+    } else await client[instruction.then](instruction.arg)
 
   return optimisedInstructions.length;
 }
 
 await testConfig();
 
-const api = await Client.connect();
+const client = await Client.connect();
 
-await startServer(api);
+await startServer(endpoints);
 
 for (;;) {
   const changes = await runPlugins();
