@@ -18,6 +18,7 @@ export const TorrentInstructionSchema = z.union([
 
 export const CoreSchema = z.object({
   INSTRUCTION_WAIT: z.number().min(0).default(10),
+  MOVE_WAIT: z.number().min(0).default(100),
   JOB_WAIT: z.number().default(5000),
   NO_JOB_WAIT: z.number().default(300000),
   DEV_INJECT: z.boolean().default(false),

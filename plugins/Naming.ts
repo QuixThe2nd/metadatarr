@@ -153,6 +153,10 @@ class OriginalNames {
     for (const {hash, name} of Object.values(cache)) this.names[hash] = name;
 
     if (!dir.length) return;
+    if (!fs.existsSync(dir)) {
+      console.error('Missing torrents dir')
+      return;
+    }
     this.scanDirectory(cache).catch(console.error)
     fs.watch(dir, (_, filename) => {
       if (filename !== null) this.saveName(dir, filename).catch(console.error);
