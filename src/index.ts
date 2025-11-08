@@ -199,7 +199,7 @@ export const runPlugins = async (): Promise<number> => {
       else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
       else await torrent[instruction.then]();
     } else await client[instruction.then](instruction.arg);
-    await new Promise(res => setTimeout(res, coreConfig.INSTRUCTION_WAIT));
+    await new Promise(res => setTimeout(res, instruction.then === 'topPriority' ? coreConfig.MOVE_WAIT : coreConfig.INSTRUCTION_WAIT));
   }
 
   return optimisedInstructions.length;
