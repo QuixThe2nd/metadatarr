@@ -18,6 +18,10 @@ export function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: s
   const configPath = path.join(configDir, `/${filePath}`);
 
   const defaultConfig = schema.parse({}) as z.infer<T>;
+  if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(path.dirname(filePath))) fs.mkdirSync(filePath, { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(defaultConfig)); // TODO: Add zod's .describe as comments
+  }
   const config = (fs.existsSync(configPath) ? partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8'))) : {}) as Partial<z.infer<T>>;
   for (const key in config) 
     if (config[key] !== undefined) defaultConfig[key] = config[key];
