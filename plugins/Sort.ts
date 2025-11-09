@@ -1,5 +1,5 @@
 import type Torrent from "../src/classes/Torrent";
-import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
+import { QuerySchema, queryEngine } from "../src/classes/QueryEngine";
 import type { Instruction } from "../src/schemas";
 import z from "zod";
 import type { HookInputs } from "../src/plugins";
@@ -86,7 +86,7 @@ const getInitialTorrents = (torrents: ReturnType<typeof Torrent>[]): ReturnType<
   .sort((a, b) => a.get().hash.localeCompare(b.get().hash));
 
 const getCurrentPositions = (torrents: ReturnType<typeof Torrent>[]): string[] => [...torrents].sort((a, b) => a.get().priority - b.get().priority).map(t => t.get().hash);
-const getDesiredPositions = (torrents: ReturnType<typeof Torrent>[], methods: z.infer<typeof ConfigSchema>['METHODS']): string[] => methods.reduce((torrents, sort) => selectorEngine.execute(torrents, sort, false), torrents).map(t => t.get().hash);
+const getDesiredPositions = (torrents: ReturnType<typeof Torrent>[], methods: z.infer<typeof ConfigSchema>['METHODS']): string[] => methods.reduce((torrents, sort) => queryEngine.execute(torrents, sort, false), torrents).map(t => t.get().hash);
 
 const limitReached = (config: z.infer<typeof ConfigSchema>, moves: number, calls: number): boolean => (
   (config.MAX_API_CALLS_PER_CYCLE !== 0 && calls >= config.MAX_API_CALLS_PER_CYCLE) ||

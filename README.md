@@ -19,8 +19,8 @@ It's the automation layer that:
 - Decides how many torrents to download at once
 - Standardises naming across your entire collection
 - Automatically fetches metadata for magnet links
-- Integrated with [Cross-Seed](https://cross-seed.org) for tracker upgrades
-- And much more (see `./config_template/*.jsonc` for exhaustive list)
+- Integrates with [Cross-Seed](https://cross-seed.org) for tracker upgrades
+- And much more
 
 Built for users with hundreds or thousands of torrents who need enterprise-level queue management.
 
@@ -29,23 +29,23 @@ Built for users with hundreds or thousands of torrents who need enterprise-level
 Arguably the most powerful feature Metadatarr provides is actions. Actions are highly customisable and allow you to define custom automation rules in JSON.
 - **Highly Customisable**: Actions are super customisable, so much so that it's a pseudo-DSL, with JSON syntax
 - **Custom Trigger**: Configure custom triggers based on any variable (e.g. if progress < 10% && state == stopped)
-- **Custom Actions**: Stop, Start, add/remove tags, change category, etc
+- **Custom Actions**: Stop, Start, add/remove tags, change category, etc.
 
 ### Queue Management
 Intelligent queue management with custom flags like "Prefer S01 episodes", "Prefer private torrents", or "Finish torrents closest to completion".
 - **Highly Configurable**: Sort based on custom rules you define
 - **Advanced Sorting**: Multi-criteria sorting with tie-breaker logic
-- **Conditional Sorting**: Define separate rules based on variables (e.g. sort checking by progress, downloads by size)
+- **Conditional Sorting**: Define separate rules based on variables (e.g. sort checking by progress and downloads by size)
 - **Download Limits**: Configure rules for how many torrents can download at a time based on size
 
 ### Renaming Rules
 Configure automatic renaming based on custom schemas, making all your torrents in qBittorrent follow a uniform standard. For example, restructure names to `[title] ([year]) [resolution]`.
-- **Uniform Naming**: Makes your qBittorrent and it's download folder pretty with all torrents following identical naming formats.
-- **Advanced Parsing**: Parses torrent names and exposes dozens of tags for custom naming schemes.
-- **Clean Up Junk**: Removes useless information like domains from torrent names.
+- **Uniform Naming**: Makes your qBittorrent and it's download folder pretty (and parsable) with all torrents following identical naming formats
+- **Advanced Parsing**: Parses torrent names and exposes dozens of tags for custom naming schemes
+- **Clean Up Junk**: Removes useless information like domains from torrent names
 
 ### Metadata Recovery
-When qBittorrent only has magnet links, it can't see filenames, sizes, etc until it is able to fetch the metadata. Metadatarr proactively fetches the `.torrent` file to provide this metadata immediately.
+When qBittorrent only has magnet links, it can't see filenames, sizes, etc. until it is able to fetch the metadata. Metadatarr proactively fetches the `.torrent` file to provide this metadata immediately.
 - **Multi-Source Fetching**: WebTorrent DHT, HTTP Endpoints, & Web Scraping
 - **Automatic Retry**: Periodically checks old torrents to find newly available metadata
 - **Local Torrent Import**: Scans configured directories for new .torrent files
@@ -66,7 +66,7 @@ npm install
 ### Note
 Metadatarr uses [PTT](https://github.com/clement-escolano/parse-torrent-title) as a core dependency for automated renaming.
 
-However since Metadatarr is currently under heavy development, I maintain a [fork of PTT](https://github.com/QuixThe2nd/parse-torrent-title). The fork fixes many unsolved edge cases in the original library as well as includes new flags and handlers, however this fork has many un-reviewed changes and may result in false positives. These false positives are only ever temporary, meaning once they're patched, any false renames caused by them will be undone (assuming you setup `TORRENTS_DIR` in `naming.jsonc`).
+However since Metadatarr is currently under heavy development, I maintain a [fork of PTT](https://github.com/QuixThe2nd/parse-torrent-title). The fork fixes many unsolved edge cases in the original library as well as includes new flags and handlers, however this fork has many un-reviewed changes and may result in false positives. These false positives are only ever temporary, meaning once they're patched, any false renames caused by them will be undone (assuming you setup `TORRENTS_DIR` in `Naming.jsonc`).
 
 For now, while both PTT and Metadatarr face several major changes, you must choose which fork you'd like to use. Either my fork with more handlers but more false positives, or the original with less handlers but less false positives.
 
@@ -91,11 +91,11 @@ services:
 Then run `docker compose up -d`
 
 ## Configuration
-All default configuration files are located at `./config_template/`. To change values, create files at `./store/config/` with the same name. Any config value you haven't defined will fallback to the defaults.
+The default config for Metadatarr's core is located at `CoreSchema` and `ClientSchema` in `./src/schemas.ts`. To modify values, create files in `./store/config` named `core.jsonc` and `.client.jsonc` respectively. All default plugins also have their own `ConfigSchema`. To modify default plugin config, create a file at `./store/config/plugins/plugin_name.jsonc`. Any config value you haven't defined will fallback to the defaults.
 
 Instructions for each config are provided in each file. **READ ALL CONFIG BEFORE RUNNING!** The defaults are set as examples showcasing the power of Metadatarr, not as the recommended settings.
 
-Note that changes apply instantly on save, you do not need to restart Metadatarr.
+Note that changes apply instantly on save, you do not need to restart Metadatarr. The only exception to that is `Uncross-Seed` which needs a manual restart.
 
 ## Usage
 To start Metadatarr, run:
@@ -104,15 +104,15 @@ npx tsx src
 ```
 
 ## Uncross-Seed
-To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/api/uncross-seed`.
+To enable [Cross-Seed](https://www.cross-seed.org/) integration, [configure a webhook](https://www.cross-seed.org/docs/basics/options#notificationwebhookurls). Set the notification webhook URL to `http://localhost:9191/plugins/Uncross-Seed`.
 
 ## Triggering Jobs
-Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better of setting a much slower frequency of job runs and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add (or complete).
+Metadatarr runs automatically on an interval, the more frequently it runs, the better. However on less powerful machines, frequent runs may cause slow-downs. Depending on your rules, you might be better off setting a much slower frequency of job runs and instead configure your BitTorrent client to trigger jobs when new torrents are added. This can be done by running `curl -X POST http://localhost:9191/api/run-jobs` on torrent add (or complete).
 
 ## Plugins
 Metadatarr is highly modular, every feature you see is a plugin (e.g. `Sort`, `Actions`, etc.). You can see `./plugins` for a list of all built-in plugins. To disable a plugin so it doesn't run, simply prepend `_` to the start of the name, like `_Stats.ts`. Plugins can be built in either TS or JS, no build step is required if using TS, so I highly recommend shipping your plugins using TS.
 
-I will walk you through creating a plugin using all these fields. To start, create a file called `MyPlugin.ts` (or `MyPlugin.js`) and place it in the `./plugins` directory. Plugins have 3 components; a hook, endpoint, and config schema. Each component is optional depending on your needs.
+To build a plugin, create a file called `MyPlugin.ts` (or `MyPlugin.js`) and place it in the `./plugins` directory. Plugins have 3 components; a hook, endpoint, and config schema. Each component is optional depending on your needs.
 
 ### ConfigSchema
 The `ConfigSchema` allows you to define configurable fields. This is done using Zod. To define a config schema, export a `z.object` with the name `ConfigSchema`. You are also able (and recommended) to set default values for each config field.
@@ -192,6 +192,62 @@ Each torrent in the `torrents` array passed to your hook has an interface the ca
 Although everything the instruction schema can do is possible by natively interacting with torrent and client objects, it is highly discouraged. Metadatarr has built in optimisers that reduce the number of API calls made to the underlying BitTorrent client.
 
 For example, when testing on my personal library with ~5k torrents at the time of writing, each run, the default hooks return a combined 16k instructions. After a simple de-duplication, the number of instructions shrinks to 10k. Then finally after diffing against my qBitTorrent state, the total number of calls each run is ~8. Interfacing directly with the BitTorrent client will result in many redundant calls, or require time optimising calls that Metadatarr can optimise (better than you) automatically. Even with the best optimisations, you still won't be able to beat Metadatarr's built in optimiser, simply because your plugin is unaware of what other plugins are doing.
+
+### QueryEngine
+You are free to build your plugin however you like. However when writing the default plugins, I found that there was a lot of overlap in the logic, so I built the `QueryEngine`. The QueryEngine is a powerful tool that allows you to filter or sort torrents based on custom rules. I highly recommend you use the QueryEngine in your plugins when you want to allow users to apply rules to certain torrents only.
+
+The 2 most obvious use-cases for this are the `Actions` and `Sort` plugins which rely almost exclusively on the QueryEngine. I highly recommend you take a look at them to see how powerful it can be. Here I'll walk you through a basic demo of using the QueryEngine.
+
+Using the QueryEngine, you're able to define SQL-like queries to filter torrents. Here, we find torrents where the tracker url contains `aither` and start them all:
+```ts
+import { queryEngine } from "../src/classes/QueryEngine";
+
+export const hook = ({ torrents }: PluginInputs): Instruction[] => {
+  const query = [
+    {
+      key: "tracker",
+      comparator: "==",
+      value: ["aither"]
+    }
+  ];
+  const aitherTorrents = queryEngine.execute(torrents, query, true);
+  return aitherTorrents.map(t => { hash: t.hash, then: "start" });
+}
+```
+To see how powerful filters can be, check the default config in the `Actions` plugin.
+
+The QueryEngine is also able to sort torrents. Here we'll sort torrents based on their download progress, but prefer Aither over everything:
+```ts
+import { queryEngine } from "../src/classes/QueryEngine";
+
+export const hook = ({ torrents }: PluginInputs): Instruction[] => {
+  const query = [
+    {
+      key: "progress",
+      comparator: "DESC"
+    },
+    {
+      key: "tracker",
+      comparator: "==",
+      value: ["aither"]
+    }
+  ];
+  const sortedTorrents = queryEngine.execute(torrents, query, false); // Notice `false` instead of `true`
+  // Do something
+  return [];
+}
+```
+You can see the `Sort` plugin to see how advanced sort criteria can get.
+
+#### Configurable Queries
+If exposing queries to users to configure themselves, you can import `QuerySchema`.
+```ts
+import { QuerySchema } from "../src/classes/QueryEngine";
+
+export const ConfigSchema = z.object({
+  FILTERS: z.array(QuerySchema)
+})
+```
 
 ### Testing
 Metadatarr provides a very basic development suite for testing your plugins.

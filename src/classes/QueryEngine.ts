@@ -73,7 +73,7 @@ const booleanSort = (torrents: ReturnType<typeof Torrent>[], getValue: (t: Retur
 
 const process = (torrents: ReturnType<typeof Torrent>[], filter: boolean, getValue: (t: ReturnType<typeof Torrent>) => boolean): ReturnType<typeof Torrent>[] => filter ? torrents.filter(getValue) : booleanSort(torrents, getValue);
 
-export const selectorEngine = {
+export const queryEngine = {
   execute(torrents: ReturnType<typeof Torrent>[], query: Query, filter: boolean): ReturnType<typeof Torrent>[] {
     const startCount = torrents.length;
     torrents = this._execute(torrents, query, filter);
