@@ -393,7 +393,7 @@ export const ConfigSchema = z.object({
 });
 type Config = z.infer<typeof ConfigSchema>;
 
-const Actions = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
+export const hook = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
   torrents = torrents.sort(Math.random);
   const instructions: Instruction[] = [];
   for (const action of config.ACTIONS) {
@@ -408,5 +408,3 @@ const Actions = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
   }
   return instructions;
 }
-
-export default Actions;

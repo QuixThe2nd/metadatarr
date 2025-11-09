@@ -60,8 +60,7 @@ export const importMetadataFiles = async (webtorrent: Instance, client: Client, 
 const webtorrent = new WebTorrent({ downloadLimit: 1024 });
 
 let firstRun = true;
-
-const metadata = async ({ torrents, client, config }: PluginInputs<Config>): Promise<[]> => {
+export const hook = async ({ torrents, client, config }: PluginInputs<Config>): Promise<[]> => {
   if (!config.ENABLED) return [];
   if (firstRun) {
     await importMetadataFiles(webtorrent, client,  path.join(__dirname, '/../../', config.TORRENT_PATH))
@@ -97,4 +96,3 @@ const metadata = async ({ torrents, client, config }: PluginInputs<Config>): Pro
   
   return [];
 }
-export default metadata;

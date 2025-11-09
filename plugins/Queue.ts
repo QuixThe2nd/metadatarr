@@ -20,7 +20,7 @@ const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<t
 
 const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
-const Queue = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
+export const hook = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
   if (!config.QUEUE_SIZE_LIMIT) return [];
 
   torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.get().category ?? ''));
@@ -41,4 +41,3 @@ const Queue = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
     arg: Math.min(config.MAXIMUM_QUEUE_SIZE, Math.max(config.MINIMUM_QUEUE_SIZE, queueSize))
   }];
 }
-export default Queue;

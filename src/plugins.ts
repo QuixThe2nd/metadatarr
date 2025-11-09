@@ -15,8 +15,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginDir = path.join(__dirname, '../plugins/');
 
 const HookSchema = z.function({
-  input: [z.object({ torrents: z.array(z.object({ get: z.function() })), client: z.object().loose(), config: z.object().loose() })],
-  output: z.array(InstructionSchema)
+  input: [z.object({ torrents: z.array(z.object({ get: z.function() })), client: z.instanceof(Client), config: z.object().loose() })],
+  output: z.promise(z.array(InstructionSchema))
 });
 
 const EndpointSchema = z.function({
@@ -35,15 +35,17 @@ export interface PluginInputs<Config extends Record<string, unknown> = Record<st
   config: Config;
 }
 
-type Hook = (pluginInputs: PluginInputs) => Promise<Instruction[]> | Instruction[];
+type Hook = (pluginInputs: PluginInputs) => Promise<Instruction[]>;
 type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
 
-export type PluginEndpoints = Map<string, (req: Request, res: Response) => Promise<void>>;
+type Endpoint = (req: Request, res: Response) => Promise<void>;
+export type PluginEndpoints = Map<string, Endpoint>;
 
 export const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => {
   const hooks: Hooks = {};
   const endpoints: PluginEndpoints = new Map();
 
+  console.log()
   console.log('Importing Plugins');
   for (const file of fs.readdirSync(pluginDir)) {
     if (file.startsWith('_')) continue;
@@ -51,9 +53,15 @@ export const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: Plugin
     console.log('Importing Plugin:', name);
 
     const pluginExports = PluginExports.parse(await import(path.join(pluginDir, file)));
-    if (pluginExports.endpoint !== undefined) endpoints.set(name, EndpointSchema.implementAsync(pluginExports.endpoint));
-    if (pluginExports.hook !== undefined) hooks[name] = { hook: HookSchema.implementAsync(pluginExports.hook), ConfigSchema: pluginExports.ConfigSchema };
+    if (pluginExports.endpoint !== undefined) {
+      const endpoint: Endpoint = async (inputs) => await EndpointSchema.implementAsync(pluginExports.endpoint)(inputs);
+      endpoints.set(name, endpoint);
+    } if (pluginExports.hook !== undefined) {
+      const hook: Hook = async (inputs) => await HookSchema.implementAsync(pluginExports.hook)(inputs);
+      hooks[name] = { hook, ConfigSchema: pluginExports.ConfigSchema };
+    }
   }
+  console.log()
 
   return { hooks, endpoints };
 }
@@ -76,7 +84,7 @@ export const runPlugins = async (): Promise<number> => {
     for (const [name, { hook, ConfigSchema }] of Object.entries(plugins))
       instructions.push(...await logContext(name, async () => {
         console.log('Plugin Started');
-        const config: z.infer<typeof ConfigSchema> = parseConfigFile(`plugins/${name}.jsonc`, ConfigSchema);
+        const config: z.infer<typeof ConfigSchema> = ConfigSchema ? parseConfigFile(`plugins/${name}.jsonc`, ConfigSchema) : {};
         const pluginInstructions = await hook({ torrents, client, config });
         console.log('Plugin Finished - Instructions:', pluginInstructions.length);
         return pluginInstructions;
@@ -91,11 +99,13 @@ export const runPlugins = async (): Promise<number> => {
 
   for (const instruction of optimisedInstructions) {
     if ('hash' in instruction) {
-      const torrent = mappedTorrents[instruction.hash]!;
+      const torrent = mappedTorrents[instruction.hash];
+      if (torrent === undefined) continue;
       if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
       else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
       else await torrent[instruction.then]();
-    } else await client[instruction.then](instruction.arg);
+    } else if (instruction.then === 'setMaxActiveDownloads') await client[instruction.then](instruction.arg);
+    else await client[instruction.then](instruction.arg);
     await new Promise(res => setTimeout(res, instruction.then === 'topPriority' ? coreConfig.MOVE_WAIT : coreConfig.INSTRUCTION_WAIT));
   }
 

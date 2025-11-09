@@ -568,5 +568,4 @@ export const test = async (name: string, config: z.infer<typeof ConfigSchema>): 
   return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
 }
 
-const Naming = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => NamingClass.run(torrents, config);
-export default Naming;
+export const hook = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => NamingClass.run(torrents, config);

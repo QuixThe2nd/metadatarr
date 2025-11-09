@@ -1,11 +1,14 @@
-import { test } from '../plugins/Naming'
+import { ConfigSchema, test } from '../plugins/Naming'
 import Client from '../src/clients/client'
+import { parseConfigFile } from '../src/config';
 
 const name = '';
 const filter = '';
 
+const config = parseConfigFile('plugins/naming.ts', ConfigSchema);
+
 if (name.length) {
-  console.log(await test(name));
+  console.log(await test(name, config));
   process.exit()
 }
 
@@ -17,7 +20,7 @@ const names = torrents.map(t => t.get().name).filter(t => t.includes(filter));
 
 const fails: Record<string, { originalName: string, name: string, count: number }> = {}
 for (const name of names.sort(() => Math.random() > 0.5 ? 1 : -1)) {
-  const { other, ...result } = await test(name);
+  const { other, ...result } = await test(name, config);
   if (other.length !== 0 && other.includes(filter)) {
     fails[other] ??= { originalName: name, count: 0, ...result};
     fails[other].count++;
