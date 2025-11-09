@@ -97,7 +97,7 @@ const defaultActions: Actions[] = [
   {
   	"if": [
   		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@DP", "@ST"]},
+  		{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@ST"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 345600} // 4 days
   	],
   	"then": "delete",
@@ -115,7 +115,7 @@ const defaultActions: Actions[] = [
   {
   	"if": [
   		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@SHR"]},
+  		{"key": "tags", "comparator": "==", "value": ["@SHR", "@DP"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 604800} // 7 days
   	],
   	"then": "delete",
