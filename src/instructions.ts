@@ -13,6 +13,8 @@ export const optimiseInstructions = (instructions: Instruction[]): Instruction[]
   const rename: Record<string, string> = {};
   const topPriority: string[][] = [];
   const sequentialDownload = new Set<string>();
+  const autoTMM = new Map<string, boolean>();
+  const category = new Map<string, string>();
   let setMaxActiveDownloads: number | undefined;
 
   for (const instruction of instructions)
@@ -39,6 +41,8 @@ export const optimiseInstructions = (instructions: Instruction[]): Instruction[]
     else if (instruction.then === 'setMaxActiveDownloads') setMaxActiveDownloads = instruction.arg;
     else if (instruction.then === 'rename') rename[instruction.hash] = instruction.arg;
     else if (instruction.then === 'toggleSequentialDownload') sequentialDownload.add(instruction.hash);
+    else if (instruction.then === 'setAutoManagement') autoTMM.set(instruction.hash, instruction.arg)
+    else if (instruction.then === 'setCategory') category.set(instruction.hash, instruction.arg);
     else throw new Error(`Unknown Instruction: ${instruction.then}`);
 
   for (const [hash] of deletes) {
@@ -49,6 +53,8 @@ export const optimiseInstructions = (instructions: Instruction[]): Instruction[]
     starts.delete(hash);
     stops.delete(hash);
     rechecks.delete(hash);
+    category.delete(hash);
+    autoTMM.delete(hash);
   }
 
   const optimisedInstructions: Instruction[] = [
@@ -60,7 +66,9 @@ export const optimiseInstructions = (instructions: Instruction[]): Instruction[]
     ...[...sequentialDownload].map((hash): Instruction => ({ then: 'toggleSequentialDownload', hash })),
     ...[...starts].map((hash): Instruction => ({ then: 'start', hash })),
     ...[...stops].map((hash): Instruction => ({ then: 'stop', hash })),
-    ...[...rechecks].map((hash): Instruction => ({ then: 'recheck', hash }))
+    ...[...rechecks].map((hash): Instruction => ({ then: 'recheck', hash })),
+    ...[...autoTMM].map(([hash, arg]): Instruction => ({ then: 'setAutoManagement', hash, arg })),
+    ...[...category].map(([hash, arg]): Instruction => ({ then: 'setCategory', hash, arg })),
   ];
   if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads });
 
@@ -86,6 +94,8 @@ export const reduceInstructions = async (client: Client, instructions: Instructi
     else if (instruction.then === 'toggleSequentialDownload') return true;
     else if (instruction.then === 'start') return ['stoppedDL', 'stoppedUP'].includes(torrent.state);
     else if (instruction.then === 'stop') return !['stoppedDL', 'stoppedUP'].includes(torrent.state);
+    else if (instruction.then === 'setAutoManagement') return torrent.auto_tmm !== instruction.arg;
+    else if (instruction.then === 'setCategory') return torrent.category !== instruction.arg;
     throw new Error(`Unknown Instruction: ${instruction.then}`);
   });
 }
