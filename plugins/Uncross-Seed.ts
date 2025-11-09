@@ -30,7 +30,7 @@ export const endpoint = (client: Client, config: z.infer<typeof ConfigSchema>) =
         await oldTorrent.delete();
         const newTorrent = torrents.find(t => t.get().hash === payload.infoHashes[0]);
         if (oldTorrent.get().category !== null && payload.infoHashes.length !== 0) await newTorrent?.setCategory(oldTorrent.get().category ?? '');
-        await newTorrent?.addTags('uncross-seed');
+        await newTorrent?.addTags(['uncross-seed']);
       }
     }
     res.status(200).send();

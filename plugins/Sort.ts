@@ -2,7 +2,7 @@ import type Torrent from "../src/classes/Torrent";
 import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
 import type { Instruction } from "../src/schemas";
 import z from "zod";
-import type { PluginInputs } from "../src";
+import type { HookInputs } from "../src/plugins";
 
 export const ConfigSchema = z.object({
   ENABLED: z.boolean().default(true),
@@ -93,7 +93,7 @@ const limitReached = (config: z.infer<typeof ConfigSchema>, moves: number, calls
   (config.MAX_MOVES_PER_CYCLE !== 0 && moves >= config.MAX_MOVES_PER_CYCLE && calls >= config.MIN_API_CALLS_PER_CYCLE)
 )
 
-const Sort = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Instruction[] => {
+export const hook = ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Instruction[] => {
   if (!config.ENABLED) return [];
 
   torrents = getInitialTorrents(torrents);
@@ -118,4 +118,3 @@ const Sort = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>):
 
   return instructions;
 }
-export default Sort;

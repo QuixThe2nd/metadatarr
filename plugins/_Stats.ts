@@ -25,7 +25,7 @@ const parse = (torrents: ReturnType<typeof Torrent>[]): { trackers: Trackers; re
   return { trackers, releases };
 }
 
-const Stats = (torrents: ReturnType<typeof Torrent>[]): [] => {
+export const hook = (torrents: ReturnType<typeof Torrent>[]): [] => {
   const { trackers, releases } = parse(torrents);
 
   console.log('Trackers:')
@@ -54,4 +54,4 @@ const Stats = (torrents: ReturnType<typeof Torrent>[]): [] => {
 
   return [];
 }
-export default Stats;
+

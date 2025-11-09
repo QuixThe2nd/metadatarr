@@ -96,15 +96,15 @@ const Torrent = (client: Client, data: TorrentType) => {
       data.auto_tmm = enable;
       return await request('setAutoManagement', { enable }) === false ? 0 : 1;
     },
-    removeTags: async (tags: string): Promise<number> => {
-      const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    removeTags: async (tags: string[]): Promise<number> => {
+      const splitTags = tags.map(tag => tag.trim()).filter(tag => tag.length > 0);
       const removableTags = splitTags.filter(tag => data.tags.includes(tag));
       if (removableTags.length === 0) return Promise.resolve(0);
       for (const tag of removableTags) data.tags.splice(data.tags.indexOf(tag), 1);
       return await request('removeTags', { tags: removableTags.join(', ') }) === false ? 0 : 1;;
     },
-    addTags: async (tags: string): Promise<number> => {
-      const splitTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+    addTags: async (tags: string[]): Promise<number> => {
+      const splitTags = tags.map(tag => tag.trim()).filter(tag => tag.length > 0);
       const newTags = splitTags.filter(tag => !data.tags.includes(tag));
       if (newTags.length === 0) return Promise.resolve(0);
       for (const tag of newTags) data.tags.push(tag);

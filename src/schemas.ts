@@ -7,12 +7,16 @@ const objectKeys = <T extends object>(obj: T): (keyof T)[] => Object.keys(obj) a
 const exclude = <T, E extends T>(arr: T[], excluded: readonly E[]): Exclude<T, E>[] => arr.filter(item => !(excluded as readonly T[]).includes(item)) as Exclude<T, E>[];
 
 const actions = objectKeys(Torrent({} as Client, {} as TorrentType));
-export const argedActions = ['setAutoManagement', 'addTags', 'removeTags', 'setCategory', 'rename', 'delete'] as const;
+export const booleanActions = ['setAutoManagement', 'delete'] as const;
+export const stringActions = ['setCategory', 'rename'] as const;
+export const arrayStringActions = ['addTags', 'removeTags'] as const;
 const excludedActions = ['get', 'renameFile', 'files'] as const;
-export const filteredActions = exclude(actions, [...argedActions, ...excludedActions]);
+export const filteredActions = exclude(actions, [...booleanActions, ...stringActions, ...arrayStringActions, ...excludedActions]);
 
 export const TorrentInstructionSchema = z.union([
-  z.object({ then: z.enum(argedActions), arg: z.union([z.boolean(), z.string()]) }),
+  z.object({ then: z.enum(booleanActions), arg: z.boolean() }),
+  z.object({ then: z.enum(stringActions), arg: z.string() }),
+  z.object({ then: z.enum(arrayStringActions), arg: z.array(z.string()) }),
   z.object({ then: z.enum(filteredActions) })
 ]);
 

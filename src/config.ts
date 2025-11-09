@@ -36,16 +36,18 @@ const red_highlight = (text: string): string => `\x1b[41m\x1b[37m${text}\x1b[0m`
 const bold = (text: string): string => `\x1b[1m${text}\x1b[0m`;
 
 export const testConfig = async (): Promise<void> => {
+  console.log()
   for (const [config, parse] of Object.entries(CONFIG)) {
     console.log(`Validating config: ${config}`)
     parse();
   }
+  console.log()
 
   console.warn(yellow('|==================================|'));
   console.warn(yellow('||                                ||'));
   if (CONFIG.CORE().DRY_RUN) {
     console.warn(yellow('||       Dry Run is Enabled       ||'));
-    console.warn(yellow('||       CHANGES ') + green_highlight(bold('WONT')) + yellow(' SAVE        ||'));
+    console.warn(yellow('||       CHANGES ') + green_highlight(bold("WON'T")) + yellow(' SAVE       ||'));
   } else {
     console.warn(yellow('||       Dry Run is Disabled      ||'));
     console.warn(yellow('||       CHANGES ') + red_highlight(bold('WILL')) + yellow(' SAVE        ||'));
