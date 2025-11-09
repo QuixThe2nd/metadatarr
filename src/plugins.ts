@@ -79,12 +79,13 @@ export const runPlugins = async (): Promise<number> => {
   const torrents = await client.torrents();
 
   const instructions: Instruction[] = [];
-  if (coreConfig.DEV_INJECT) instructions.push(...await hook({ torrents, client }));
+  if (coreConfig.DEV_INJECT) instructions.push(...await hook({ torrents, client, config: {} }));
   else
     for (const [name, { hook, ConfigSchema }] of Object.entries(plugins.hooks))
       instructions.push(...await logContext(name, async () => {
         console.log('Plugin Started');
-        const config: z.infer<typeof ConfigSchema> = ConfigSchema ? parseConfigFile(`plugins/${name}.jsonc`, ConfigSchema) : {};
+        const configSchema = ConfigSchema ?? z.object({})
+        const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
         const pluginInstructions = await hook({ torrents, client, config });
         console.log('Plugin Finished - Instructions:', pluginInstructions.length);
         return pluginInstructions;

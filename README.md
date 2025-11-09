@@ -267,7 +267,6 @@ Metadatarr was built to solve real-world problems managing large torrent collect
 
 ### Stage 2
 #### Metadata
-- Use TVDB to parse episode names
 - Incremental backoff on metadata fetches
 
 #### Move from code to config
