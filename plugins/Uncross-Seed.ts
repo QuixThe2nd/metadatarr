@@ -14,7 +14,7 @@ const UncrossSeedRequestSchema = z.object({
 export const ConfigSchema = z.object({
   FILTERS: z.array(QuerySchema).default([
     {"key": "private", "comparator": "!="},
-    {"key": "tags", "comparator": "==", "value": ["@FNP", "@MLK", "@RUT"]}
+    {"key": "tags", "comparator": "==", "value": ["@MLK", "@RUT"]}
   ])
 });
 
