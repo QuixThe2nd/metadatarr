@@ -19,7 +19,7 @@ It's the automation layer that:
 - Decides how many torrents to download at once
 - Standardises naming across your entire collection
 - Automatically fetches metadata for magnet links
-- Integrated with [Cross-Seed](https://cross-seed.org) for tracker upgrades
+- Integrates with [Cross-Seed](https://cross-seed.org) for tracker upgrades
 - And much more (see `./config_template/*.jsonc` for exhaustive list)
 
 Built for users with hundreds or thousands of torrents who need enterprise-level queue management.
