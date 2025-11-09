@@ -1,5 +1,5 @@
 import z from 'zod';
-import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
+import { QuerySchema, queryEngine } from "../src/classes/QueryEngine";
 import { TorrentInstructionSchema, type Instruction } from "../src/schemas";
 import type { HookInputs } from '../src/plugins';
 
@@ -399,7 +399,7 @@ export const hook = ({ torrents, config }: HookInputs<Config>): Instruction[] =>
   for (const action of config.ACTIONS) {
     if (action.max !== undefined && action.max < 1) action.max = action.max > Math.random() ? 1 : 0;
     let selectedTorrents = torrents;
-    for (const selector of action.if) selectedTorrents = selectorEngine.execute(selectedTorrents, selector, true);
+    for (const selector of action.if) selectedTorrents = queryEngine.execute(selectedTorrents, selector, true);
     for (const [i, torrent] of selectedTorrents.entries()) {
       if ('max' in action && i === action.max) continue;
       const { if: _, ...rest } = action;

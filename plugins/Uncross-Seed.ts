@@ -1,5 +1,5 @@
 import z from 'zod';
-import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
+import { QuerySchema, queryEngine } from "../src/classes/QueryEngine";
 import type Client from '../src/clients/client';
 import type { Request, Response } from 'express';
 
@@ -25,7 +25,7 @@ export const endpoint = (client: Client, config: z.infer<typeof ConfigSchema>) =
     if (payload.result === 'INJECTED') {
       const torrents = await client.torrents();
       const oldTorrent = torrents.find(t => t.get().hash === payload.searchee.infoHash);
-      if (oldTorrent && config.FILTERS.some(f => selectorEngine.execute([oldTorrent], f, true).length !== 0)) {
+      if (oldTorrent && config.FILTERS.some(f => queryEngine.execute([oldTorrent], f, true).length !== 0)) {
         console.log("\x1b[32m[Cross-Seed]\x1b[0m Uncross-Seeding torrent");
         await oldTorrent.delete();
         const newTorrent = torrents.find(t => t.get().hash === payload.infoHashes[0]);
