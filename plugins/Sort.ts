@@ -2,7 +2,7 @@ import type Torrent from "../src/classes/Torrent";
 import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
 import type { Instruction } from "../src/schemas";
 import z from "zod";
-import type { PluginInputs } from "../src";
+import type { PluginInputs } from "../src/plugins";
 
 export const ConfigSchema = z.object({
   ENABLED: z.boolean().default(true),

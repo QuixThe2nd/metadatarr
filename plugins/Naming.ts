@@ -6,8 +6,8 @@ import { version as pttVersion } from 'parse-torrent-title/package.json';
 import type { Instruction } from "../src/schemas";
 import path from "path";
 import parseTorrent from 'parse-torrent';
-import type { PluginInputs } from "../src";
 import { fileURLToPath } from 'url';
+import type { PluginInputs } from "../src/plugins";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
@@ -277,19 +277,19 @@ class NamingClass {
   }
 
   private handleMissingName(torrent: ReturnType<typeof Torrent>, origName: string | undefined): Instruction[] {
-    if (this.config.TAG_MISSING_ORIGINAL_NAME && origName !== undefined) return [{ then: 'removeTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
-    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return [{ then: 'addTags', arg: '!missingOriginalName', hash: torrent.get().hash }];
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && origName !== undefined) return [{ then: 'removeTags', arg: ['!missingOriginalName'], hash: torrent.get().hash }];
+    if (this.config.TAG_MISSING_ORIGINAL_NAME && torrent.get().size > 0) return [{ then: 'addTags', arg: ['!missingOriginalName'], hash: torrent.get().hash }];
     return [];
   }
 
   private updateParsingTags(torrent: ReturnType<typeof Torrent>, hasParsingErrors: boolean): Instruction[] {
     const instructions: Instruction[] = [];
     if (hasParsingErrors) {
-      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: '!renameFailed', hash: torrent.get().hash });
-      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'removeTags', arg: '!renamed', hash: torrent.get().hash });
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: ['!renameFailed'], hash: torrent.get().hash });
+      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'removeTags', arg: ['!renamed'], hash: torrent.get().hash });
     } else {
-      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'removeTags', arg: '!renameFailed', hash: torrent.get().hash });
-      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'addTags', arg: '!renamed', hash: torrent.get().hash });
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'removeTags', arg: ['!renameFailed'], hash: torrent.get().hash });
+      if (this.config.TAG_SUCCESSFUL_PARSING) instructions.push({ then: 'addTags', arg: ['!renamed'], hash: torrent.get().hash });
     }
     return [];
   }
@@ -341,7 +341,7 @@ class NamingClass {
 
     const instructions: Instruction[] = [];
     if (other.length > 0) {
-      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: '!renameFolderFailed', hash: torrent.get().hash });
+      if (this.config.TAG_FAILED_PARSING) instructions.push({ then: 'addTags', arg: ['!renameFolderFailed'], hash: torrent.get().hash });
       if (this.config.SKIP_IF_UNKNOWN) return instructions;
     }
 

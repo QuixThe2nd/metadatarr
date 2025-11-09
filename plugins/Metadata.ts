@@ -1,12 +1,12 @@
 import z from "zod";
 import WebTorrent from 'webtorrent';
-import type { PluginInputs } from "../src";
 import fs from 'fs';
 import type { Instance } from 'webtorrent';
 import type Client from '../src/clients/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import parseTorrent from 'parse-torrent';
+import type { PluginInputs } from "../src/plugins";
 
 export const saveMetadata = async (webtorrent: Instance, client: Client, metadata: Buffer): Promise<void> => {
   // eslint-disable-next-line

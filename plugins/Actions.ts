@@ -1,7 +1,7 @@
 import z from 'zod';
 import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
 import { TorrentInstructionSchema, type Instruction } from "../src/schemas";
-import type { PluginInputs } from '../src';
+import type { PluginInputs } from '../src/plugins';
 
 const defaultActions: Actions[] = [
   // Resume completed torrents that are stopped
@@ -178,208 +178,208 @@ const defaultActions: Actions[] = [
   {
   	"if": [{"key": "state", "comparator": "==", "value": ["stalledDL"]}],
   	"then": "addTags",
-  	"arg": "stalledDL"
+  	"arg": ["stalledDL"]
   },
   {
   	"if": [{"key": "state", "comparator": "!=", "value": ["stalledDL"]}],
   	"then": "removeTags",
-  	"arg": "stalledDL"
+  	"arg": ["stalledDL"]
   },
   // Tag private trackers
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
   	"then": "addTags",
-  	"arg": "@BLU,Private Tracker"
+  	"arg": ["@BLU", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["seedpool"]}],
   	"then": "addTags",
-  	"arg": "@SP,Private Tracker"
+  	"arg": ["@SP", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["torrentleech"]}],
   	"then": "addTags",
-  	"arg": "@TL,Private Tracker"
+  	"arg": ["@TL", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["tleechreload"]}],
   	"then": "addTags",
-  	"arg": "@TL,Private Tracker"
+  	"arg": ["@TL", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["myanonamouse"]}],
   	"then": "addTags",
-  	"arg": "@MaM,Private Tracker"
+  	"arg": ["@MaM", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["digitalcore"]}],
   	"then": "addTags",
-  	"arg": "@DCC,Private Tracker"
+  	"arg": ["@DCC", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["stackoverflow.tech"]}],
   	"then": "addTags",
-  	"arg": "@IPT,Private Tracker"
+  	"arg": ["@IPT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["empirehost.me"]}],
   	"then": "addTags",
-  	"arg": "@IPT,Private Tracker"
+  	"arg": ["@IPT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["bgp.technology"]}],
   	"then": "addTags",
-  	"arg": "@IPT,Private Tracker"
+  	"arg": ["@IPT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["shareisland"]}],
   	"then": "addTags",
-  	"arg": "@SHR,Private Tracker"
+  	"arg": ["@SHR", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["scenetime"]}],
   	"then": "addTags",
-  	"arg": "@ST,Private Tracker"
+  	"arg": ["@ST", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["darkpeers"]}],
   	"then": "addTags",
-  	"arg": "@DP,Private Tracker"
+  	"arg": ["@DP", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["yu-scene"]}],
   	"then": "addTags",
-  	"arg": "@YS,Private Tracker"
+  	"arg": ["@YS", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["speedapp"]}],
   	"then": "addTags",
-  	"arg": "@SA,Private Tracker"
+  	"arg": ["@SA", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["privatehd"]}],
   	"then": "addTags",
-  	"arg": "@PHD,Private Tracker"
+  	"arg": ["@PHD", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["jumbohostpro"]}],
   	"then": "addTags",
-  	"arg": "@TTi,Private Tracker"
+  	"arg": ["@TTi", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["connecting.center"]}],
   	"then": "addTags",
-  	"arg": "@TTi,Private Tracker"
+  	"arg": ["@TTi", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["sktorrent"]}],
   	"then": "addTags",
-  	"arg": "@SKT,Private Tracker"
+  	"arg": ["@SKT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["ptfiles"]}],
   	"then": "addTags",
-  	"arg": "@PTF,Private Tracker"
+  	"arg": ["@PTF", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["milkie"]}],
   	"then": "addTags",
-  	"arg": "@MLK,Private Tracker"
+  	"arg": ["@MLK", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["filelist"]}],
   	"then": "addTags",
-  	"arg": "@FL,Private Tracker"
+  	"arg": ["@FL", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["thefl"]}],
   	"then": "addTags",
-  	"arg": "@FL,Private Tracker"
+  	"arg": ["@FL", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["brokenstones"]}],
   	"then": "addTags",
-  	"arg": "@BS,Private Tracker"
+  	"arg": ["@BS", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["fearnopeer"]}],
   	"then": "addTags",
-  	"arg": "@FNP,Private Tracker"
+  	"arg": ["@FNP", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["yoinked"]}],
   	"then": "addTags",
-  	"arg": "@YNK,Private Tracker"
+  	"arg": ["@YNK", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["hd-space"]}],
   	"then": "addTags",
-  	"arg": "@HDS,Private Tracker"
+  	"arg": ["@HDS", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["onlyencodes"]}],
   	"then": "addTags",
-  	"arg": "@OE,Private Tracker"
+  	"arg": ["@OE", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["rastastugan"]}],
   	"then": "addTags",
-  	"arg": "@RAS,Private Tracker"
+  	"arg": ["@RAS", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["retroflix"]}],
   	"then": "addTags",
-  	"arg": "@RF,Private Tracker"
+  	"arg": ["@RF", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["upload.cx"]}],
   	"then": "addTags",
-  	"arg": "@ULCX,Private Tracker"
+  	"arg": ["@ULCX", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["capybarabr"]}],
   	"then": "addTags",
-  	"arg": "@CBR,Private Tracker"
+  	"arg": ["@CBR", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["reelflix"]}],
   	"then": "addTags",
-  	"arg": "@RFX,Private Tracker"
+  	"arg": ["@RFX", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["lst.gg"]}],
   	"then": "addTags",
-  	"arg": "@LST,Private Tracker"
+  	"arg": ["@LST", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["t-ru.org"]}],
   	"then": "addTags",
-  	"arg": "@RUT,Private Tracker"
+  	"arg": ["@RUT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["blutopia"]}],
   	"then": "addTags",
-  	"arg": "@BLU,Private Tracker"
+  	"arg": ["@BLU", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["aither"]}],
   	"then": "addTags",
-  	"arg": "@ATH,Private Tracker"
+  	"arg": ["@ATH", "Private Tracker"]
   },
   {
   	"if": [{"key": "tracker", "comparator": "==", "value": ["anthelion"]}],
   	"then": "addTags",
-  	"arg": "@ANT,Private Tracker"
+  	"arg": ["@ANT", "Private Tracker"]
   },
   {
   	"if": [{"key": "tags", "comparator": "!=", "value": ["Private Tracker"]}],
   	"then": "addTags",
-  	"arg": "Public Tracker"
+  	"arg": ["Public Tracker"]
   },
   {
   	"if": [{"key": "tags", "comparator": "==", "value": ["Private Tracker"]}],
   	"then": "removeTags",
-  	"arg": "Public Tracker"
+  	"arg": ["Public Tracker"]
   }
 ];
 

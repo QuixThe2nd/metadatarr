@@ -1,7 +1,7 @@
 import z from 'zod';
 import type Torrent from "../src/classes/Torrent";
 import type { Instruction } from "../src/schemas";
-import type { PluginInputs } from '../src';
+import type { PluginInputs } from '../src/plugins';
 
 export const ConfigSchema = z.object({
   QUEUE_SIZE_LIMIT: z.number().default(128),

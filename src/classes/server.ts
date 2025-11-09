@@ -1,13 +1,11 @@
-import express, { type Request, type Response } from 'express';
-import { runPlugins } from '..';
+import express from 'express';
+import { runPlugins, type PluginEndpoints } from '../plugins';
 
-export type PluginEndpoint = Record<string, (req: Request, res: Response) => Promise<void>>;
-
-export const startServer = (plugins: PluginEndpoint): Promise<void> => new Promise(resolve => {
+export const startServer = (plugins: PluginEndpoints): Promise<void> => new Promise(resolve => {
   const app = express();
   app.use(express.json());
 
-  for (const [name, endpoint] of Object.entries(plugins)) app.post(`/plugins/${name}`, endpoint);
+  for (const [name, endpoint] of plugins) app.post(`/plugins/${name}`, endpoint);
 
   app.post('/api/run-jobs', (_, res) => {
     console.log('Job run manually requested')
