@@ -29,19 +29,19 @@ const PluginExports = z.object({
   ConfigSchema: z.instanceof(z.ZodObject)
 }).partial();
 
-export interface PluginInputs<Config extends Record<string, unknown> = Record<string, unknown>> {
+export interface HookInputs<Config extends Record<string, unknown> = Record<string, unknown>> {
   torrents: ReturnType<typeof Torrent>[];
   client: Client;
   config: Config;
 }
 
-type Hook = (pluginInputs: PluginInputs) => Promise<Instruction[]>;
+type Hook = (hookInputs: HookInputs) => Promise<Instruction[]>;
 type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
 
 type Endpoint = (req: Request, res: Response) => Promise<void>;
 export type PluginEndpoints = Map<string, Endpoint>;
 
-export const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => {
+const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => {
   const hooks: Hooks = {};
   const endpoints: PluginEndpoints = new Map();
 
@@ -67,21 +67,21 @@ export const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: Plugin
 }
 
 const client = await Client.connect()
+export const plugins = await importPlugins();
 
 let pluginsRunning = false;
 export const runPlugins = async (): Promise<number> => {
   if (pluginsRunning) return 0;
   pluginsRunning = true;
-  const plugins = (await importPlugins()).hooks;
 
   const coreConfig = CONFIG.CORE();
 
   const torrents = await client.torrents();
 
   const instructions: Instruction[] = [];
-  if (coreConfig.DEV_INJECT) instructions.push(...await hook(torrents, client));
+  if (coreConfig.DEV_INJECT) instructions.push(...await hook({ torrents, client }));
   else
-    for (const [name, { hook, ConfigSchema }] of Object.entries(plugins))
+    for (const [name, { hook, ConfigSchema }] of Object.entries(plugins.hooks))
       instructions.push(...await logContext(name, async () => {
         console.log('Plugin Started');
         const config: z.infer<typeof ConfigSchema> = ConfigSchema ? parseConfigFile(`plugins/${name}.jsonc`, ConfigSchema) : {};

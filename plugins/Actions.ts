@@ -1,7 +1,7 @@
 import z from 'zod';
 import { QuerySchema, selectorEngine } from "../src/classes/SelectorEngine";
 import { TorrentInstructionSchema, type Instruction } from "../src/schemas";
-import type { PluginInputs } from '../src/plugins';
+import type { HookInputs } from '../src/plugins';
 
 const defaultActions: Actions[] = [
   // Resume completed torrents that are stopped
@@ -393,7 +393,7 @@ export const ConfigSchema = z.object({
 });
 type Config = z.infer<typeof ConfigSchema>;
 
-export const hook = ({ torrents, config }: PluginInputs<Config>): Instruction[] => {
+export const hook = ({ torrents, config }: HookInputs<Config>): Instruction[] => {
   torrents = torrents.sort(Math.random);
   const instructions: Instruction[] = [];
   for (const action of config.ACTIONS) {

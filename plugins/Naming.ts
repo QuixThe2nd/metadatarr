@@ -7,7 +7,7 @@ import type { Instruction } from "../src/schemas";
 import path from "path";
 import parseTorrent from 'parse-torrent';
 import { fileURLToPath } from 'url';
-import type { PluginInputs } from "../src/plugins";
+import type { HookInputs } from "../src/plugins";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
@@ -568,4 +568,4 @@ export const test = async (name: string, config: z.infer<typeof ConfigSchema>): 
   return { ...await naming.cleanName(name, false), info: ptt.parse(name) };
 }
 
-export const hook = ({ torrents, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => NamingClass.run(torrents, config);
+export const hook = ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => NamingClass.run(torrents, config);

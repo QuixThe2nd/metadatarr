@@ -112,27 +112,71 @@ Metadatarr runs automatically on an interval, the more frequently it runs, the b
 ## Plugins
 Metadatarr is highly modular, every feature you see is a plugin (e.g. `Sort`, `Actions`, etc.). You can see `./plugins` for a list of all built-in plugins. To disable a plugin so it doesn't run, simply prepend `_` to the start of the name, like `_Stats.ts`. Plugins can be built in either TS or JS, no build step is required if using TS, so I highly recommend shipping your plugins using TS.
 
-To build a plugin, create a file in `./plugins/` with a function that looks like this:
+I will walk you through creating a plugin using all these fields. To start, create a file called `MyPlugin.ts` (or `MyPlugin.js`) and place it in the `./plugins` directory. Plugins have 3 components; a hook, endpoint, and config schema. Each component is optional depending on your needs.
+
+### ConfigSchema
+The `ConfigSchema` allows you to define configurable fields. This is done using Zod. To define a config schema, export a `z.object` with the name `ConfigSchema`. You are also able (and recommended) to set default values for each config field.
+```ts
+import z from 'zod';
+
+export const ConfigSchema = z.object({
+  VARIABLE_1: z.boolean().default(true),
+  VARIABLE_2: z.number().default(10),
+  VARIABLE_3: z.array(z.string()).default(["abc"]),
+  VARIABLE_4: z.object({
+    VARIABLE_5: z.number().default(0),
+    VARIABLE_6: z.string().default("xyz"),
+  }),
+});
+```
+
+Users can then define custom config in `./store/plugins/MyPlugin.jsonc`. Metadatarr will automatically import, parse, and validate user config (if any) and pipe it to your plugin when called along with defaults when needed.
+
+### Endpoints
+Plugins are also able to create endpoints to receive HTTP requests. To create an endpoint, you need to export a nested function that looks like this:
+```ts
+import type { Request, Response } from 'express';
+
+export const endpoint = (client: Client, config: z.infer<typeof ConfigSchema>) => {
+  // Do something on import
+  return async (req: Request, res: Response): Promise<void> => {
+    // Do something on each request
+    res.status(200).send();
+  }
+}
+```
+Or in JS:
+```ts
+export const endpoint = (client, config) => {
+  // Do something on import
+  return async (req, res) => {
+    // Do something on each request
+    res.status(200).send();
+  }
+}
+```
+Metadatarr will then listen on `http://localhost:9191/plugins/MyPlugin` and forward all requests to your function. The main `endpoint` function is called only when the plugin is first imported, therefore if the users changes any config, Metadatarr needs to be restarted for your endpoint to receive the new config. The child function is piped directly to Express and will be called each time your endpoint is called.
+
+### Hooks
+Hooks are called on an interval. Each time they're called the latest user defined config is passed, so no restart is required if you are only using config for hooks.
+
+To create a hook, you need to export a function named `hook`:
 ```ts
 import type Torrent from "../src/classes/Torrent";
 import type { Instruction } from "../src/schemas";
 
-const Plugin = (torrents: ReturnType<typeof Torrent>[], client: Client): Instruction[] => {}
+export const hook = ({ torrents, client, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Instruction[] => {}
 // or
-const Plugin = async (torrents: ReturnType<typeof Torrent>[], client: Client): Promise<Instruction[]> => {}
-export default plugin;
+export const hook = async ({ torrents, client, config }: PluginInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => {}
 ```
 Or in JS:
 ```js
-const Plugin = (torrents, client) => {}
+export const hook = ({ torrents, client, config }) => {}
 // or
-const Plugin = async (torrents, client) => {}
-export default plugin;
+export const hook = async ({ torrents, client, config }) => {}
 ```
 
-You can use `./tools/inject.ts` to experiment with new plugins, simply turn on `DEV_INJECT` in `core.jsonc`.
-
-Plugins can return an array of instructions Metadatarr uses to modify torrents or directly interface with client settings. For a full list of available instructions, check `InstructionSchema` in `./src/schemas.ts`.
+Hooks can return an array of instructions Metadatarr uses to modify torrents or directly interface with client settings. For a full list of available instructions, check `InstructionSchema` in `./src/schemas.ts`.
 
 These instructions can look like so:
 ```json
@@ -143,11 +187,18 @@ These instructions can look like so:
 ]
 ```
 
-Each torrent in the `torrents` array passed to your plugin has an interface the can be used to interact directly with torrents. There is also a `client` argument that can be used to directly interface with the BitTorrent client for global settings. These are only provided as a last resort in case you have a use case that for whatever reason is not natively supported by the instruction schema. However I ask that you submit a GitHub issue (or PR) if you find new use-cases not natively supported.
+Each torrent in the `torrents` array passed to your hook has an interface the can be used to interact directly with torrents. There is also a `client` argument that can be used to directly interface with the BitTorrent client for global settings. These are only provided as a last resort in case you have a use case that for whatever reason is not natively supported by the instruction schema. However I ask that you submit a GitHub issue (or PR) if you find new use-cases not natively supported.
 
 Although everything the instruction schema can do is possible by natively interacting with torrent and client objects, it is highly discouraged. Metadatarr has built in optimisers that reduce the number of API calls made to the underlying BitTorrent client.
 
-For example, when testing on my personal library with ~5k torrents at the time of writing, each run, the default plugins return a combined 16k instructions. After a simple de-duplication, the number of instructions shrinks to 10k. Then finally after diffing against my qBitTorrent state, the total number of calls each run is ~8. Interfacing directly with the BitTorrent client will result in many redundant calls, or require time optimising calls that Metadatarr can optimise for you. Even with the best optimisations, you still won't be able to beat Metadatarr's built in optimiser, simply because your plugin is unaware of what other plugins are doing.
+For example, when testing on my personal library with ~5k torrents at the time of writing, each run, the default hooks return a combined 16k instructions. After a simple de-duplication, the number of instructions shrinks to 10k. Then finally after diffing against my qBitTorrent state, the total number of calls each run is ~8. Interfacing directly with the BitTorrent client will result in many redundant calls, or require time optimising calls that Metadatarr can optimise (better than you) automatically. Even with the best optimisations, you still won't be able to beat Metadatarr's built in optimiser, simply because your plugin is unaware of what other plugins are doing.
+
+### Testing
+Metadatarr provides a very basic development suite for testing your plugins.
+
+You can edit `./tools/inject.ts` to experiment new hooks, simply turn on `DEV_INJECT` in `core.jsonc` and run Metadatarr like usual. When injection is enabled, the inject tool will be called each cycle and all other hooks will be disabled.
+
+You can also check `./tools/simulate_rename.ts` (and run it directly) to see how I for example would test the `Naming` plugin.
 
 ## Contributing
 Metadatarr was built to solve real-world problems managing large torrent collections. If you have similar needs or improvements, contributions are welcome!

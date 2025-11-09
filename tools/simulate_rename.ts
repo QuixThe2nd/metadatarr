@@ -2,7 +2,9 @@ import { ConfigSchema, test } from '../plugins/Naming'
 import Client from '../src/clients/client'
 import { parseConfigFile } from '../src/config';
 
+// Test a single name instead of all in qBittorrent - Leave empty to disable
 const name = '';
+// Test all strings in qBittorrent containing a string - Leave empty to disable
 const filter = '';
 
 const config = parseConfigFile('plugins/naming.ts', ConfigSchema);

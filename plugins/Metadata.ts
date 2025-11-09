@@ -6,7 +6,7 @@ import type Client from '../src/clients/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import parseTorrent from 'parse-torrent';
-import type { PluginInputs } from "../src/plugins";
+import type { HookInputs } from "../src/plugins";
 
 export const saveMetadata = async (webtorrent: Instance, client: Client, metadata: Buffer): Promise<void> => {
   // eslint-disable-next-line
@@ -60,7 +60,7 @@ export const importMetadataFiles = async (webtorrent: Instance, client: Client, 
 const webtorrent = new WebTorrent({ downloadLimit: 1024 });
 
 let firstRun = true;
-export const hook = async ({ torrents, client, config }: PluginInputs<Config>): Promise<[]> => {
+export const hook = async ({ torrents, client, config }: HookInputs<Config>): Promise<[]> => {
   if (!config.ENABLED) return [];
   if (firstRun) {
     await importMetadataFiles(webtorrent, client,  path.join(__dirname, '/../../', config.TORRENT_PATH))
