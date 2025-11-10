@@ -77,7 +77,7 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
 
   const instructions: Instruction[] = [];
   await logContext('hook', async () => {
-    console.log('Hooking');
+    console.log('Running hooks');
     if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', () => hook({ torrents, client, config: {} })));
     else
       for (const [name, { hook, ConfigSchema }] of Object.entries(hooks))
@@ -86,16 +86,16 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
           const configSchema = ConfigSchema ?? z.object({})
           const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
           const pluginInstructions = await hook({ torrents, client, config });
-          console.log('Done Hooking - Instructions:', pluginInstructions.length);
+          console.log('Done hooking - Instructions:', pluginInstructions.length);
           return pluginInstructions;
         }));
 
-    console.log('Done Hooking - Instructions:', instructions.length);
+    console.log('Done running hooks - Instructions:', instructions.length);
   });
   pluginsRunning = false;
 
   const mappedTorrents = Object.fromEntries(torrents.map(t => [t.get().hash, t]));
-  const optimisedInstructions = await logContext('optimiser', async () => {
+  const optimisedInstructions = await logContext('compiler', async () => {
     const optimisedInstructions = await reduceInstructions(client, optimiseInstructions(instructions), mappedTorrents)
     console.log('Reduced instructions to:', optimisedInstructions.length);
     return optimisedInstructions;

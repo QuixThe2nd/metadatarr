@@ -4,6 +4,7 @@ import type { Instruction } from "../src/schemas";
 import type { HookInputs } from '../src/plugins';
 
 export const ConfigSchema = z.object({
+  ENABLED: z.boolean().default(true),
   QUEUE_SIZE_LIMIT: z.number().default(128),
   HARD_QUEUE_SIZE_LIMIT: z.boolean().default(true),
   INCLUDE_MOVING_TORRENTS: z.boolean().default(true),
@@ -21,7 +22,7 @@ const getTorrentsMoving = (torrents: ReturnType<typeof Torrent>[]): ReturnType<t
 const getTotalSize = (torrents: ReturnType<typeof Torrent>[]): number => torrents.map(torrent => torrent.get().size).reduce((acc, curr) => acc + curr, 0);
 
 export const hook = ({ torrents, config }: HookInputs<Config>): Instruction[] => {
-  if (!config.QUEUE_SIZE_LIMIT) return [];
+  if (!config.QUEUE_SIZE_LIMIT || !config.ENABLED) return [];
 
   torrents = torrents.filter(t => !config.EXCLUDE_CATEGORIES.includes(t.get().category ?? ''));
 
