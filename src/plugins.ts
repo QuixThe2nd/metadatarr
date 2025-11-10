@@ -90,7 +90,7 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
           return pluginInstructions;
         }));
 
-    console.log('Done running hooks - Instructions:', instructions.length);
+    console.log('Done running hooks');
   });
   pluginsRunning = false;
 

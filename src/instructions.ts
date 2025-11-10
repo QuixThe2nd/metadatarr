@@ -4,6 +4,7 @@ import type { Instruction } from './schemas';
 
 // eslint-disable-next-line max-lines-per-function, complexity
 export const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
+  console.log('Optimising:', instructions.length);
   const deletes = new Map<string, boolean>();
   const starts = new Set<string>();
   const stops = new Set<string>();
