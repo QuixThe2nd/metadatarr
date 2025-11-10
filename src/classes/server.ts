@@ -1,15 +1,16 @@
 import express from 'express';
-import { runPlugins, type PluginEndpoints } from '../plugins';
+import { runHooks, type Hooks, type PluginEndpoints } from '../plugins';
+import { logContext } from '../log';
 
-export const startServer = (plugins: PluginEndpoints): Promise<void> => new Promise(resolve => {
+export const startServer = (hooks: Hooks, endpoints: PluginEndpoints): Promise<void> => logContext('server', () => new Promise(resolve => {
   const app = express();
   app.use(express.json());
 
-  for (const [name, endpoint] of plugins) app.post(`/plugins/${name}`, endpoint);
+  for (const [name, endpoint] of endpoints) app.post(`/plugins/${name}`, endpoint);
 
   app.post('/api/run-jobs', (_, res) => {
     console.log('Job run manually requested')
-    runPlugins().catch(console.error);
+    runHooks(hooks).catch(console.error);
     res.status(200).send();
   });
 
@@ -19,4 +20,4 @@ export const startServer = (plugins: PluginEndpoints): Promise<void> => new Prom
     console.log('Server started at http://localhost:9191');
     resolve();
   })
-});
+}));

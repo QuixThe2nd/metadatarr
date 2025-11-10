@@ -3,7 +3,9 @@ import { CONFIG, testConfig } from './config';
 import { startServer } from './classes/server';
 import { properties } from './classes/Torrent';
 import { booleanActions, stringActions, arrayStringActions, filteredActions } from './schemas';
-import { plugins, runPlugins } from './plugins';
+import { importPlugins, runHooks } from './plugins';
+
+await testConfig();
 
 if (CONFIG.CORE().DRY_RUN) {
   console.log("======== PROPERTIES ========")
@@ -23,11 +25,10 @@ if (CONFIG.CORE().DRY_RUN) {
   console.log("|\n======== ACTIONS ========")
 }
 
-await testConfig();
-
-await startServer(plugins.endpoints);
+const plugins = await importPlugins();
+await startServer(plugins.hooks, plugins.endpoints);
 
 for (;;) {
-  const changes = await runPlugins();
+  const changes = await runHooks(plugins.hooks);
   await new Promise(res => setTimeout(res, CONFIG.CORE()[changes === 0 ? 'NO_JOB_WAIT' : 'JOB_WAIT']));
 }

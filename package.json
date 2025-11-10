@@ -7,6 +7,7 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
+    "async_hooks": "^1.0.0",
     "eslint": "^9.37.0",
     "express": "^5.1.0",
     "jsonc-parser": "^3.3.1",

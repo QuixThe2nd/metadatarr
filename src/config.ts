@@ -4,6 +4,7 @@ import z from "zod";
 import * as schemas from "./schemas";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logContext } from './log';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,13 +41,11 @@ const green_highlight = (text: string): string => `\x1b[42m\x1b[30m${text}\x1b[0
 const red_highlight = (text: string): string => `\x1b[41m\x1b[37m${text}\x1b[0m`;
 const bold = (text: string): string => `\x1b[1m${text}\x1b[0m`;
 
-export const testConfig = async (): Promise<void> => {
-  console.log()
+export const testConfig = (): Promise<void> => logContext('startup', async () => {
   for (const [config, parse] of Object.entries(CONFIG)) {
     console.log(`Validating config: ${config}`)
     parse();
   }
-  console.log()
 
   console.warn(yellow('|==================================|'));
   console.warn(yellow('||                                ||'));
@@ -60,4 +59,4 @@ export const testConfig = async (): Promise<void> => {
   console.warn(yellow('||                                ||'));
   console.warn(yellow('|==================================|'));
   if (!CONFIG.CORE().DRY_RUN) await new Promise(res => setTimeout(res, 5_000))
-}
+});
