@@ -1,5 +1,6 @@
 import type Torrent from './classes/Torrent';
 import type Client from './clients/client';
+import { logContext } from './log';
 import type { Instruction } from './schemas';
 
 interface Actions {
@@ -14,8 +15,7 @@ interface Actions {
 }
 
 // eslint-disable-next-line max-lines-per-function, complexity
-export const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
-  console.log('Optimising:', instructions.length);
+const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
   const torrents = new Map<string, Actions>();
   const deletes = new Map<string, boolean>();
   const topPriority: string[][] = [];
@@ -81,7 +81,7 @@ export const optimiseInstructions = (instructions: Instruction[]): Instruction[]
   return optimisedInstructions;
 }
 
-export const reduceInstructions = async (client: Client, instructions: Instruction[], torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => {
+const reduceInstructions = async (client: Client, instructions: Instruction[], torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => {
   const maxActiveDownloads = instructions.some(instruction => instruction.then === 'setMaxActiveDownloads') ? await client.getMaxActiveDownloads() : false;
 
   // eslint-disable-next-line complexity
@@ -104,3 +104,10 @@ export const reduceInstructions = async (client: Client, instructions: Instructi
     throw new Error(`Unknown Instruction: ${instruction.then}`);
   });
 }
+
+export const compileInstructions = (instructions: Instruction[], client: Client, torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => logContext('compiler', async () => {
+  console.log('Compiling Instructions:', instructions.length);
+  const compiledInstructions = await reduceInstructions(client, optimiseInstructions(instructions), torrents);
+  console.log('Reduced instructions to:', compiledInstructions.length);
+  return compiledInstructions;
+});

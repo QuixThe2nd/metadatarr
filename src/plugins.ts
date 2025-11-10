@@ -8,7 +8,7 @@ import { InstructionSchema, type Instruction } from './schemas';
 import type { Request, Response } from 'express';
 import hook from '../tools/inject';
 import { logContext } from './log';
-import { reduceInstructions, optimiseInstructions } from './instructions';
+import { compileInstructions } from './instructions';
 import { CONFIG, parseConfigFile } from './config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -95,11 +95,7 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
   pluginsRunning = false;
 
   const mappedTorrents = Object.fromEntries(torrents.map(t => [t.get().hash, t]));
-  const optimisedInstructions = await logContext('compiler', async () => {
-    const optimisedInstructions = await reduceInstructions(client, optimiseInstructions(instructions), mappedTorrents)
-    console.log('Reduced instructions to:', optimisedInstructions.length);
-    return optimisedInstructions;
-  });
+  const optimisedInstructions = await compileInstructions(instructions, client, mappedTorrents);
 
   for (const instruction of optimisedInstructions) {
     if ('hash' in instruction) {
