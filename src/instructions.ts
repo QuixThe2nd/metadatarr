@@ -2,74 +2,78 @@ import type Torrent from './classes/Torrent';
 import type Client from './clients/client';
 import type { Instruction } from './schemas';
 
+interface Actions {
+  start: boolean | undefined;
+  autoManagement: boolean | undefined;
+  addTags: Set<string>;
+  removeTags: Set<string>;
+  name: string | undefined;
+  category: string | undefined;
+  toggleSequentialDownloads: true | undefined;
+  recheck: true | undefined;
+}
+
 // eslint-disable-next-line max-lines-per-function, complexity
 export const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
   console.log('Optimising:', instructions.length);
+  const torrents = new Map<string, Actions>();
   const deletes = new Map<string, boolean>();
-  const starts = new Set<string>();
-  const stops = new Set<string>();
-  const rechecks = new Set<string>();
-  const addTags: Record<string, string[]> = {};
-  const removeTags: Record<string, string[]> = {};
-  const rename: Record<string, string> = {};
   const topPriority: string[][] = [];
-  const sequentialDownload = new Set<string>();
-  const autoTMM = new Map<string, boolean>();
-  const category = new Map<string, string>();
   let setMaxActiveDownloads: number | undefined;
 
   for (const instruction of instructions)
-    if (instruction.then === 'delete') {
-      if (deletes.get(instruction.hash) !== true) deletes.set(instruction.hash, instruction.arg);
-    } else if (instruction.then === 'recheck') rechecks.add(instruction.hash);
-    else if (instruction.then === 'start') {
-      starts.add(instruction.hash);
-      stops.delete(instruction.hash);
-    } else if (instruction.then === 'stop') {
-      stops.add(instruction.hash);
-      starts.delete(instruction.hash);
-    } else if (instruction.then === 'addTags') {
-      const existingTags = addTags[instruction.hash] ?? [];
-      addTags[instruction.hash] = [...new Set([...existingTags, ...instruction.arg])];
-      removeTags[instruction.hash]?.filter(tag => !instruction.arg.includes(tag));
-      if (removeTags[instruction.hash]?.length === 0) delete removeTags[instruction.hash];
-    } else if (instruction.then === 'removeTags') {
-      const existingTags = removeTags[instruction.hash] ?? [];
-      removeTags[instruction.hash] = [...new Set([...existingTags, ...instruction.arg])];
-      addTags[instruction.hash]?.filter(tag => !instruction.arg.includes(tag));
-      if (addTags[instruction.hash]?.length === 0) delete addTags[instruction.hash];
-    } else if (instruction.then === 'topPriority') topPriority.push(instruction.arg)
-    else if (instruction.then === 'setMaxActiveDownloads') setMaxActiveDownloads = instruction.arg;
-    else if (instruction.then === 'rename') rename[instruction.hash] = instruction.arg;
-    else if (instruction.then === 'toggleSequentialDownload') sequentialDownload.add(instruction.hash);
-    else if (instruction.then === 'setAutoManagement') autoTMM.set(instruction.hash, instruction.arg)
-    else if (instruction.then === 'setCategory') category.set(instruction.hash, instruction.arg);
-    else throw new Error(`Unknown Instruction: ${instruction.then}`);
-
-  for (const [hash] of deletes) {
-    delete addTags[hash];
-    delete removeTags[hash];
-    delete rename[hash];
-    sequentialDownload.delete(hash);
-    starts.delete(hash);
-    stops.delete(hash);
-    rechecks.delete(hash);
-    category.delete(hash);
-    autoTMM.delete(hash);
+    if (instruction.then === 'setMaxActiveDownloads') setMaxActiveDownloads = instruction.arg;
+    else if (instruction.then === 'topPriority') topPriority.push(instruction.arg)
+    else {
+      const { hash } = instruction;
+      if (deletes.has(hash)) continue;
+      if (!torrents.has(hash)) torrents.set(hash, {
+        addTags: new Set(),
+        removeTags: new Set(),
+        recheck: undefined,
+        toggleSequentialDownloads: undefined,
+        start: undefined,
+        autoManagement: undefined,
+        name: undefined,
+        category: undefined
+      });
+      const torrent = torrents.get(hash);
+      if (torrent === undefined) throw new Error('Failed to pull torrent?');
+      if (instruction.then === 'delete') {
+        if (deletes.get(hash) !== true) deletes.set(hash, instruction.arg);
+        torrents.delete(hash);
+      } else if (instruction.then === 'recheck') torrent.recheck = true;
+      else if (instruction.then === 'start') torrent.start = true;
+      else if (instruction.then === 'stop') torrent.start = false;
+      else if (instruction.then === 'addTags') {
+        instruction.arg.forEach(tag => torrent.addTags.add(tag));
+        instruction.arg.forEach(tag => torrent.removeTags.delete(tag));
+      } else if (instruction.then === 'removeTags') {
+        instruction.arg.forEach(tag => torrent.removeTags.add(tag));
+        instruction.arg.forEach(tag => torrent.addTags.delete(tag));
+      } else if (instruction.then === 'rename') torrent.name = instruction.arg;
+      else if (instruction.then === 'toggleSequentialDownload') torrent.toggleSequentialDownloads = true;
+      else if (instruction.then === 'setAutoManagement') torrent.autoManagement = instruction.arg;
+      else if (instruction.then === 'setCategory') torrent.category = instruction.arg;
+      else throw new Error(`Unknown Instruction: ${instruction.then}`);
   }
 
   const optimisedInstructions: Instruction[] = [
     ...[...deletes].map(([hash, arg]): Instruction => ({ then: 'delete', hash, arg })),
-    ...Object.entries(addTags).map(([hash, arg]): Instruction => ({ then: 'addTags', hash, arg })),
-    ...Object.entries(removeTags).map(([hash, arg]): Instruction => ({ then: 'removeTags', hash, arg })),
-    ...Object.entries(rename).map(([hash, name]): Instruction => ({ then: 'rename', hash, arg: name })),
     ...topPriority.map((torrents): Instruction => ({ then: 'topPriority', arg: torrents })),
-    ...[...sequentialDownload].map((hash): Instruction => ({ then: 'toggleSequentialDownload', hash })),
-    ...[...starts].map((hash): Instruction => ({ then: 'start', hash })),
-    ...[...stops].map((hash): Instruction => ({ then: 'stop', hash })),
-    ...[...rechecks].map((hash): Instruction => ({ then: 'recheck', hash })),
-    ...[...autoTMM].map(([hash, arg]): Instruction => ({ then: 'setAutoManagement', hash, arg })),
-    ...[...category].map(([hash, arg]): Instruction => ({ then: 'setCategory', hash, arg })),
+    ...[...torrents].flatMap(([hash, actions]): Instruction[] => {
+      const instructions: Instruction[] = [];
+      if (actions.start === true) instructions.push({ hash, then: 'start' });
+      else if (actions.start === false) instructions.push({ hash, then: 'stop' });
+      if (actions.recheck === true) instructions.push({ hash, then: 'recheck' });
+      if (actions.toggleSequentialDownloads === true) instructions.push({ hash, then: 'recheck' });
+      if (actions.autoManagement !== undefined) instructions.push({ hash, then: 'setAutoManagement', arg: actions.autoManagement });
+      if (actions.name !== undefined) instructions.push({ hash, then: 'rename', arg: actions.name });
+      if (actions.category !== undefined) instructions.push({ hash, then: 'setCategory', arg: actions.category });
+      if (actions.addTags.size) instructions.push({ hash, then: 'addTags', arg: [...actions.addTags] });
+      if (actions.removeTags.size) instructions.push({ hash, then: 'removeTags', arg: [...actions.removeTags] });
+      return instructions;
+    })
   ];
   if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads });
 
