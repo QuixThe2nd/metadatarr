@@ -36,17 +36,16 @@ export interface HookInputs<Config extends Record<string, unknown> = Record<stri
 }
 
 type Hook = (hookInputs: HookInputs) => Promise<Instruction[]>;
-type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
+export type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
 
 type Endpoint = (req: Request, res: Response) => Promise<void>;
 export type PluginEndpoints = Map<string, Endpoint>;
 
-const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => {
+export const importPlugins = (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => logContext('plugins', async () => {
   const hooks: Hooks = {};
   const endpoints: PluginEndpoints = new Map();
 
-  console.log()
-  console.log('Importing Plugins');
+  console.log('Importing');
   for (const file of fs.readdirSync(pluginDir)) {
     if (file.startsWith('_')) continue;
     const name = file.replace(/\.[tj]s/i, '');
@@ -61,16 +60,14 @@ const importPlugins = async (): Promise<{ hooks: Hooks, endpoints: PluginEndpoin
       hooks[name] = { hook, ConfigSchema: pluginExports.ConfigSchema };
     }
   }
-  console.log()
 
   return { hooks, endpoints };
-}
+})
 
 const client = await Client.connect()
-export const plugins = await importPlugins();
 
 let pluginsRunning = false;
-export const runPlugins = async (): Promise<number> => {
+export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins', async () => {
   if (pluginsRunning) return 0;
   pluginsRunning = true;
 
@@ -79,24 +76,30 @@ export const runPlugins = async (): Promise<number> => {
   const torrents = await client.torrents();
 
   const instructions: Instruction[] = [];
-  if (coreConfig.DEV_INJECT) instructions.push(...await hook({ torrents, client, config: {} }));
-  else
-    for (const [name, { hook, ConfigSchema }] of Object.entries(plugins.hooks))
-      instructions.push(...await logContext(name, async () => {
-        console.log('Plugin Started');
-        const configSchema = ConfigSchema ?? z.object({})
-        const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
-        const pluginInstructions = await hook({ torrents, client, config });
-        console.log('Plugin Finished - Instructions:', pluginInstructions.length);
-        return pluginInstructions;
-      }));
+  await logContext('hook', async () => {
+    console.log('Hooking');
+    if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', () => hook({ torrents, client, config: {} })));
+    else
+      for (const [name, { hook, ConfigSchema }] of Object.entries(hooks))
+        instructions.push(...await logContext(name, async () => {
+          console.log('Hooking');
+          const configSchema = ConfigSchema ?? z.object({})
+          const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
+          const pluginInstructions = await hook({ torrents, client, config });
+          console.log('Done Hooking - Instructions:', pluginInstructions.length);
+          return pluginInstructions;
+        }));
 
-  console.log('Plugins Finished - Instructions:', instructions.length);
+    console.log('Done Hooking - Instructions:', instructions.length);
+  });
   pluginsRunning = false;
 
   const mappedTorrents = Object.fromEntries(torrents.map(t => [t.get().hash, t]));
-  const optimisedInstructions = await reduceInstructions(client, optimiseInstructions(instructions), mappedTorrents);
-  console.log('Reduced instructions to:', optimisedInstructions.length);
+  const optimisedInstructions = await logContext('optimiser', async () => {
+    const optimisedInstructions = await reduceInstructions(client, optimiseInstructions(instructions), mappedTorrents)
+    console.log('Reduced instructions to:', optimisedInstructions.length);
+    return optimisedInstructions;
+  });
 
   for (const instruction of optimisedInstructions) {
     if ('hash' in instruction) {
@@ -111,6 +114,6 @@ export const runPlugins = async (): Promise<number> => {
   }
 
   return optimisedInstructions.length;
-}
+});
 
 // TODO: move old config comments to zod .describe()
