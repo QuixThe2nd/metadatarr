@@ -8,9 +8,21 @@ import { fileURLToPath } from 'url';
 import parseTorrent from 'parse-torrent';
 import type { HookInputs } from "../src/plugins";
 
+const safeParseTorrent = async (metadata: Buffer): Promise<string | false> => {
+  try {
+    // eslint-disable-next-line
+    return (await parseTorrent(metadata)).infoHash!;
+  } catch(e) {
+    console.error('Failed to parse torrent metadata', e)
+    console.log(metadata)
+    console.log(metadata.toString().slice(0, 20))
+    return false;
+  }
+}
+
 export const saveMetadata = async (webtorrent: Instance, client: Client, metadata: Buffer): Promise<void> => {
-  // eslint-disable-next-line
-  const hash = (await parseTorrent(metadata)).infoHash!;
+  const hash = await safeParseTorrent(metadata);
+  if (hash === false) return;
   await client.add(metadata);
   if (await webtorrent.get(hash)) {
     await webtorrent.remove(hash);
