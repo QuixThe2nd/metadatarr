@@ -3,6 +3,7 @@ import z from "zod";
 import { logContext } from "../log";
 import type Client from "../clients/client";
 import { CachedValue, CacheEngine } from "./CacheEngine";
+import path from 'path';
 
 export const properties = {
   String: {
@@ -64,7 +65,7 @@ export const TorrentObjectSchema = z.object({
   addTags: z.custom<(arg: string[]) => Promise<number>>(),
 });
 
-const filesCache = new CachedValue<Record<string, { name: string }[] | undefined>>(new CacheEngine('../../store/cachedFiles.jsonc'), 'files', {}, 1000*60*60*24);
+const filesCache = new CachedValue<Record<string, { name: string }[] | undefined>>(new CacheEngine(path.join(__dirname, '../../store/cachedFiles.jsonc')), 'files', {}, 1000*60*60*24);
 
 const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjectSchema> => {
   const request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
