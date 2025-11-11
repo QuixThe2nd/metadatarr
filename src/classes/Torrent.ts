@@ -4,6 +4,7 @@ import { logContext } from "../log";
 import type Client from "../clients/client";
 import { CachedValue, CacheEngine } from "./CacheEngine";
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 export const properties = {
   String: {
@@ -39,6 +40,10 @@ export const properties = {
     tags: z.codec(z.string(), z.array(z.string()), { decode: (str) => str.split(', '), encode: (arr) => arr.join(', ') }),
   }
 }
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const TorrentSchema = z.object({ ...properties.String, ...properties.Number, ...properties.Boolean, ...properties.Array }).superRefine(t => {
   // When checking a partially completed torrent, amount_left counts total unverified OR missing pieces. This property uses progress to calculate only unverified pieces.
