@@ -15,7 +15,7 @@ export const hook = async ({ torrents }: HookInputs): Promise<Instruction[]> => 
         console.error(e);
       }
     }
-    if (!linked) console.log('No hardlink found', torrent)
+    if (!linked) console.log('No hardlink found', torrent.get().hash)
   }
   return [];
 }
