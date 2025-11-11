@@ -6,13 +6,16 @@ import z from 'zod';
 
 export const ConfigSchema = z.object({
   ENABLED: z.boolean().default(true),
-  TAG: z.string().default('!noHL_test')
+  TAG: z.string().default('!noHL_test'),
+  MAX_CHECKS: z.number().default(100)
 })
 
 export const hook = async ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => {
   if (!config.ENABLED) return [];
   const instructions: Instruction[] = [];
-  for (const torrent of torrents) {
+  for (let i = 0; i < torrents.length; i++) {
+    if (i > config.MAX_CHECKS) break;
+    const torrent = torrents[i]!;
     const { hash, save_path } = torrent.get();
     let linked = false;
     const files = (await torrent.files() ?? []).map(file => file.name);
