@@ -11,6 +11,7 @@ export const properties = {
     name: z.string(),
     category: z.string().nullable(),
     tracker: z.string(),
+    save_path: z.string()
   },
   Number: {
     size: z.number(),
