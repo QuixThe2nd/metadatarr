@@ -12,6 +12,7 @@ export const ConfigSchema = z.object({
 
 export const hook = async ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => {
   if (!config.ENABLED) return [];
+  torrents = torrents.sort(() => Math.random() - 0.5);
   const instructions: Instruction[] = [];
   for (let i = 0; i < torrents.length; i++) {
     if (i > config.MAX_CHECKS) break;
