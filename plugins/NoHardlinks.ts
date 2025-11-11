@@ -9,7 +9,11 @@ export const hook = async ({ torrents }: HookInputs): Promise<Instruction[]> => 
     const files = (await torrent.files() ?? []).map(file => file.name);
     for (const file of files) {
       const absolutePath = path.join(`${torrent.get().save_path}/`, file)
-      if ((await stat(absolutePath)).nlink > 1) linked = true;
+      try {
+        if ((await stat(absolutePath)).nlink > 1) linked = true; 
+      } catch (e) {
+        console.error(e);
+      }
     }
     if (!linked) console.log('No hardlink found', torrent)
   }
