@@ -17,7 +17,6 @@ const checkLinks = async (filePath: string): Promise<number> => {
 
 export const hook = async ({ torrents }: HookInputs): Promise<Instruction[]> => {
   for (const torrent of torrents) {
-    console.log(torrent)
     const files = (await torrent.files() ?? []).map(file => file.name);
     for (const file of files) {
       const absolutePath = path.join(`${torrent.get().save_path}/`, file)

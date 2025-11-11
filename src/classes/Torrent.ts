@@ -48,7 +48,7 @@ export type TorrentType = z.infer<typeof TorrentSchema>;
 const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile'];
 
 export const TorrentObjectSchema = z.object({
-  get: z.function({ output: TorrentSchema }),
+  get: z.custom<() => TorrentType>(),
   files: z.custom<() => Promise<{ name: string }[] | null>>(),
   start: z.custom<() => Promise<number>>(),
   stop: z.custom<() => Promise<number>>(),
