@@ -47,7 +47,23 @@ export type TorrentType = z.infer<typeof TorrentSchema>;
 
 const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile'];
 
-const Torrent = (client: Client, data: TorrentType) => {
+export const TorrentObjectSchema = z.object({
+  get: z.function({ output: TorrentSchema }),
+  files: z.custom<() => Promise<{ name: string }[] | null>>(),
+  start: z.custom<() => Promise<number>>(),
+  stop: z.custom<() => Promise<number>>(),
+  recheck: z.custom<() => Promise<number>>(),
+  delete: z.custom<(arg: boolean) => Promise<number>>(),
+  setCategory: z.custom<(arg: string) => Promise<number>>(),
+  rename: z.custom<(arg: string) => Promise<number>>(),
+  renameFile: z.custom<(arg: string, arg2: string) => Promise<number>>(),
+  toggleSequentialDownload: z.custom<() => Promise<number>>(),
+  setAutoManagement: z.custom<(arg: boolean) => Promise<number>>(),
+  removeTags: z.custom<(arg: string[]) => Promise<number>>(),
+  addTags: z.custom<(arg: string[]) => Promise<number>>(),
+});
+
+const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjectSchema> => {
   const request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
     const { enable, deleteFiles, ...restWithoutProps } = rest;
     const payload = {

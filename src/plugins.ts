@@ -10,12 +10,13 @@ import hook from '../tools/inject';
 import { logContext } from './log';
 import { compileInstructions } from './instructions';
 import { CONFIG, parseConfigFile } from './config';
+import { TorrentObjectSchema } from './classes/Torrent';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginDir = path.join(__dirname, '../plugins/');
 
 const HookSchema = z.function({
-  input: [z.object({ torrents: z.array(z.object({ get: z.function() })), client: z.instanceof(Client), config: z.object().loose() })],
+  input: [z.object({ torrents: z.array(TorrentObjectSchema), client: z.instanceof(Client), config: z.object().loose() })],
   output: z.promise(z.array(InstructionSchema))
 });
 
