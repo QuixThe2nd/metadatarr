@@ -12,6 +12,7 @@
     "express": "^5.1.0",
     "jsonc-parser": "^3.3.1",
     "parse-torrent-title": "file:../parse-torrent-title",
+    "superjson": "^2.2.5",
     "typescript-eslint": "^8.46.0",
     "webtorrent": "^2.8.4",
     "zod": "^4.1.11"

@@ -8,6 +8,8 @@ import path from "path";
 import parseTorrent from 'parse-torrent';
 import { fileURLToPath } from 'url';
 import type { HookInputs } from "../src/plugins";
+import { cacheEngine } from "../src";
+import { CachedValue } from "../src/classes/CacheEngine";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
@@ -91,9 +93,6 @@ const __dirname = path.dirname(__filename);
 const cacheDir = path.join(__dirname, '../../store/cache/');
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true })
 
-const showCachePath = path.join(cacheDir, 'shows.json');
-const episodeCachePath = path.join(cacheDir, 'episodes.json');
-
 const ShowSchema = z.object({
   results: z.array(z.object({
     id: z.number()
@@ -104,38 +103,31 @@ const EpisodeSchema = z.object({
   name: z.string().optional()
 });
 
-const ShowCacheSchema = z.record(z.string(), z.number().optional());
-if (!fs.existsSync(showCachePath)) fs.writeFileSync(showCachePath, '{}');
-const showCache = ShowCacheSchema.parse(JSON.parse(fs.readFileSync(showCachePath).toString()));
-
-const EpisodeCacheSchema = z.record(z.string(), z.string().optional());
-if (!fs.existsSync(episodeCachePath)) fs.writeFileSync(episodeCachePath, '{}');
-const episodeCache = EpisodeCacheSchema.parse(JSON.parse(fs.readFileSync(episodeCachePath).toString()));
+const showCache = new CachedValue<Record<string, number | undefined>>(cacheEngine, 'shows', {}, 1000*60*60*24*7);
+const episodeCache = new CachedValue<Record<string, string | undefined>>(cacheEngine, 'episodes', {}, 1000*60*60*24*7);
 
 const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): Promise<number | undefined> => {
-  if (title in showCache) return showCache[title];
+  if (title in showCache.value) return showCache.value[title];
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Show: ${title}`);
   const res = await fetch(`https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&query=${title}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
   const id = ShowSchema.parse(await res.json()).results[0]?.id;
 
-  showCache[title] = id;
-  fs.writeFileSync(showCachePath, JSON.stringify(showCache));
+  showCache.value[title] = id;
   return id;
 }
 
 const getEpisodeTitle = async (id: number, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
   const cacheKey = `${id}S${season}E${episode}`;
-  if (cacheKey in episodeCache) return episodeCache[cacheKey];
+  if (cacheKey in episodeCache.value) return episodeCache.value[cacheKey];
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Episode: ${id} S${season}E${episode}`)
   const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}/episode/${episode}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
   const name = EpisodeSchema.parse(await res.json()).name;
 
-  episodeCache[cacheKey] = name;
-  fs.writeFileSync(episodeCachePath, JSON.stringify(episodeCache));
+  episodeCache.value[cacheKey] = name;
   return name;
 }
 
