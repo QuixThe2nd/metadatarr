@@ -3,16 +3,22 @@ import type { Instruction } from "../src/schemas";
 import path from 'path';
 import { stat } from 'fs/promises';
 import z from 'zod';
+import { queryEngine, QuerySchema } from "../src/classes/QueryEngine";
 
 export const ConfigSchema = z.object({
   ENABLED: z.boolean().default(true),
   TAG: z.string().default('!noHL_test'),
-  MAX_CHECKS: z.number().default(100)
+  MAX_CHECKS: z.number().default(100),
+  FILTERS: QuerySchema.default({
+    key: 'category',
+    comparator: '==',
+    value: ['lidarr', 'radarr', 'readarr', 'sonarr', 'cross-seed-links']
+  })
 })
 
 export const hook = async ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => {
   if (!config.ENABLED) return [];
-  torrents = torrents.sort(() => Math.random() - 0.5);
+  torrents = queryEngine.execute(torrents, config.FILTERS, true).sort(() => Math.random() - 0.5);
   const instructions: Instruction[] = [];
   for (let i = 0; i < torrents.length; i++) {
     if (i > config.MAX_CHECKS) break;
