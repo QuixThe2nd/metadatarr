@@ -16,13 +16,16 @@ export const ConfigSchema = z.object({
   })
 })
 
+const requiredFilters: z.infer<typeof QuerySchema> = { key: 'progress', comparator: '==', value: 1 };
+
 export const hook = async ({ torrents, config }: HookInputs<z.infer<typeof ConfigSchema>>): Promise<Instruction[]> => {
   if (!config.ENABLED) return [];
-  torrents = queryEngine.execute(torrents, config.FILTERS, true).sort(() => Math.random() - 0.5);
+  torrents = queryEngine.execute(queryEngine.execute(torrents, config.FILTERS, true), requiredFilters, true).sort(() => Math.random() - 0.5);
   const instructions: Instruction[] = [];
   for (let i = 0; i < torrents.length; i++) {
     if (i > config.MAX_CHECKS) break;
-    const torrent = torrents[i]!;
+    const torrent = torrents[i];
+    if (torrent === undefined) continue;
     const { hash, save_path } = torrent.get();
     let linked = false;
     const files = (await torrent.files() ?? []).map(file => file.name);
