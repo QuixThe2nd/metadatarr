@@ -89,9 +89,6 @@ export const ConfigSchema = z.object({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const cacheDir = path.join(__dirname, '../../store/cache/');
-if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true })
-
 const ShowSchema = z.object({
   results: z.array(z.object({
     id: z.number()
