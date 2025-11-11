@@ -1,5 +1,4 @@
 import fs from 'fs';
-import z from 'zod';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import LockFile from './LockFile';
@@ -8,38 +7,52 @@ import SuperJSON from 'superjson';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const cachePath = path.join(__dirname, '../../store/cache.json');
+const cacheDir = path.join(__dirname, '../../store/cache/');
+if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-const ItemSchema = z.object({
-  value: z.string(),
-  expiry: z.number()
-});
-const StoreSchema = z.record(z.string(), ItemSchema);
-type Store = z.infer<typeof StoreSchema>;
+export class CacheEngine<K, V> implements Map<K, V> {
+  private map = new Map<K, V>();
+  private path: string;
 
-export class CacheEngine {
-  private readonly store: Store;
-
-  constructor(path = cachePath) {
-    new LockFile(`${path}.lock`);
-    this.store = StoreSchema.parse(fs.existsSync(path) ? JSON.parse(fs.readFileSync(path).toString()) : {});
-  
+  constructor({ name }: { name: string }) {
+    const cachePath = path.join(cacheDir, `${name}.json`);
+    new LockFile(`${cachePath}.lock`);
+    this.path = cachePath;
+    if (!fs.existsSync(cachePath)) fs.writeFileSync(cachePath, '[]', 'utf8');
+    this.map = new Map<K, V>(JSON.parse(fs.readFileSync(cachePath, 'utf8')));
   }
 
-  set(key: string, value: string, ttl = 3_600_000): void {
-    const expiry = Date.now() + ttl;
-    this.store[key] = { value, expiry };
-    fs.writeFileSync(cachePath, JSON.stringify(this.store));
+  // Read
+  get = (key: K): V | undefined => { return this.map.get(key) };
+  forEach = (callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any) => { return this.map.forEach(callbackfn, thisArg) };
+  has = (key: K): boolean => { return this.map.has(key) };
+  entries = () => { return this.map.entries() };
+  keys = () => { return this.map.keys() };
+  values = () => { return this.map.values() };
+  get size(): number { return this.map.size };
+
+  // Write
+  delete(key: K): boolean {
+    const status = this.map.delete(key);
+    fs.writeFileSync(this.path, JSON.stringify([...this.map]), 'utf8');
+    return status;
+  }
+  clear(): void {
+    this.map.clear();
+    fs.writeFileSync(this.path, JSON.stringify([...this.map]), 'utf8');
+  }
+  set(key: K, value: V): this {
+    this.map.set(key, value)
+    fs.writeFileSync(this.path, JSON.stringify([...this.map]), 'utf8');
+    return this;
   }
 
-  get(key: string): string | null {
-    const item = this.store[key];
-    if (item === undefined) return null;
-    if (Date.now() > item.expiry) {
-      delete this.store[key];
-      return null;
-    }
-    return item.value;
+  // Iterator
+  get [Symbol.iterator]() {
+    return this.map[Symbol.iterator].bind(this.map);
+  }
+  get [Symbol.toStringTag]() {
+    return 'FSMap';
   }
 }
 
@@ -56,5 +69,3 @@ export class CachedValue<T> {
     this.cacheEngine.set(this.key, SuperJSON.stringify(value), this.expiry);
   }
 }
-
-export const cacheEngine = new CacheEngine();

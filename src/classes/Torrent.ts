@@ -3,8 +3,6 @@ import z from "zod";
 import { logContext } from "../log";
 import type Client from "../clients/client";
 import { CachedValue, CacheEngine } from "./CacheEngine";
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 export const properties = {
   String: {
@@ -41,10 +39,6 @@ export const properties = {
   }
 }
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export const TorrentSchema = z.object({ ...properties.String, ...properties.Number, ...properties.Boolean, ...properties.Array }).superRefine(t => {
   // When checking a partially completed torrent, amount_left counts total unverified OR missing pieces. This property uses progress to calculate only unverified pieces.
   t.real_amount_left = t.size * (1 - t.progress)
@@ -70,7 +64,7 @@ export const TorrentObjectSchema = z.object({
   addTags: z.custom<(arg: string[]) => Promise<number>>(),
 });
 
-const filesCache = new CachedValue<Record<string, { name: string }[] | undefined>>(new CacheEngine(path.join(__dirname, '../../store/cachedFiles.jsonc')), 'files', {}, 1000*60*60*24);
+const filesCache = new CachedValue<Record<string, { name: string }[] | undefined>>(new CacheEngine({ name: 'cachedFiles' }), 'files', {}, 1000*60*60*24);
 
 const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjectSchema> => {
   const request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
