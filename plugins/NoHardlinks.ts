@@ -21,7 +21,6 @@ const requiredFilters: z.infer<typeof QuerySchema> = { key: 'progress', comparat
 
 const isHardLinked = async (torrent: ReturnType<typeof Torrent>): Promise<boolean> => {
   let linked = false;
-  // TODO: Cache .files()
   const files = (await torrent.files() ?? []).map(file => file.name);
   for (const file of files) {
     const absolutePath = path.join(`${torrent.get().save_path}/`, file)

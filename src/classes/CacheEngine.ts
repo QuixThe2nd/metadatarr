@@ -20,9 +20,9 @@ type Store = z.infer<typeof StoreSchema>;
 export class CacheEngine {
   private readonly store: Store;
 
-  constructor() {
-    new LockFile(`${cachePath}.lock`);
-    this.store = StoreSchema.parse(fs.existsSync(cachePath) ? JSON.parse(fs.readFileSync(cachePath).toString()) : {});
+  constructor(path = cachePath) {
+    new LockFile(`${path}.lock`);
+    this.store = StoreSchema.parse(fs.existsSync(path) ? JSON.parse(fs.readFileSync(path).toString()) : {});
   
   }
 
