@@ -7,7 +7,7 @@ import type { Instruction } from "../src/schemas";
 import path from "path";
 import parseTorrent from 'parse-torrent';
 import type { HookInputs } from "../src/plugins";
-import { CachedValue, CacheEngine } from "../src/classes/CacheEngine";
+import { CacheEngine } from "../src/classes/CacheEngine";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
@@ -95,33 +95,31 @@ const EpisodeSchema = z.object({
   name: z.string().optional()
 });
 
-const cacheEngine = new CacheEngine({ name: 'TMDB' });
-
-const showCache = new CachedValue<Record<string, number | undefined>>(cacheEngine, 'shows', {}, 1000*60*60*24*7);
-const episodeCache = new CachedValue<Record<string, string | undefined>>(cacheEngine, 'episodes', {}, 1000*60*60*24*7);
+const showCache = new CacheEngine<string, number>({ name: 'shows' });
+const episodeCache = new CacheEngine<string, string>({ name: 'episodes' });
 
 const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): Promise<number | undefined> => {
-  if (title in showCache.value) return showCache.value[title];
+  if (showCache.has(title)) return showCache.get(title);
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Show: ${title}`);
   const res = await fetch(`https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&query=${title}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
   const id = ShowSchema.parse(await res.json()).results[0]?.id;
 
-  showCache.value[title] = id;
+  showCache.set(title, id, 1_000*60*60*24*30);
   return id;
 }
 
 const getEpisodeTitle = async (id: number, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
   const cacheKey = `${id}S${season}E${episode}`;
-  if (cacheKey in episodeCache.value) return episodeCache.value[cacheKey];
+  if (episodeCache.has(cacheKey)) return episodeCache.get(cacheKey);
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Episode: ${id} S${season}E${episode}`)
   const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}/episode/${episode}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
   const name = EpisodeSchema.parse(await res.json()).name;
 
-  episodeCache.value[cacheKey] = name;
+  episodeCache.set(cacheKey, name, 1_000*60*60*24*30);
   return name;
 }
 
