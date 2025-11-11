@@ -4,6 +4,9 @@ import { startServer } from './classes/server';
 import { properties } from './classes/Torrent';
 import { booleanActions, stringActions, arrayStringActions, filteredActions } from './schemas';
 import { importPlugins, runHooks } from './plugins';
+import { CacheEngine } from './classes/CacheEngine';
+
+export const cacheEngine = new CacheEngine();
 
 await testConfig();
 

@@ -2,6 +2,8 @@
 import z from "zod";
 import { logContext } from "../log";
 import type Client from "../clients/client";
+import { CachedValue } from "./CacheEngine";
+import { cacheEngine } from "..";
 
 export const properties = {
   String: {
@@ -63,6 +65,8 @@ export const TorrentObjectSchema = z.object({
   addTags: z.custom<(arg: string[]) => Promise<number>>(),
 });
 
+const filesCache = new CachedValue<Record<string, { name: string }[] | undefined>>(cacheEngine, 'files', {}, 1000*60*60*24);
+
 const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjectSchema> => {
   const request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
     const { enable, deleteFiles, ...restWithoutProps } = rest;
@@ -84,9 +88,13 @@ const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjec
   return {
     get: (): TorrentType => data,
     files: async (): Promise<{ name: string }[] | null> => {
+      const cacheResult = filesCache.value[data.hash];
+      if (cacheResult) return cacheResult;
       const res = await request(`files?hash=${data.hash}`);
       if (res === false) return null;
-      return z.array(z.object({ name: z.string() })).parse(JSON.parse(res));
+      const result = z.array(z.object({ name: z.string() })).parse(JSON.parse(res));
+      filesCache.value[data.hash] = result;
+      return result;
     },
     start: async (): Promise<number> => await request('start') === false ? 0 : 1,
     stop: async (): Promise<number> => {
