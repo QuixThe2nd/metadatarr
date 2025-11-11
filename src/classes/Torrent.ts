@@ -1,9 +1,8 @@
-/* eslint-disable max-lines-per-function, @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable max-lines-per-function */
 import z from "zod";
 import { logContext } from "../log";
 import type Client from "../clients/client";
-import { CachedValue } from "./CacheEngine";
-import { cacheEngine } from "..";
+import { CachedValue, cacheEngine } from "./CacheEngine";
 
 export const properties = {
   String: {

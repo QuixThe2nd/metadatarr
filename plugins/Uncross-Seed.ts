@@ -27,7 +27,7 @@ export const endpoint = (client: Client, config: z.infer<typeof ConfigSchema>) =
       const oldTorrent = torrents.find(t => t.get().hash === payload.searchee.infoHash);
       if (oldTorrent && config.FILTERS.some(f => queryEngine.execute([oldTorrent], f, true).length !== 0)) {
         console.log("\x1b[32m[Cross-Seed]\x1b[0m Uncross-Seeding torrent");
-        await oldTorrent.delete();
+        await oldTorrent.delete(true);
         const newTorrent = torrents.find(t => t.get().hash === payload.infoHashes[0]);
         if (oldTorrent.get().category !== null && payload.infoHashes.length !== 0) await newTorrent?.setCategory(oldTorrent.get().category ?? '');
         await newTorrent?.addTags(['uncross-seed']);
