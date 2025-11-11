@@ -8,7 +8,7 @@ import path from "path";
 import parseTorrent from 'parse-torrent';
 import { fileURLToPath } from 'url';
 import type { HookInputs } from "../src/plugins";
-import { CachedValue, cacheEngine } from "../src/classes/CacheEngine";
+import { CachedValue, CacheEngine } from "../src/classes/CacheEngine";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
@@ -101,6 +101,10 @@ const ShowSchema = z.object({
 const EpisodeSchema = z.object({
   name: z.string().optional()
 });
+
+const cachePath = path.join(__dirname, '../store/TMDB.json');
+
+const cacheEngine = new CacheEngine(cachePath);
 
 const showCache = new CachedValue<Record<string, number | undefined>>(cacheEngine, 'shows', {}, 1000*60*60*24*7);
 const episodeCache = new CachedValue<Record<string, string | undefined>>(cacheEngine, 'episodes', {}, 1000*60*60*24*7);
