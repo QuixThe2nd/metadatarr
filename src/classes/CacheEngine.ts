@@ -56,3 +56,5 @@ export class CachedValue<T> {
     this.cacheEngine.set(this.key, SuperJSON.stringify(value), this.expiry);
   }
 }
+
+export const cacheEngine = new CacheEngine();

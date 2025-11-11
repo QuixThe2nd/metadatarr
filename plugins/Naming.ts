@@ -8,8 +8,7 @@ import path from "path";
 import parseTorrent from 'parse-torrent';
 import { fileURLToPath } from 'url';
 import type { HookInputs } from "../src/plugins";
-import { cacheEngine } from "../src";
-import { CachedValue } from "../src/classes/CacheEngine";
+import { CachedValue, cacheEngine } from "../src/classes/CacheEngine";
 
 const stringKeys = ['title', 'resolution', 'color', 'codec', 'source', 'encoder', 'group', 'audio', 'container', 'language', 'service', 'samplerate', 'bitdepth', 'channels', 'season', 'episode', 'year', 'downscaled'] as const;
 
