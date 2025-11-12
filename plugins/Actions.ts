@@ -69,7 +69,7 @@ const defaultActions: Actions[] = [
   // Remove !noHL torrents from public trackers
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "private", "comparator": "!="}
   	],
   	"then": "delete",
@@ -78,7 +78,7 @@ const defaultActions: Actions[] = [
   // Remove !noHL torrents from no-HnR trackers
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX", "@SP", "@CBR", "@ANT"]}
   	],
   	"then": "delete",
@@ -87,7 +87,7 @@ const defaultActions: Actions[] = [
   // Remove !noHL torrents from private trackers based on seeding time
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@ULCX", "@HDS", "@SA", "@RAS", "@OE", "@PTF"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 259200} // 3 days
   	],
@@ -96,7 +96,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@ST"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 345600} // 4 days
   	],
@@ -105,7 +105,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@ATH", "@YS", "@DCC", "@RF"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 518400} // 6 days
   	],
@@ -114,7 +114,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@SHR", "@DP"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 604800} // 7 days
   	],
@@ -123,7 +123,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@BLU"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 691200} // 8 days
   	],
@@ -132,7 +132,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@TL"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 777600} // 9 days
   	],
@@ -141,7 +141,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@PHD"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 950400} // 11 days
   	],
@@ -150,7 +150,7 @@ const defaultActions: Actions[] = [
   },
   {
   	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
+  		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
   		{"key": "tags", "comparator": "==", "value": ["@IPT"]},
   		{"key": "seeding_time", "comparator": ">=", "value": 1296000} // 15 days
   	],
@@ -158,114 +158,14 @@ const defaultActions: Actions[] = [
   	"arg": true
   },
   // Default: Remove !noHL torrents after 30 days
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL_test"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 30 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  // Remove !noHL torrents from public trackers
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "private", "comparator": "!="}
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  // Remove !noHL torrents from no-HnR trackers
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@MLK", "@FNP", "@RUT", "@FL", "@YNK", "@RFX", "@SP", "@CBR", "@ANT"]}
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  // Remove !noHL torrents from private trackers based on seeding time
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@ULCX", "@HDS", "@SA", "@RAS", "@OE", "@PTF"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 259200} // 3 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@TTi", "@LST", "@ST"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 345600} // 4 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@ATH", "@YS", "@DCC", "@RF"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 518400} // 6 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@SHR", "@DP"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 604800} // 7 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@BLU"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 691200} // 8 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@TL"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 777600} // 9 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@PHD"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 950400} // 11 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "tags", "comparator": "==", "value": ["@IPT"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 1296000} // 15 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
-  // Default: Remove !noHL torrents after 30 days
-  {
-  	"if": [
-  		{"key": "tags", "comparator": "==", "value": ["!noHL"]},
-  		{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 30 days
-  	],
-  	"then": "delete",
-  	"arg": true
-  },
+  // {
+  // 	"if": [
+  // 		{"key": "tags", "comparator": "==", "value": ["!noHL", "!noHL_test"]},
+  // 		{"key": "seeding_time", "comparator": ">=", "value": 1382400} // 30 days
+  // 	],
+  // 	"then": "delete",
+  // 	"arg": true
+  // },
   // Recheck stalled but completed downloads
   {
   	"if": [

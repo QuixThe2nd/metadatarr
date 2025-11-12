@@ -22,7 +22,7 @@ export function parseConfigFile<T extends z.ZodObject | z.ZodRecord>(filePath: s
   if (!fs.existsSync(configPath)) {
     const dir = path.dirname(configPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(configPath, JSON.stringify(defaultConfig)); // TODO: Add zod's .describe as comments
+    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2)); // TODO: Add zod's .describe as comments
   }
   const config = (fs.existsSync(configPath) ? partial.parse(JSONC.parse(fs.readFileSync(configPath, 'utf8'))) : {}) as Partial<z.infer<T>>;
   for (const key in config) 
