@@ -24,10 +24,13 @@ export class CacheEngine<K extends string, V> {
   // Read
   get = (key: K): V | undefined => { 
     const rawValue = this.map.get(key);
-    if (rawValue === undefined || +new Date() > rawValue.expiry) return undefined;
+    if (rawValue === undefined) return undefined;
+    if (+new Date() > rawValue.expiry) {
+      this.map.delete(key);
+      return undefined;
+    }
     return rawValue.value;
   };
-  has = (key: K): boolean => { return this.map.has(key) };
 
   // Write
   set(key: K, value: V | undefined, lifespan: number): this {
@@ -37,5 +40,3 @@ export class CacheEngine<K extends string, V> {
     return this;
   }
 }
-
-// TODO: actually use cache expiry

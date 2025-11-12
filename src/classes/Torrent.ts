@@ -92,7 +92,7 @@ const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjec
       const res = await request(`files?hash=${data.hash}`);
       if (res === false) return null;
       const result = z.array(z.object({ name: z.string() })).parse(JSON.parse(res));
-      filesCache.set(data.hash, JSON.stringify(result), 1_000*60*60*24*24);
+      filesCache.set(data.hash, JSON.stringify(result), 1_000*60*60*24);
       return result;
     },
     start: async (): Promise<number> => await request('start') === false ? 0 : 1,

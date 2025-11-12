@@ -99,7 +99,8 @@ const showCache = new CacheEngine<string, number>({ name: 'shows' });
 const episodeCache = new CacheEngine<string, string>({ name: 'episodes' });
 
 const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): Promise<number | undefined> => {
-  if (showCache.has(title)) return showCache.get(title);
+  const cacheValue = showCache.get(title)
+  if (cacheValue !== undefined) return cacheValue;
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Show: ${title}`);
@@ -112,7 +113,8 @@ const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): P
 
 const getEpisodeTitle = async (id: number, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
   const cacheKey = `${id}S${season}E${episode}`;
-  if (episodeCache.has(cacheKey)) return episodeCache.get(cacheKey);
+  const cacheValue = episodeCache.get(cacheKey);
+  if (cacheValue !== undefined) return cacheValue;
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Episode: ${id} S${season}E${episode}`)
