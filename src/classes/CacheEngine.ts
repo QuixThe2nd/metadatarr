@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import LockFile from './LockFile';
+import z from 'zod';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,8 +10,19 @@ const __dirname = path.dirname(__filename);
 const cacheDir = path.join(__dirname, '../../store/cache/');
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
+const cacheEntrySchema = z.object({
+  value: z.union([z.string(), z.number()]),
+  expiry: z.number(),
+});
+
+const cacheDataSchema = z.array(
+  z.tuple([z.string(), cacheEntrySchema])
+);
+
+type CacheEntry<V> = z.infer<typeof cacheEntrySchema> & { value: V };
+
 export class CacheEngine<K extends string, V extends string | number> {
-  private map = new Map<K, { value: V; expiry: number }>();
+    private map = new Map<K, CacheEntry<V>>();
   private path: string;
 
   constructor({ name }: { name: string }) {
@@ -18,7 +30,8 @@ export class CacheEngine<K extends string, V extends string | number> {
     new LockFile(`${cachePath}.lock`);
     this.path = cachePath;
     if (!fs.existsSync(cachePath)) fs.writeFileSync(cachePath, '[]', 'utf8');
-    this.map = new Map<K, { value: V; expiry: number }>(JSON.parse(fs.readFileSync(cachePath, 'utf8')));
+    const validatedData = cacheDataSchema.parse(JSON.parse(fs.readFileSync(cachePath, 'utf8')));
+    this.map = new Map(validatedData as [K, CacheEntry<V>][]);
   }
 
   // Read
