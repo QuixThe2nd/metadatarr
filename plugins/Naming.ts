@@ -104,11 +104,15 @@ const getShowID = async (title: string, config: z.infer<typeof ConfigSchema>): P
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Show: ${title}`);
-  const res = await fetch(`https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&query=${title}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
-  const id = ShowSchema.parse(await res.json()).results[0]?.id;
-
-  showCache.set(title, id, 1_000*60*60*24*30);
-  return id;
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&query=${title}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
+    const id = ShowSchema.parse(await res.json()).results[0]?.id;
+    showCache.set(title, id, 1_000*60*60*24*30);
+    return id;
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
 }
 
 const getEpisodeTitle = async (id: number, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
@@ -118,11 +122,15 @@ const getEpisodeTitle = async (id: number, season: number, episode: number, conf
   if (config.TMDB_API_KEY.length === 0) return undefined;
 
   console.log(`[TMDB] Episode: ${id} S${season}E${episode}`)
-  const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}/episode/${episode}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
-  const name = EpisodeSchema.parse(await res.json()).name;
-
-  episodeCache.set(cacheKey, name, 1_000*60*60*24*30);
-  return name;
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${season}/episode/${episode}`, { headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` } });
+    const name = EpisodeSchema.parse(await res.json()).name;
+    episodeCache.set(cacheKey, name, 1_000*60*60*24*30);
+    return name;
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
 }
 
 export const getEpisodeTitleFromName = async (title: string, season: number, episode: number, config: z.infer<typeof ConfigSchema>): Promise<string | undefined> => {
