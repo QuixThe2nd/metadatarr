@@ -64,7 +64,9 @@ export const TorrentObjectSchema = z.object({
   addTags: z.custom<(arg: string[]) => Promise<number>>(),
 });
 
-const filesCache = new CacheEngine({ name: 'files' });
+const FilesSchema = z.array(z.object({ name: z.string() }));
+
+const filesCache = new CacheEngine<string, string>({ name: 'files' });
 
 const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjectSchema> => {
   const request = (method: string, rest: { category?: string; name?: string; oldPath?: string; newPath?: string; deleteFiles?: boolean; tags?: string; enable?: boolean } = {}): Promise<string | false> => {
@@ -88,10 +90,10 @@ const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjec
     get: (): TorrentType => data,
     files: async (): Promise<{ name: string }[] | null> => {
       const cacheResult = filesCache.get(data.hash);
-      if (cacheResult !== undefined) return JSON.parse(cacheResult);
+      if (cacheResult !== undefined) return FilesSchema.parse(JSON.parse(cacheResult));
       const res = await request(`files?hash=${data.hash}`);
       if (res === false) return null;
-      const result = z.array(z.object({ name: z.string() })).parse(JSON.parse(res));
+      const result = FilesSchema.parse(JSON.parse(res));
       filesCache.set(data.hash, JSON.stringify(result), 1_000*60*60*24);
       return result;
     },

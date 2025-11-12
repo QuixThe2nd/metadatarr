@@ -21,7 +21,7 @@ export const ConfigSchema = z.object({
 
 const requiredFilters: z.infer<typeof QuerySchema> = { key: 'progress', comparator: '==', value: 1 };
 
-const cacheEngine = new CacheEngine({ name: 'hardlinks' });
+const cacheEngine = new CacheEngine<string, string>({ name: 'hardlinks' });
 
 const isFileHardLinked = async (path: string): Promise<boolean | null> => {
   if (!fs.existsSync(path)) return null;
@@ -39,7 +39,7 @@ const isHardLinked = async (torrent: ReturnType<typeof Torrent>): Promise<boolea
     const filePath = path.join(`${torrent.get().save_path}/`, file);
     const cachedResult = cacheEngine.get(filePath);
     if (cachedResult !== undefined) {
-      const result = JSON.parse(cachedResult);
+      const result = z.union([z.boolean(), z.null()]).parse(JSON.parse(cachedResult));
       if (result === true || result === null) return result;
     } else {
       const result = await isFileHardLinked(filePath);
