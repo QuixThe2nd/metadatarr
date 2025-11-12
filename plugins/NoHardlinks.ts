@@ -5,6 +5,7 @@ import { stat } from 'fs/promises';
 import z from 'zod';
 import { queryEngine, QuerySchema } from "../src/classes/QueryEngine";
 import type Torrent from "../src/classes/Torrent";
+import fs from 'fs';
 
 export const ConfigSchema = z.object({
   ENABLED: z.boolean().default(true),
@@ -19,11 +20,12 @@ export const ConfigSchema = z.object({
 
 const requiredFilters: z.infer<typeof QuerySchema> = { key: 'progress', comparator: '==', value: 1 };
 
-const isHardLinked = async (torrent: ReturnType<typeof Torrent>): Promise<boolean> => {
+const isHardLinked = async (torrent: ReturnType<typeof Torrent>): Promise<boolean | null> => {
   let linked = false;
   const files = (await torrent.files() ?? []).map(file => file.name);
   for (const file of files) {
     const absolutePath = path.join(`${torrent.get().save_path}/`, file)
+    if (!fs.existsSync(absolutePath)) return null;
     try {
       if ((await stat(absolutePath)).nlink > 1) linked = true; 
     } catch (e) {
@@ -43,7 +45,7 @@ export const hook = async ({ torrents, config }: HookInputs<z.infer<typeof Confi
     if (torrent === undefined) continue;
     instructions.push({
       hash: torrent.get().hash,
-      then: await isHardLinked(torrent) ? 'removeTags' : 'addTags',
+      then: await isHardLinked(torrent) === false ? 'addTags' : 'removeTags',
       arg: [config.TAG]
     });
   }
