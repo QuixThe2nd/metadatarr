@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const cacheDir = path.join(__dirname, '../../store/cache/');
 if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-export class CacheEngine<K extends string, V extends string> {
+export class CacheEngine<K extends string, V extends string | number> {
   private map = new Map<K, { value: V; expiry: number }>();
   private path: string;
 
