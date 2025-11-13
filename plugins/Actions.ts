@@ -42,7 +42,7 @@ const defaultActions: Actions[] = [
     "if": [
       {"key": "category", "comparator": "==", "value": ["cross-seed-links"]},
       {"key": "progress", "comparator": "<", "value": 0.95},
-      {"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving"]}
+      {"key": "state", "comparator": "!=", "value": ["checkingDL", "checkingUP", "checkingResumeData", "moving", "stoppedDL"]}
     ],
     "then": "delete",
     "arg": true
