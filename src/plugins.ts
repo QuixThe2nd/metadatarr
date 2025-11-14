@@ -42,6 +42,8 @@ export type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | und
 type Endpoint = (req: Request, res: Response) => Promise<void>;
 export type PluginEndpoints = Map<string, Endpoint>;
 
+export type AttributedInstruction = Instruction & { plugin: string }
+
 export const importPlugins = (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => logContext('plugins', async () => {
   const hooks: Hooks = {};
   const endpoints: PluginEndpoints = new Map();
@@ -76,17 +78,17 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
 
   const torrents = await client.torrents();
 
-  const instructions: Instruction[] = [];
+  const instructions: AttributedInstruction[] = [];
   await logContext('hook', async () => {
     console.log('Running hooks');
-    if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', () => hook({ torrents, client, config: {} })));
+    if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', async () => (await hook({ torrents, client, config: {} })).map(instruction => ({ ...instruction, plugin: 'inject' }))));
     else
       for (const [name, { hook, ConfigSchema }] of Object.entries(hooks))
         instructions.push(...await logContext(name, async () => {
           console.log('Hooking');
           const configSchema = ConfigSchema ?? z.object({})
           const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
-          const pluginInstructions = await hook({ torrents, client, config });
+          const pluginInstructions = (await hook({ torrents, client, config })).map(instruction => ({ ...instruction, plugin: name }));
           console.log('Done hooking - Instructions:', pluginInstructions.length);
           return pluginInstructions;
         }));
@@ -99,6 +101,7 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
   const optimisedInstructions = await compileInstructions(instructions, client, mappedTorrents);
 
   for (const instruction of optimisedInstructions) {
+    console.log(`${instruction.plugin}:`)
     if ('hash' in instruction) {
       const torrent = mappedTorrents[instruction.hash];
       if (torrent === undefined) continue;
