@@ -115,4 +115,5 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
 
   return optimisedInstructions.length;
 });
+
 // TODO: move old config comments to zod .describe()
