@@ -76,6 +76,14 @@ export const ConfigSchema = z.object({
 				{"key": "amount_left", "comparator": "ASC"},
 				{"key": "state", "comparator": "==", "value": ["checkingDL"]}
 			]
+		},
+		{
+			"key": "state",
+			"comparator": "!=",
+			"value": ["moving"],
+			"else": [
+				{"key": "size", "comparator": "ASC"}
+			]
 		}
 	])
 });
