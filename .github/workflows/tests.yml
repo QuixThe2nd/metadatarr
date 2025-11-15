@@ -22,7 +22,6 @@ jobs:
       
       - name: Clone parse-torrent-title
         run: git clone https://github.com/QuixThe2nd/parse-torrent-title parse-torrent-title
-        working-directory: /home/runner/work/metadatarr
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
