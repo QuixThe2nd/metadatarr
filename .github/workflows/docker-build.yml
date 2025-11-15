@@ -16,11 +16,19 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: docker:dind
+      options: --privileged
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Start Docker daemon
+        run: |
+          dockerd &
+          sleep 5
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
