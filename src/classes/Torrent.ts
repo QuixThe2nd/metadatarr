@@ -51,6 +51,7 @@ const SINGULAR_HASH_ENDPOINTS = ['rename', 'renameFile'];
 export const TorrentObjectSchema = z.object({
   get: z.custom<() => TorrentType>(),
   files: z.custom<() => Promise<{ name: string }[] | null>>(),
+  trackers: z.custom<() => Promise<z.infer<typeof TrackerSchema>[] | null>>(),
   start: z.custom<() => Promise<number>>(),
   stop: z.custom<() => Promise<number>>(),
   recheck: z.custom<() => Promise<number>>(),
@@ -65,6 +66,17 @@ export const TorrentObjectSchema = z.object({
 });
 
 const FilesSchema = z.array(z.object({ name: z.string() }));
+
+const TrackerSchema = z.object(  {
+  msg: z.string(),
+  num_downloaded: z.number(),
+  num_leeches: z.number(),
+  num_peers: z.number(),
+  num_seeds: z.number(),
+  status: z.number().min(0).max(4),
+  tier: z.number(),
+  url: z.string()
+})
 
 const filesCache = new CacheEngine<string, string>({ name: 'files' });
 
@@ -96,6 +108,11 @@ const Torrent = (client: Client, data: TorrentType): z.infer<typeof TorrentObjec
       const result = FilesSchema.parse(JSON.parse(res));
       filesCache.set(data.hash, JSON.stringify(result), 1_000*60*60*24);
       return result;
+    },
+    trackers: async (): Promise<z.infer<typeof TrackerSchema>[] | null> => {
+      const res = await request(`trackers?hash=${data.hash}`);
+      if (res === false) return null;
+      return z.array(TrackerSchema).parse(JSON.parse(res));
     },
     start: async (): Promise<number> => await request('start') === false ? 0 : 1,
     stop: async (): Promise<number> => {
