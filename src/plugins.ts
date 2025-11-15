@@ -16,13 +16,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginDir = path.join(__dirname, '../plugins/');
 
 const HookSchema = z.function({
-  input: [z.object({ torrents: z.array(TorrentObjectSchema), client: z.instanceof(Client), config: z.object().loose() })],
+  input: [z.object({ torrents: z.array(TorrentObjectSchema), client: z.instanceof(Client), config: z.record(z.string(), z.unknown()) })],
   output: z.promise(z.array(InstructionSchema))
 });
 
 const EndpointSchema = z.function({
-  input: [z.record(z.string(), z.unknown()), z.record(z.string(), z.unknown())],
-  output: z.promise(z.void()),
+  input: [z.instanceof(Client), z.union([z.instanceof(z.ZodObject), z.undefined()])],
+  output: z.function({ input: [z.record(z.string(), z.unknown()), z.record(z.string(), z.unknown())] }),
 });
 const PluginExports = z.object({
   hook: HookSchema,
@@ -39,7 +39,7 @@ export interface HookInputs<Config extends Record<string, unknown> = Record<stri
 type Hook = (hookInputs: HookInputs) => Promise<Instruction[]>;
 export type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
 
-type Endpoint = (req: Request, res: Response) => Promise<void>;
+type Endpoint = (req: Request, res: Response) => void;
 export type PluginEndpoints = Map<string, Endpoint>;
 
 export type AttributedInstruction = Instruction & { plugin: string }
@@ -56,10 +56,12 @@ export const importPlugins = (): Promise<{ hooks: Hooks, endpoints: PluginEndpoi
 
     const pluginExports = PluginExports.parse(await import(path.join(pluginDir, file)));
     if (pluginExports.endpoint !== undefined) {
-      const endpoint: Endpoint = async (inputs) => await EndpointSchema.implementAsync(pluginExports.endpoint)(inputs);
+      const rawEndpoint = EndpointSchema.implementAsync(pluginExports.endpoint)(client, pluginExports.ConfigSchema);
+      const endpoint: Endpoint = (req, res) => rawEndpoint(req as unknown as Record<string, unknown>, res as unknown as Record<string, unknown>);
       endpoints.set(name, endpoint);
     } if (pluginExports.hook !== undefined) {
-      const hook: Hook = async (inputs) => await HookSchema.implementAsync(pluginExports.hook)(inputs);
+      const rawHook = HookSchema.implementAsync(pluginExports.hook);
+      const hook: Hook = ({ torrents, client, config }) => Promise.resolve(rawHook({ torrents, client, config }));
       hooks[name] = { hook, ConfigSchema: pluginExports.ConfigSchema };
     }
   }
