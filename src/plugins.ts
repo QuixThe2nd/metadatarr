@@ -103,15 +103,16 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
   const optimisedInstructions = await compileInstructions(instructions, client, mappedTorrents);
 
   for (const instruction of optimisedInstructions) {
-    console.log(`${instruction.plugin}:`)
-    if ('hash' in instruction) {
-      const torrent = mappedTorrents[instruction.hash];
-      if (torrent === undefined) continue;
-      if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
-      else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
-      else await torrent[instruction.then]();
-    } else if (instruction.then === 'setMaxActiveDownloads') await client[instruction.then](instruction.arg);
-    else await client[instruction.then](instruction.arg);
+    await logContext(instruction.plugin, async () => {
+      if ('hash' in instruction) {
+        const torrent = mappedTorrents[instruction.hash];
+        if (torrent === undefined) return;
+        if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
+        else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
+        else await torrent[instruction.then]();
+      } else if (instruction.then === 'setMaxActiveDownloads') await client[instruction.then](instruction.arg);
+      else await client[instruction.then](instruction.arg);
+    });
     await new Promise(res => setTimeout(res, instruction.then === 'topPriority' ? coreConfig.MOVE_WAIT : coreConfig.INSTRUCTION_WAIT));
   }
 
