@@ -67,7 +67,7 @@ const optimiseInstructions = (instructions: AttributedInstruction[]): Attributed
       if (actions.start?.arg === true) instructions.push({ hash, then: 'start', plugin: actions.start.plugin });
       else if (actions.start?.arg === false) instructions.push({ hash, then: 'stop', plugin: actions.start.plugin });
       if (actions.recheck?.arg === true) instructions.push({ hash, then: 'recheck', plugin: actions.recheck.plugin });
-      if (actions.toggleSequentialDownloads?.arg === true) instructions.push({ hash, then: 'recheck', plugin: actions.toggleSequentialDownloads.plugin });
+      if (actions.toggleSequentialDownloads?.arg === true) instructions.push({ hash, then: 'toggleSequentialDownload', plugin: actions.toggleSequentialDownloads.plugin });
       if (actions.autoManagement !== undefined) instructions.push({ hash, then: 'setAutoManagement', ...actions.autoManagement });
       if (actions.name !== undefined) instructions.push({ hash, then: 'rename', ...actions.name });
       if (actions.category !== undefined) instructions.push({ hash, then: 'setCategory', ...actions.category });
