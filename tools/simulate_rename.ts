@@ -1,4 +1,4 @@
-import { ConfigSchema, test } from '../plugins/Naming'
+import { ConfigSchema, test } from '../plugins/_Naming'
 import Client from '../src/clients/client'
 import { parseConfigFile } from '../src/config';
 

@@ -16,13 +16,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginDir = path.join(__dirname, '../plugins/');
 
 const HookSchema = z.function({
-  input: [z.object({ torrents: z.array(TorrentObjectSchema), client: z.instanceof(Client), config: z.object().loose() })],
+  input: [z.object({ torrents: z.array(TorrentObjectSchema), client: z.instanceof(Client), config: z.record(z.string(), z.unknown()) })],
   output: z.promise(z.array(InstructionSchema))
 });
 
 const EndpointSchema = z.function({
-  input: [z.record(z.string(), z.unknown()), z.record(z.string(), z.unknown())],
-  output: z.promise(z.void()),
+  input: [z.instanceof(Client), z.union([z.instanceof(z.ZodObject), z.undefined()])],
+  output: z.function({ input: [z.record(z.string(), z.unknown()), z.record(z.string(), z.unknown())] }),
 });
 const PluginExports = z.object({
   hook: HookSchema,
@@ -39,8 +39,10 @@ export interface HookInputs<Config extends Record<string, unknown> = Record<stri
 type Hook = (hookInputs: HookInputs) => Promise<Instruction[]>;
 export type Hooks = Record<string, { hook: Hook, ConfigSchema: z.ZodObject | undefined }>;
 
-type Endpoint = (req: Request, res: Response) => Promise<void>;
+type Endpoint = (req: Request, res: Response) => void;
 export type PluginEndpoints = Map<string, Endpoint>;
+
+export type AttributedInstruction = Instruction & { plugin: string }
 
 export const importPlugins = (): Promise<{ hooks: Hooks, endpoints: PluginEndpoints }> => logContext('plugins', async () => {
   const hooks: Hooks = {};
@@ -54,10 +56,12 @@ export const importPlugins = (): Promise<{ hooks: Hooks, endpoints: PluginEndpoi
 
     const pluginExports = PluginExports.parse(await import(path.join(pluginDir, file)));
     if (pluginExports.endpoint !== undefined) {
-      const endpoint: Endpoint = async (inputs) => await EndpointSchema.implementAsync(pluginExports.endpoint)(inputs);
+      const rawEndpoint = EndpointSchema.implementAsync(pluginExports.endpoint)(client, pluginExports.ConfigSchema);
+      const endpoint: Endpoint = (req, res) => rawEndpoint(req as unknown as Record<string, unknown>, res as unknown as Record<string, unknown>);
       endpoints.set(name, endpoint);
     } if (pluginExports.hook !== undefined) {
-      const hook: Hook = async (inputs) => await HookSchema.implementAsync(pluginExports.hook)(inputs);
+      const rawHook = HookSchema.implementAsync(pluginExports.hook);
+      const hook: Hook = ({ torrents, client, config }) => Promise.resolve(rawHook({ torrents, client, config }));
       hooks[name] = { hook, ConfigSchema: pluginExports.ConfigSchema };
     }
   }
@@ -76,17 +80,17 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
 
   const torrents = await client.torrents();
 
-  const instructions: Instruction[] = [];
+  const instructions: AttributedInstruction[] = [];
   await logContext('hook', async () => {
     console.log('Running hooks');
-    if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', () => hook({ torrents, client, config: {} })));
+    if (coreConfig.DEV_INJECT) instructions.push(...await logContext('inject', async () => (await hook({ torrents, client, config: {} })).map(instruction => ({ ...instruction, plugin: 'inject' }))));
     else
       for (const [name, { hook, ConfigSchema }] of Object.entries(hooks))
         instructions.push(...await logContext(name, async () => {
           console.log('Hooking');
           const configSchema = ConfigSchema ?? z.object({})
           const config: z.infer<typeof configSchema> = parseConfigFile(`plugins/${name}.jsonc`, configSchema);
-          const pluginInstructions = await hook({ torrents, client, config });
+          const pluginInstructions = (await hook({ torrents, client, config })).map(instruction => ({ ...instruction, plugin: name }));
           console.log('Done hooking - Instructions:', pluginInstructions.length);
           return pluginInstructions;
         }));
@@ -99,18 +103,19 @@ export const runHooks = (hooks: Hooks): Promise<number> => logContext('plugins',
   const optimisedInstructions = await compileInstructions(instructions, client, mappedTorrents);
 
   for (const instruction of optimisedInstructions) {
-    if ('hash' in instruction) {
-      const torrent = mappedTorrents[instruction.hash];
-      if (torrent === undefined) continue;
-      if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
-      else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
-      else await torrent[instruction.then]();
-    } else if (instruction.then === 'setMaxActiveDownloads') await client[instruction.then](instruction.arg);
-    else await client[instruction.then](instruction.arg);
+    await logContext(instruction.plugin, async () => {
+      if ('hash' in instruction) {
+        const torrent = mappedTorrents[instruction.hash];
+        if (torrent === undefined) return;
+        if (instruction.then === 'renameFile') await torrent[instruction.then](...instruction.arg);
+        else if ('arg' in instruction) await torrent[instruction.then](instruction.arg as never);
+        else await torrent[instruction.then]();
+      } else if (instruction.then === 'setMaxActiveDownloads') await client[instruction.then](instruction.arg);
+      else await client[instruction.then](instruction.arg);
+    });
     await new Promise(res => setTimeout(res, instruction.then === 'topPriority' ? coreConfig.MOVE_WAIT : coreConfig.INSTRUCTION_WAIT));
   }
 
   return optimisedInstructions.length;
 });
-
 // TODO: move old config comments to zod .describe()

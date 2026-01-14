@@ -1,23 +1,23 @@
 import type Torrent from './classes/Torrent';
 import type Client from './clients/client';
 import { logContext } from './log';
-import type { Instruction } from './schemas';
+import type { AttributedInstruction } from './plugins';
 
 interface Actions {
-  start: boolean | undefined;
-  autoManagement: boolean | undefined;
-  addTags: Set<string>;
-  removeTags: Set<string>;
-  name: string | undefined;
-  category: string | undefined;
-  toggleSequentialDownloads: true | undefined;
-  recheck: true | undefined;
+  start: { arg: boolean, plugin: string } | undefined;
+  autoManagement: { arg: boolean, plugin: string } | undefined;
+  name: { arg: string, plugin: string } | undefined;
+  category: { arg: string, plugin: string } | undefined;
+  toggleSequentialDownloads: { arg: true, plugin: string } | undefined;
+  recheck: { arg: true, plugin: string } | undefined;
+  addTags: Map<string, string>;
+  removeTags: Map<string, string>;
 }
 
 // eslint-disable-next-line max-lines-per-function, complexity
-const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
+const optimiseInstructions = (instructions: AttributedInstruction[]): AttributedInstruction[] => {
   const torrents = new Map<string, Actions>();
-  const deletes = new Map<string, boolean>();
+  const deletes = new Map<string, { arg: boolean, plugin: string }>();
   const topPriority: string[][] = [];
   let setMaxActiveDownloads: number | undefined;
 
@@ -28,8 +28,8 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
       const { hash } = instruction;
       if (deletes.has(hash)) continue;
       if (!torrents.has(hash)) torrents.set(hash, {
-        addTags: new Set(),
-        removeTags: new Set(),
+        addTags: new Map(),
+        removeTags: new Map(),
         recheck: undefined,
         toggleSequentialDownloads: undefined,
         start: undefined,
@@ -40,48 +40,49 @@ const optimiseInstructions = (instructions: Instruction[]): Instruction[] => {
       const torrent = torrents.get(hash);
       if (torrent === undefined) throw new Error('Failed to pull torrent?');
       if (instruction.then === 'delete') {
-        if (deletes.get(hash) !== true) deletes.set(hash, instruction.arg);
+        if (deletes.get(hash)?.arg !== true) deletes.set(hash, { arg: instruction.arg, plugin: instruction.plugin });
         torrents.delete(hash);
-      } else if (instruction.then === 'recheck') torrent.recheck = true;
-      else if (instruction.then === 'start') torrent.start = true;
-      else if (instruction.then === 'stop') torrent.start = false;
+      } else if (instruction.then === 'recheck') torrent.recheck = { arg: true, plugin: instruction.plugin };
+      else if (instruction.then === 'start') torrent.start = { arg: true, plugin: instruction.plugin };
+      else if (instruction.then === 'stop') torrent.start = { arg: false, plugin: instruction.plugin };
       else if (instruction.then === 'addTags') {
-        instruction.arg.forEach(tag => torrent.addTags.add(tag));
+        instruction.arg.forEach(tag => torrent.addTags.set(tag, instruction.plugin));
         instruction.arg.forEach(tag => torrent.removeTags.delete(tag));
       } else if (instruction.then === 'removeTags') {
-        instruction.arg.forEach(tag => torrent.removeTags.add(tag));
+        instruction.arg.forEach(tag => torrent.removeTags.set(tag, instruction.plugin));
         instruction.arg.forEach(tag => torrent.addTags.delete(tag));
-      } else if (instruction.then === 'rename') torrent.name = instruction.arg;
-      else if (instruction.then === 'toggleSequentialDownload') torrent.toggleSequentialDownloads = true;
-      else if (instruction.then === 'setAutoManagement') torrent.autoManagement = instruction.arg;
-      else if (instruction.then === 'setCategory') torrent.category = instruction.arg;
+      } else if (instruction.then === 'rename') torrent.name = { arg: instruction.arg, plugin: instruction.plugin };
+      else if (instruction.then === 'toggleSequentialDownload') torrent.toggleSequentialDownloads = { arg: true, plugin: instruction.plugin };
+      else if (instruction.then === 'setAutoManagement') torrent.autoManagement = { arg: instruction.arg, plugin: instruction.plugin };
+      else if (instruction.then === 'setCategory') torrent.category = { arg: instruction.arg, plugin: instruction.plugin };
       else throw new Error(`Unknown Instruction: ${instruction.then}`);
   }
 
-  const optimisedInstructions: Instruction[] = [
-    ...[...deletes].map(([hash, arg]): Instruction => ({ then: 'delete', hash, arg })),
-    ...topPriority.map((torrents): Instruction => ({ then: 'topPriority', arg: torrents })),
-    ...[...torrents].flatMap(([hash, actions]): Instruction[] => {
-      const instructions: Instruction[] = [];
-      if (actions.start === true) instructions.push({ hash, then: 'start' });
-      else if (actions.start === false) instructions.push({ hash, then: 'stop' });
-      if (actions.recheck === true) instructions.push({ hash, then: 'recheck' });
-      if (actions.toggleSequentialDownloads === true) instructions.push({ hash, then: 'recheck' });
-      if (actions.autoManagement !== undefined) instructions.push({ hash, then: 'setAutoManagement', arg: actions.autoManagement });
-      if (actions.name !== undefined) instructions.push({ hash, then: 'rename', arg: actions.name });
-      if (actions.category !== undefined) instructions.push({ hash, then: 'setCategory', arg: actions.category });
-      if (actions.addTags.size) instructions.push({ hash, then: 'addTags', arg: [...actions.addTags] });
-      if (actions.removeTags.size) instructions.push({ hash, then: 'removeTags', arg: [...actions.removeTags] });
+  const optimisedInstructions: AttributedInstruction[] = [
+    ...[...deletes].map(([hash, { arg, plugin }]): AttributedInstruction => ({ then: 'delete', hash, arg, plugin })),
+    ...topPriority.map((torrents): AttributedInstruction => ({ then: 'topPriority', arg: torrents, plugin: 'unknown' })),
+    // eslint-disable-next-line complexity
+    ...[...torrents].flatMap(([hash, actions]): AttributedInstruction[] => {
+      const instructions: AttributedInstruction[] = [];
+      if (actions.start?.arg === true) instructions.push({ hash, then: 'start', plugin: actions.start.plugin });
+      else if (actions.start?.arg === false) instructions.push({ hash, then: 'stop', plugin: actions.start.plugin });
+      if (actions.recheck?.arg === true) instructions.push({ hash, then: 'recheck', plugin: actions.recheck.plugin });
+      if (actions.toggleSequentialDownloads?.arg === true) instructions.push({ hash, then: 'toggleSequentialDownload', plugin: actions.toggleSequentialDownloads.plugin });
+      if (actions.autoManagement !== undefined) instructions.push({ hash, then: 'setAutoManagement', ...actions.autoManagement });
+      if (actions.name !== undefined) instructions.push({ hash, then: 'rename', ...actions.name });
+      if (actions.category !== undefined) instructions.push({ hash, then: 'setCategory', ...actions.category });
+      if (actions.addTags.size) instructions.push({ hash, then: 'addTags', arg: [...actions.addTags.keys()], plugin: [...actions.addTags.values()][0] ?? 'unknown' });
+      if (actions.removeTags.size) instructions.push({ hash, then: 'removeTags', arg: [...actions.removeTags.keys()], plugin: [...actions.removeTags.values()][0] ?? 'unknown' });
       return instructions;
     })
   ];
-  if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads });
+  if (setMaxActiveDownloads !== undefined) optimisedInstructions.push({ then: 'setMaxActiveDownloads', arg: setMaxActiveDownloads, plugin: 'unknown' });
 
   console.log('Optimised instructions to:', optimisedInstructions.length);
   return optimisedInstructions;
 }
 
-const reduceInstructions = async (client: Client, instructions: Instruction[], torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => {
+const reduceInstructions = async (client: Client, instructions: AttributedInstruction[], torrents: Record<string, ReturnType<typeof Torrent>>): Promise<AttributedInstruction[]> => {
   const maxActiveDownloads = instructions.some(instruction => instruction.then === 'setMaxActiveDownloads') ? await client.getMaxActiveDownloads() : false;
 
   // eslint-disable-next-line complexity
@@ -105,7 +106,7 @@ const reduceInstructions = async (client: Client, instructions: Instruction[], t
   });
 }
 
-export const compileInstructions = (instructions: Instruction[], client: Client, torrents: Record<string, ReturnType<typeof Torrent>>): Promise<Instruction[]> => logContext('compiler', async () => {
+export const compileInstructions = (instructions: AttributedInstruction[], client: Client, torrents: Record<string, ReturnType<typeof Torrent>>): Promise<AttributedInstruction[]> => logContext('compiler', async () => {
   console.log('Compiling Instructions:', instructions.length);
   const compiledInstructions = await reduceInstructions(client, optimiseInstructions(instructions), torrents);
   console.log('Reduced instructions to:', compiledInstructions.length);
